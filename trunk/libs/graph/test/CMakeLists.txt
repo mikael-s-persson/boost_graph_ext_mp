@@ -1,0 +1,77 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(boost_graph_contrib)
+
+enable_testing()
+
+if (WIN32)
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /W3 /bigobj -D_SCL_SECURE_NO_WARNINGS")
+    message(STATUS "Configured compiler options and output directories for MSVC toolset.")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} --enable-stdcall-fixup")
+    message(STATUS "Configured compiler options and output directories for MinGW toolset.")
+  endif()
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
+  message(STATUS "Configured compiler options and output directories for *nix GCC toolset.")
+endif()
+
+
+
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0")
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+
+if (NOT WIN32)
+  # make sure that the *nix suffixes and prefixes are correct (some cmake installs of findBoost.cmake are wrong with this).
+  set(_ORIGINAL_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  set(_ORIGINAL_CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES})
+  if( Boost_USE_STATIC_LIBS )
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .so ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  endif()
+  set(CMAKE_FIND_LIBRARY_PREFIXES lib ${CMAKE_FIND_LIBRARY_PREFIXES})
+endif()
+
+find_package(Boost 1.48 COMPONENTS unit_test_framework REQUIRED)
+if(Boost_FOUND)
+  include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+  link_directories(${Boost_LIBRARY_DIRS})
+  message(STATUS "Boost library version ${Boost_LIB_VERSION} found, with headers at '${Boost_INCLUDE_DIR}' and libraries at '${Boost_LIBRARY_DIRS}' for libraries: \n${Boost_LIBRARIES}")
+  if(MSVC)
+    #disable the libraries, since it uses automatic linking:
+        set(Boost_LIBRARIES "")
+  endif()
+endif()
+
+if( NOT WIN32 )
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ${_ORIGINAL_CMAKE_FIND_LIBRARY_SUFFIXES})
+  set(CMAKE_FIND_LIBRARY_PREFIXES ${_ORIGINAL_CMAKE_FIND_LIBRARY_PREFIXES})
+endif()
+
+
+
+
+set(BOOST_GRAPH_CONTRIB_INCLUDE_DIRS "../../../")
+
+include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
+include_directories(BEFORE ${BOOST_GRAPH_CONTRIB_INCLUDE_DIRS})
+
+add_executable(test_trees "test_trees.cpp")
+add_test(NAME test_trees COMMAND "./test_trees")
+target_link_libraries(test_trees ${Boost_LIBRARIES})
+
+add_executable(test_graphs "test_graphs.cpp")
+add_test(NAME test_graphs COMMAND "./test_graphs")
+target_link_libraries(test_graphs ${Boost_LIBRARIES})
+
+
+
+
+
+
+
+
