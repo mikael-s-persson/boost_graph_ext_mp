@@ -246,7 +246,7 @@ class linked_tree
      * \return The parent vertex of the given vertex descriptor (will be null_vertex() if it is the root (no parent)).
      */
     vertex_descriptor get_parent_vertex(vertex_descriptor v) const {
-      m_pack.get_stored_vertex(v).in_edge.source;
+      return m_pack.get_stored_vertex(v).in_edge.source;
     };
     
     /**
@@ -263,7 +263,7 @@ class linked_tree
      * \param v The vertex descriptor.
      * \return The edge iterator range for the out-edges of a given vertex descriptor.
      */
-    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) {
+    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) const {
       return m_pack.out_edges(v);
     };
     
@@ -272,7 +272,7 @@ class linked_tree
      * \param v The vertex descriptor.
      * \return The edge iterator range for the in-edges of a given vertex descriptor.
      */
-    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) {
+    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) const {
       return m_pack.in_edges(v);
     };
     
@@ -280,7 +280,7 @@ class linked_tree
      * Returns the vertex iterator range for all the vertices of the tree.
      * \return The vertex iterator range for all the vertices of the tree.
      */
-    std::pair< vertex_iterator, vertex_iterator > vertices() {
+    std::pair< vertex_iterator, vertex_iterator > vertices() const {
       return m_pack.vertices();
     };
     
@@ -298,7 +298,7 @@ class linked_tree
      * \param v The vertex descriptor of the target vertex.
      * \return The edge descriptor for the given vertex descriptor pair.
      */
-    std::pair<edge_descriptor,bool> get_edge( vertex_descriptor u, vertex_descriptor v) {
+    std::pair<edge_descriptor,bool> get_edge( vertex_descriptor u, vertex_descriptor v) const {
       return m_pack.get_edge(u,v);
     };
     
@@ -307,7 +307,7 @@ class linked_tree
      * \param v The vertex descriptor whose children are sought.
      * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
      */
-    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) {
+    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) const {
       return m_pack.child_vertices(v);
     };
     
@@ -449,7 +449,7 @@ template < BGL_LINKED_LIST_ARGS >
 std::pair<
  typename BGL_LINKED_LIST::out_edge_iterator,
  typename BGL_LINKED_LIST::out_edge_iterator >
-  out_edges( typename BGL_LINKED_LIST::vertex_descriptor v, BGL_LINKED_LIST & g) {
+  out_edges( typename BGL_LINKED_LIST::vertex_descriptor v, const BGL_LINKED_LIST & g) {
   return g.out_edges(v);
 };
 
@@ -467,7 +467,7 @@ template < BGL_LINKED_LIST_ARGS >
 std::pair<
  typename BGL_LINKED_LIST::in_edge_iterator,
  typename BGL_LINKED_LIST::in_edge_iterator >
-  in_edges( typename BGL_LINKED_LIST::vertex_descriptor v, BGL_LINKED_LIST & g) {
+  in_edges( typename BGL_LINKED_LIST::vertex_descriptor v, const BGL_LINKED_LIST & g) {
   return g.in_edges(v);
 };
 
@@ -490,7 +490,7 @@ std::size_t degree( typename BGL_LINKED_LIST::vertex_descriptor v, const BGL_LIN
 template < BGL_LINKED_LIST_ARGS >
 std::pair<
  typename BGL_LINKED_LIST::vertex_iterator,
- typename BGL_LINKED_LIST::vertex_iterator > vertices( BGL_LINKED_LIST & g) {
+ typename BGL_LINKED_LIST::vertex_iterator > vertices( const BGL_LINKED_LIST & g) {
   return g.vertices();
 };
 
@@ -507,7 +507,7 @@ typename BGL_LINKED_LIST::vertices_size_type num_vertices( const BGL_LINKED_LIST
 template < BGL_LINKED_LIST_ARGS >
 std::pair<
  typename BGL_LINKED_LIST::edge_iterator,
- typename BGL_LINKED_LIST::edge_iterator > edges( BGL_LINKED_LIST & g) {
+ typename BGL_LINKED_LIST::edge_iterator > edges( const BGL_LINKED_LIST & g) {
   return g.edges();
 };
 
@@ -530,7 +530,7 @@ template < BGL_LINKED_LIST_ARGS >
 std::pair< 
 typename BGL_LINKED_LIST::adjacency_iterator,
 typename BGL_LINKED_LIST::adjacency_iterator >
-  adjacent_vertices( typename BGL_LINKED_LIST::vertex_descriptor v, BGL_LINKED_LIST & g) {
+  adjacent_vertices( typename BGL_LINKED_LIST::vertex_descriptor v, const BGL_LINKED_LIST & g) {
   return g.child_vertices(v);
 };
 
@@ -544,7 +544,7 @@ std::pair<
   typename BGL_LINKED_LIST::edge_descriptor,
   bool > edge( typename BGL_LINKED_LIST::vertex_descriptor u, 
                typename BGL_LINKED_LIST::vertex_descriptor v,
-               BGL_LINKED_LIST & g) {
+               const BGL_LINKED_LIST & g) {
   return g.get_edge(u,v);
 };
 
@@ -563,7 +563,7 @@ template < BGL_LINKED_LIST_ARGS >
 std::pair< 
 typename BGL_LINKED_LIST::child_vertex_iterator,
 typename BGL_LINKED_LIST::child_vertex_iterator >
-  child_vertices( typename BGL_LINKED_LIST::vertex_descriptor v, BGL_LINKED_LIST & g) {
+  child_vertices( typename BGL_LINKED_LIST::vertex_descriptor v, const BGL_LINKED_LIST & g) {
   return g.child_vertices(v);
 };
 

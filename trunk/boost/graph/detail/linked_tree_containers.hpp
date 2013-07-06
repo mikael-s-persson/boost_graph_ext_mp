@@ -369,7 +369,7 @@ namespace detail {
     typedef filter_iterator< ltree_edge_has_a_source<vertex_descriptor>, edge_iter_impl > edge_iterator;
     
     
-    vertex_container m_vertices;
+    mutable vertex_container m_vertices;
     vertex_descriptor m_root;
     hole_descriptor m_first_hole;
     vertices_size_type m_num_vertices;
@@ -379,8 +379,7 @@ namespace detail {
     std::size_t size() const { return m_num_vertices; };
     std::size_t capacity() const { return m_vertices.capacity(); };
     
-    vertex_stored_type& get_stored_vertex(vertex_descriptor v) { return get<vertex_stored_type>(m_vertices[v]); };
-    const vertex_stored_type& get_stored_vertex(vertex_descriptor v) const { return get<vertex_stored_type>(m_vertices[v]); };
+    vertex_stored_type& get_stored_vertex(vertex_descriptor v) const { return get<vertex_stored_type>(m_vertices[v]); };
     
     edge_value_type& get_stored_edge(edge_descriptor e) { 
       return *desc_to_iterator(get<vertex_stored_type>(m_vertices[e.source]).out_edges, e.edge_id);
@@ -530,7 +529,7 @@ namespace detail {
       return max_depth + 1;
     };
     
-    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) {
+    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) const {
       edge_container& v_oe = get_stored_vertex(v).out_edges;
       return std::make_pair(
         out_edge_iterator(
@@ -554,15 +553,15 @@ namespace detail {
       );
     };
     
-    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) {
-      edge_descriptor& tmp_e = get_stored_vertex(v).in_edge;
+    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) const {
+      const edge_descriptor& tmp_e = get_stored_vertex(v).in_edge;
       if(tmp_e.source == VConfig::null_vertex())
         return std::make_pair(&tmp_e, &tmp_e);
       else
         return std::make_pair(&tmp_e, &tmp_e + 1);
     };
     
-    std::pair< vertex_iterator, vertex_iterator > vertices() {
+    std::pair< vertex_iterator, vertex_iterator > vertices() const {
       ltree_viter_from_index v_beg = ltree_viter_from_index::begin(m_vertices);
       ltree_viter_from_index v_end = ltree_viter_from_index::end(m_vertices);
       return std::pair< vertex_iterator, vertex_iterator >(
@@ -577,7 +576,7 @@ namespace detail {
       return std::pair< edge_iterator, edge_iterator >( edge_iterator(e_beg, e_end), edge_iterator(e_end, e_end) );
     };
     
-    std::pair<edge_descriptor,bool> get_edge(vertex_descriptor u, vertex_descriptor v) {
+    std::pair<edge_descriptor,bool> get_edge(vertex_descriptor u, vertex_descriptor v) const {
       edge_container& u_oe = get_stored_vertex(u).out_edges;
       for(e_iter ei = u_oe.begin(); ei != u_oe.end(); ++ei) {
         if(ei->target == v)
@@ -586,7 +585,7 @@ namespace detail {
       return std::make_pair(edge_descriptor(),false);
     };
     
-    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) {
+    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) const {
       edge_container& v_oe = get_stored_vertex(v).out_edges;
       return std::pair< child_vertex_iterator, child_vertex_iterator >(
         child_vertex_iterator(v_oe.begin()),
@@ -635,7 +634,7 @@ namespace detail {
     typedef filter_iterator< ltree_edge_has_a_source<vertex_descriptor>, edge_iter_impl > edge_iterator;
     
     
-    vertex_container m_vertices;
+    mutable vertex_container m_vertices;
     vertex_descriptor m_root;
     
     ltree_linked_list_container() : m_vertices(), m_root(VConfig::null_vertex()) { };
@@ -644,8 +643,7 @@ namespace detail {
     std::size_t capacity() const { return m_vertices.capacity(); };
     
     
-    vertex_stored_type& get_stored_vertex(vertex_descriptor v) { return *v; };
-    const vertex_stored_type& get_stored_vertex(vertex_descriptor v) const { return *v; };
+    vertex_stored_type& get_stored_vertex(vertex_descriptor v) const { return *v; };
     
     edge_value_type& get_stored_edge(edge_descriptor e) { 
       return *desc_to_iterator(e.source->out_edges, e.edge_id);
@@ -770,7 +768,7 @@ namespace detail {
     };
     
     
-    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) {
+    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) const {
       v_iter v_it = desc_to_iterator(m_vertices, v);
       return std::make_pair(
         out_edge_iterator(
@@ -794,15 +792,15 @@ namespace detail {
       );
     };
     
-    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) {
-      edge_descriptor& tmp_e = get_stored_vertex(v).in_edge;
+    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) const {
+      const edge_descriptor& tmp_e = get_stored_vertex(v).in_edge;
       if(tmp_e.source == VConfig::null_vertex())
         return std::make_pair(&tmp_e, &tmp_e);
       else
         return std::make_pair(&tmp_e, &tmp_e + 1);
     };
     
-    std::pair< vertex_iterator, vertex_iterator > vertices() {
+    std::pair< vertex_iterator, vertex_iterator > vertices() const {
       return std::pair< vertex_iterator, vertex_iterator >(
         vertex_iterator::begin(m_vertices), 
         vertex_iterator::end(m_vertices)
@@ -815,7 +813,7 @@ namespace detail {
       return std::pair< edge_iterator, edge_iterator >( edge_iterator(e_beg, e_end), edge_iterator(e_end, e_end) );
     };
     
-    std::pair<edge_descriptor,bool> get_edge(vertex_descriptor u, vertex_descriptor v) {
+    std::pair<edge_descriptor,bool> get_edge(vertex_descriptor u, vertex_descriptor v) const {
       v_iter u_it = desc_to_iterator(m_vertices, u);
       for(e_iter ei = u_it->out_edges.begin(); ei != u_it->out_edges.end(); ++ei) {
         if(ei->target == v)
@@ -824,7 +822,7 @@ namespace detail {
       return std::make_pair(edge_descriptor(),false);
     };
     
-    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) {
+    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) const {
       v_iter v_it = desc_to_iterator(m_vertices, v);
       return std::pair< child_vertex_iterator, child_vertex_iterator >(
         child_vertex_iterator(v_it->out_edges.begin()),

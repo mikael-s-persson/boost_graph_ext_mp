@@ -1,6 +1,6 @@
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2013 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -50,38 +50,139 @@ typedef boost::mpl::list<
   boost::linked_tree<boost::listS, boost::listS, int, int>,
   boost::tree_storage<int, int>::type,
   boost::pooled_adjacency_list<boost::bidirectionalS, int, int > > intint_treetest_types;
+  
+
+
+template <typename TreeType>
+typename boost::enable_if< boost::is_vertex_list_graph< TreeType >,
+void >::type intint_do_final_vertex_check(const TreeType& g) {
+  typedef typename boost::graph_traits<TreeType>::vertex_iterator VertexIter;
+  std::vector<int> all_vertices;
+  VertexIter vi = VertexIter();
+  VertexIter vi_end = VertexIter();
+  BOOST_CHECK_NO_THROW( boost::tie(vi,vi_end) = vertices(g) ); 
+  for(; vi != vi_end; ++vi)
+    all_vertices.push_back(g[*vi]);
+  std::sort(all_vertices.begin(), all_vertices.end());
+  BOOST_CHECK_EQUAL( all_vertices[0], 1 );
+  BOOST_CHECK_EQUAL( all_vertices[1], 2 );
+  BOOST_CHECK_EQUAL( all_vertices[2], 4 );
+  BOOST_CHECK_EQUAL( all_vertices[3], 5 );
+  BOOST_CHECK_EQUAL( all_vertices[4], 6 );
+  BOOST_CHECK_EQUAL( all_vertices[5], 7 );
+  BOOST_CHECK_EQUAL( all_vertices[6], 8 );
+  BOOST_CHECK_EQUAL( all_vertices[7], 9 );
+};
+
+template <typename TreeType>
+typename boost::disable_if< boost::is_vertex_list_graph< TreeType >,
+void >::type intint_do_final_vertex_check(const TreeType&) { };
+
+
+
+template <typename TreeType>
+typename boost::enable_if< boost::is_vertex_list_graph< TreeType >,
+void >::type intint_check_tree_vertex_count(const TreeType& g, std::size_t expected_count) {
+  BOOST_CHECK_EQUAL( num_vertices(g), expected_count );
+};
+
+template <typename TreeType>
+typename boost::disable_if< boost::is_vertex_list_graph< TreeType >,
+void >::type intint_check_tree_vertex_count(const TreeType&, std::size_t) { };
+
+
+
+template <typename TreeType>
+typename boost::enable_if< boost::is_bidirectional_graph< TreeType >,
+void >::type intint_do_in_edge_check(const TreeType& g, 
+                                     typename boost::graph_traits<TreeType>::vertex_descriptor v,
+                                     int parent_value, int cur_value) {
+  typedef typename boost::graph_traits<TreeType>::vertex_descriptor Vertex;
+  typedef typename boost::graph_traits<TreeType>::in_edge_iterator InEdgeIter;
+  
+  Vertex u = Vertex();
+  BOOST_CHECK_NO_THROW( u = parent_vertex(v, g) );
+  BOOST_CHECK_EQUAL( g[u], parent_value );
+  
+  InEdgeIter iei = InEdgeIter();
+  InEdgeIter iei_end = InEdgeIter();
+  BOOST_CHECK_NO_THROW( boost::tie(iei,iei_end) = in_edges(v,g) );
+  for(; iei != iei_end; ++iei) {
+    BOOST_CHECK_EQUAL( g[*iei], parent_value * 1000 + cur_value );
+    BOOST_CHECK_EQUAL( g[source(*iei,g)], parent_value );
+    BOOST_CHECK_EQUAL( g[target(*iei,g)], cur_value );
+  };
+};
+
+template <typename TreeType>
+typename boost::disable_if< boost::is_bidirectional_graph< TreeType >,
+void >::type intint_do_in_edge_check(const TreeType&, typename boost::graph_traits<TreeType>::vertex_descriptor, int, int) {};
+
+
+
+template <typename TreeType>
+typename boost::enable_if< boost::is_adjacency_matrix< TreeType >,
+void >::type intint_do_edge_check(const TreeType& g, 
+                                  typename boost::graph_traits<TreeType>::vertex_descriptor u,
+                                  typename boost::graph_traits<TreeType>::vertex_descriptor v,
+                                  int u_value, int v_value) {
+  typedef typename boost::graph_traits<TreeType>::edge_descriptor Edge;
+  Edge e = Edge();
+  BOOST_CHECK_NO_THROW( e = edge(u, v, g).first );
+  BOOST_CHECK_EQUAL( g[e], u_value * 1000 + v_value );
+  BOOST_CHECK_EQUAL( g[source(e, g)], u_value );
+  BOOST_CHECK_EQUAL( g[target(e, g)], v_value );
+};
+
+template <typename TreeType>
+typename boost::disable_if< boost::is_adjacency_matrix< TreeType >,
+void >::type intint_do_edge_check(const TreeType&, typename boost::graph_traits<TreeType>::vertex_descriptor, typename boost::graph_traits<TreeType>::vertex_descriptor, int, int) {};
+
+
+
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types )
 {
   typedef typename boost::graph_traits<TreeType>::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits<TreeType>::vertex_iterator VertexIter;
   typedef typename boost::graph_traits<TreeType>::edge_descriptor Edge;
   typedef typename boost::graph_traits<TreeType>::out_edge_iterator OutEdgeIter;
-  typedef typename boost::graph_traits<TreeType>::in_edge_iterator InEdgeIter;
   typedef typename boost::tree_traits<TreeType>::child_vertex_iterator ChildVertIter;
   
   TreeType g;
   
+  /* MutableTree, Graph */
   Vertex v_root = boost::graph_traits<TreeType>::null_vertex();
   BOOST_CHECK_NO_THROW( v_root = create_root(g) );
+  intint_check_tree_vertex_count(g, 1);
+  
+  /* MutableTree */
   BOOST_CHECK_NO_THROW( remove_branch(v_root,g) );
+  intint_check_tree_vertex_count(g, 0);
+  
+  /* MutableTree */
   int vp_r = 1;
   BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) );
+  intint_check_tree_vertex_count(g, 1);
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   
+  /* MutablePropertyTree */
   std::vector<int> props;
   BOOST_CHECK_NO_THROW( remove_branch(v_root, back_inserter(props), g) );
+  intint_check_tree_vertex_count(g, 0);
   BOOST_CHECK_EQUAL( props.size(), 1 );
   BOOST_CHECK_EQUAL( props[0], 1 );
+  props.clear();
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+  /* MutablePropertyTree */
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   BOOST_CHECK_NO_THROW( v_root = create_root(std::move(vp_r), g) );
 #else
   BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) );
 #endif
-  props.clear();
+  intint_check_tree_vertex_count(g, 1);
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   
+  /* MutablePropertyTree */
   int vp_rc[] = {2,3,4,5};
   int ep_rc[] = {1002,1003,1004,1005};
   Vertex v_rc[4];
@@ -89,9 +190,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   for(int i = 0; i < 4; ++i) {
     BOOST_CHECK_NO_THROW( boost::tie(v_rc[i],e_rc[i]) = add_child_vertex(v_root,vp_rc[i],ep_rc[i],g) );
   };
-  BOOST_CHECK_EQUAL( num_vertices(g), 5 );
-  BOOST_CHECK_EQUAL( out_degree(v_root,g), 4 );
+  intint_check_tree_vertex_count(g, 5);
   
+  /* Tree(IncidenceGraph) */
+  BOOST_CHECK_EQUAL( out_degree(v_root,g), 4 );   
+  
+  /* MutablePropertyTree */
   int vp_rc1c[] = {6,7,8,9};
   int ep_rc1c[] = {2006,2007,2008,2009};
   Vertex v_rc1c[4];
@@ -99,12 +203,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   for(std::size_t i = 0; i < 4; ++i) {
     BOOST_CHECK_NO_THROW( boost::tie(v_rc1c[i],e_rc1c[i]) = add_child_vertex(v_rc[0],vp_rc1c[i],ep_rc1c[i],g) );
   };
-  BOOST_CHECK_EQUAL( num_vertices(g), 9 );
+  intint_check_tree_vertex_count(g, 9);
   
-  
+  /* Tree */
   BOOST_CHECK_NO_THROW( v_root = get_root_vertex(g) );
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   {
+    /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
@@ -118,6 +223,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( e_list[2], 1004);
     BOOST_CHECK_EQUAL( e_list[3], 1005);
     
+    /* Tree */
     ChildVertIter cvi, cvi_end;
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
@@ -129,11 +235,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( vp_list[2], 4);
     BOOST_CHECK_EQUAL( vp_list[3], 5);
     
+    /* Tree */
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
       if(g[*cvi] == 2) {
         
+        /* Tree(IncidenceGraph) */
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
@@ -150,21 +258,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     };
   };
   
+  /* MutablePropertyTree */
   int vp_rc2c[] = {10,11,12,13};
   int ep_rc2c[] = {3010,3011,3012,3013};
   Vertex v_rc2c[4];
   Edge e_rc2c[4];
   for(std::size_t i = 0; i < 4; ++i) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( boost::tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],std::move(vp_rc2c[i]),std::move(ep_rc2c[i]),g) );
 #else
     BOOST_CHECK_NO_THROW( boost::tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],vp_rc2c[i],ep_rc2c[i],g) );
 #endif
   };
-  
-  BOOST_CHECK_EQUAL( num_vertices(g), 13 );
+  intint_check_tree_vertex_count(g, 13);
   
   {
+    /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_rc[1],g) );
     std::vector<int> e_list;
@@ -178,6 +287,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( e_list[2], 3012);
     BOOST_CHECK_EQUAL( e_list[3], 3013);
     
+    /* Tree */
     ChildVertIter cvi, cvi_end;
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_rc[1],g) );
     std::vector<int> vp_list;
@@ -190,12 +300,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( vp_list[3], 13);
   };
   
-  remove_branch(v_rc[0],g);
-  BOOST_CHECK_EQUAL( num_vertices(g), 8 );
+  /* MutableTree */
+  BOOST_CHECK_NO_THROW( remove_branch(v_rc[0],g) );
+  intint_check_tree_vertex_count(g, 8);
   
   
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   {
+    /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
@@ -208,6 +320,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( e_list[1], 1004);
     BOOST_CHECK_EQUAL( e_list[2], 1005);
     
+    /* Tree */
     ChildVertIter cvi, cvi_end;
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
@@ -219,11 +332,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( vp_list[1], 4);
     BOOST_CHECK_EQUAL( vp_list[2], 5);
     
+    /* Tree */
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
       if(g[*cvi] == 3) {
         
+        /* Tree(IncidenceGraph) */
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
@@ -240,7 +355,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     };
   };
   
-  remove_branch(v_rc[1], back_inserter(props), g);
+  /* MutablePropertyTree */
+  BOOST_CHECK_NO_THROW( remove_branch(v_rc[1], back_inserter(props), g) );
   BOOST_CHECK_EQUAL( props.size(), 5 );
   BOOST_CHECK_EQUAL( props[0], 3);  // the first vertex should be the root of the branch.
   std::sort(props.begin(), props.end());
@@ -248,11 +364,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   BOOST_CHECK_EQUAL( props[2], 11);
   BOOST_CHECK_EQUAL( props[3], 12);
   BOOST_CHECK_EQUAL( props[4], 13);
-  
-  BOOST_CHECK_EQUAL( num_vertices(g), 3 );
+  intint_check_tree_vertex_count(g, 3);
   
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   {
+    /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
@@ -264,6 +380,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( e_list[0], 1004);
     BOOST_CHECK_EQUAL( e_list[1], 1005);
     
+    /* Tree */
     ChildVertIter cvi, cvi_end;
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
@@ -276,15 +393,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   };
   
   
+  /* MutablePropertyTree */
   BOOST_CHECK_NO_THROW( boost::tie(v_rc[0],e_rc[0]) = add_child_vertex(v_root,vp_rc[0],ep_rc[0],g) );
   for(std::size_t i = 0; i < 4; ++i) {
     BOOST_CHECK_NO_THROW( boost::tie(v_rc1c[i],e_rc1c[i]) = add_child_vertex(v_rc[0],vp_rc1c[i],ep_rc1c[i],g) );
   };
+  intint_check_tree_vertex_count(g, 8);
   
-  BOOST_CHECK_EQUAL( num_vertices(g), 8 );
   
   BOOST_CHECK_EQUAL( g[v_root], 1 );
   {
+    /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
@@ -297,6 +416,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( e_list[1], 1004);
     BOOST_CHECK_EQUAL( e_list[2], 1005);
     
+    /* Tree */
     ChildVertIter cvi, cvi_end;
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
@@ -307,11 +427,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( vp_list[1], 4);
     BOOST_CHECK_EQUAL( vp_list[2], 5);
     
+    /* Tree */
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
       if(g[*cvi] == 2) {
         
+        /* Tree(IncidenceGraph) */
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
@@ -329,36 +451,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   };
   
   
-  std::vector<int> all_vertices;
-  VertexIter vi, vi_end;
-  for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi)
-    all_vertices.push_back(g[*vi]);
-  std::sort(all_vertices.begin(), all_vertices.end());
-  BOOST_CHECK_EQUAL( all_vertices[0], 1 );
-  BOOST_CHECK_EQUAL( all_vertices[1], 2 );
-  BOOST_CHECK_EQUAL( all_vertices[2], 4 );
-  BOOST_CHECK_EQUAL( all_vertices[3], 5 );
-  BOOST_CHECK_EQUAL( all_vertices[4], 6 );
-  BOOST_CHECK_EQUAL( all_vertices[5], 7 );
-  BOOST_CHECK_EQUAL( all_vertices[6], 8 );
-  BOOST_CHECK_EQUAL( all_vertices[7], 9 );
-  
-  BOOST_CHECK_EQUAL( vp_rc1c[1], 7 );
-  InEdgeIter iei, iei_end;
-  unsigned int j = 0;
-  for(boost::tie(iei,iei_end) = in_edges(v_rc1c[1],g); (iei != iei_end) && (j < 4); ++iei, ++j) {
-    BOOST_CHECK_EQUAL( g[*iei], 2007 );
-    BOOST_CHECK_EQUAL( g[source(*iei,g)], 2 );
-    BOOST_CHECK_EQUAL( g[target(*iei,g)], 7 );
-  };
-  
-  BOOST_CHECK_EQUAL( vp_rc[0], 2 );
-  BOOST_CHECK_EQUAL( vp_rc1c[2], 8 );
-  Edge e_rc_rc1c;
-  BOOST_CHECK_NO_THROW( e_rc_rc1c = edge(v_rc[0],v_rc1c[2],g).first );
-  BOOST_CHECK_EQUAL( g[e_rc_rc1c], 2008 );
-  BOOST_CHECK_EQUAL( g[source(e_rc_rc1c,g)], 2 );
-  BOOST_CHECK_EQUAL( g[target(e_rc_rc1c,g)], 8 );
+  /* VertexListGraph */
+  intint_do_final_vertex_check(g);
+  /* BidirectionalGraph */
+  intint_do_in_edge_check(g, v_rc1c[1], 2, 7);
+  /* AdjacencyMatrix */
+  intint_do_edge_check(g, v_rc[0], v_rc1c[2], 2, 8);
   
 };
 
