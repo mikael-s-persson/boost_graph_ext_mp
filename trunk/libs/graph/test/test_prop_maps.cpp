@@ -41,15 +41,50 @@
 #include <boost/mpl/list.hpp>
 
 
+typedef boost::property< boost::vertex_name_t, std::string, 
+        boost::property< boost::vertex_distance_t, int > > VertexPropTest;
+
+typedef boost::property< boost::edge_name_t, std::string, 
+        boost::property< boost::edge_weight_t, int > > EdgePropTest;
+
+typedef boost::property< boost::graph_name_t, std::string > GraphPropTest;
+
+
 typedef boost::mpl::list< 
-//   boost::d_ary_bf_tree<int, 4, int>, 
-//   boost::d_ary_cob_tree<int, 4, int>, 
-  boost::linked_tree<boost::vecS, boost::vecS, int, int>,
-  boost::linked_tree<boost::listS, boost::vecS, int, int>, 
-  boost::linked_tree<boost::vecS, boost::listS, int, int>, 
-  boost::linked_tree<boost::listS, boost::listS, int, int>,
-  boost::tree_storage<int, int>::type,
-  boost::pooled_adjacency_list<boost::bidirectionalS, int, int > > intint_propmaptest_types;
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::vecS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::vecS, boost::listS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::adjacency_list< boost::listS, boost::listS, boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS>,
+  boost::linked_tree<boost::vecS, boost::vecS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::linked_tree<boost::listS, boost::vecS, VertexPropTest, EdgePropTest, GraphPropTest>, 
+  boost::linked_tree<boost::vecS, boost::listS, VertexPropTest, EdgePropTest, GraphPropTest>, 
+  boost::linked_tree<boost::listS, boost::listS, VertexPropTest, EdgePropTest, GraphPropTest>,
+  boost::pooled_adjacency_list<boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest >,
+  boost::pooled_adjacency_list<boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest >,
+  boost::pooled_adjacency_list<boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest >,
+  boost::pooled_adjacency_list<boost::bidirectionalS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS >,
+  boost::pooled_adjacency_list<boost::undirectedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS >,
+  boost::pooled_adjacency_list<boost::directedS, VertexPropTest, EdgePropTest, GraphPropTest, boost::vecS > > intint_propmaptest_types;
   
 
 

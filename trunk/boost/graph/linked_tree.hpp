@@ -38,8 +38,8 @@ namespace boost {
  * policies. This traits class is useful to obtain type-erased (or type-agnostic) vertex and edge
  * descriptors. Note, this traits class is essentially the linked-tree equivalent of the BGL adjacency_list_traits class.
  */
-template <typename OutEdgeListS = vecS, 
-          typename VertexListS = vecS>
+template <typename OutEdgeListS = boost_vecS, 
+          typename VertexListS = boost_vecS>
 struct linked_tree_traits {
   /** This meta-value tells if the edges are bidirectional, or not. */
   typedef mpl::true_ is_bidir;
@@ -75,8 +75,8 @@ struct linked_tree_traits {
  * \tparam EdgeProperties A POD type to be attached to each edge in the tree.
  * \tparam GraphProperties A POD type to be attached to each tree object.
  */
-template <typename OutEdgeListS = vecS,
-          typename VertexListS = vecS,
+template <typename OutEdgeListS = boost_vecS,
+          typename VertexListS = boost_vecS,
           typename VertexProperties = no_property,
           typename EdgeProperties = no_property,
           typename TreeProperties = no_property >
@@ -802,7 +802,7 @@ template < BGL_LINKED_LIST_ARGS, typename T, typename Bundle>
 struct property_map< BGL_LINKED_LIST, T Bundle::* > {
   typedef typename remove_const< Bundle >::type non_const_Bundle;
   typedef typename remove_const< T >::type non_const_T;
-  typedef is_same< non_const_Bundle, typename BGL_LINKED_LIST::vertex_bundled > is_vertex_bundle;
+  typedef is_convertible< typename BGL_LINKED_LIST::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
   typedef bundle_member_property_map< non_const_T, BGL_LINKED_LIST,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > type;
   typedef bundle_member_property_map< const non_const_T, const BGL_LINKED_LIST,

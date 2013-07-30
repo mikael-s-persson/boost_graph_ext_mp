@@ -23,83 +23,15 @@
 
 #include <boost/graph/detail/linked_tree_iterators.hpp>
 
+#include <boost/graph/detail/boost_container_generators.hpp>
+
 #include <stack>
 #include <queue>
 #include <iterator>
 #include <utility>
 
-#include <boost/container/vector.hpp>
-#include <boost/container/list.hpp>
-
-#if !defined BOOST_NO_SLIST
-#include <boost/container/slist.hpp>
-#endif
-
-#include <boost/container/set.hpp>
-#include <boost/unordered_set.hpp>
-
 
 namespace boost {
-
-
-  template <class Selector, class ValueType>
-  struct boost_container_gen { };
-
-  template <class ValueType>
-  struct boost_container_gen<listS, ValueType> {
-    typedef ::boost::container::list<ValueType> type;
-  };
-#if !defined BOOST_NO_SLIST
-  template <class ValueType>
-  struct boost_container_gen<slistS, ValueType> {
-    typedef ::boost::container::slist<ValueType> type;
-  };
-#endif
-  template <class ValueType>
-  struct boost_container_gen<vecS, ValueType> {
-    typedef ::boost::container::vector<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<mapS, ValueType> {
-    typedef ::boost::container::set<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<setS, ValueType> {
-    typedef ::boost::container::set<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<multisetS, ValueType> {
-    typedef ::boost::container::multiset<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<multimapS, ValueType> {
-    typedef ::boost::container::multiset<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<hash_setS, ValueType> {
-    typedef ::boost::unordered_set<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<hash_mapS, ValueType> {
-    typedef ::boost::unordered_set<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<hash_multisetS, ValueType> {
-    typedef ::boost::unordered_multiset<ValueType> type;
-  };
-
-  template <class ValueType>
-  struct boost_container_gen<hash_multimapS, ValueType> {
-    typedef ::boost::unordered_multiset<ValueType> type;
-  };
-
 
 namespace graph { 
 
@@ -198,10 +130,10 @@ namespace detail {
   };
   
   template <typename OutEdgeListS, typename VertexProperties, typename EdgeProperties>
-  struct ltree_vertex_config<vecS, OutEdgeListS, VertexProperties, EdgeProperties> {
-    typedef ltree_vertex_stored_type<vecS, OutEdgeListS, VertexProperties, EdgeProperties> stored_type;
+  struct ltree_vertex_config<boost_vecS, OutEdgeListS, VertexProperties, EdgeProperties> {
+    typedef ltree_vertex_stored_type<boost_vecS, OutEdgeListS, VertexProperties, EdgeProperties> stored_type;
     typedef variant< stored_type, ltree_hole_desc > value_type;
-    typedef typename boost_container_gen<vecS, value_type >::type container;
+    typedef typename boost_container_gen<boost_vecS, value_type >::type container;
     typedef std::size_t descriptor;
     typedef ltree_hole_desc hole_descriptor;
     
