@@ -66,6 +66,45 @@ struct whole_bundle_property_map :
 
 
 
+
+/****************************************************************
+ *       Property-graph property-map
+ * **************************************************************/
+
+/**
+ * This property-map uses a graph's "get" function to obtain the 
+ * property value associated to a given descriptor.
+ * \tparam T The value-type of the property.
+ * \tparam Graph The graph type.
+ * \tparam PropertyMapTag The tag associated to the property.
+ */
+template <typename T, typename Graph, typename PropertyMapTag>
+struct tagged_from_bundle_property_map :
+    public put_get_helper< T&, tagged_from_bundle_property_map<T, Graph, PropertyMapTag> > {
+  private:
+    Graph* pg;
+    PropertyMapTag tag;
+  public:
+    typedef is_same< typename property_kind<PropertyMapTag>::type, vertex_property_tag> is_vertex_prop;
+    typedef is_const< Graph > is_const_graph;
+    typedef T value_type;
+    typedef T& reference;
+    typedef typename mpl::if_< is_vertex_prop,
+      typename graph_traits<Graph>::vertex_descriptor,
+      typename graph_traits<Graph>::edge_descriptor >::type key_type;
+    typedef typename mpl::if_< is_const< T >,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    tagged_from_bundle_property_map(Graph* aPG, PropertyMapTag aTag) : pg(aPG), tag(aTag) { };
+    reference operator[](key_type k) const { 
+      return get_property_value((*pg)[k], tag);
+    };
+    
+};
+
+
+
 /****************************************************************
  *       Property-graph property-map
  * **************************************************************/

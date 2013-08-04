@@ -91,15 +91,17 @@ namespace detail {
   template <typename ValueType>
   struct BC_pooled_vector {
     typedef ValueType value_type;
+    typedef std::size_t size_type;
     typedef variant< ValueType, BC_hole_desc > stored_type;
     typedef ::boost::container::vector<stored_type> container_type;
     typedef typename container_type::iterator iterator;
+    typedef typename container_type::const_iterator const_iterator;
     
     ::boost::container::vector<stored_type> m_data;
     BC_hole_desc m_first_hole;
     std::size_t m_num_elements;
     
-    BC_pooled_vector() : m_data(), m_first_hole(), m_num_elements() { };
+    BC_pooled_vector() : m_data(), m_first_hole(), m_num_elements(0) { };
     
     std::size_t size() const { return m_num_elements; };
     std::size_t capacity() const { return m_data.capacity(); };
@@ -108,7 +110,29 @@ namespace detail {
       m_first_hole = BC_hole_desc();
       m_num_elements = 0;
     };
+    iterator begin() { return m_data.begin(); };
+    const_iterator begin() const { return m_data.begin(); };
+    iterator end() { return m_data.end(); };
+    const_iterator end() const { return m_data.end(); };
   };
+  
+  template <typename Container>
+  std::size_t BC_get_size(const Container& cont) { return cont.size(); };
+  
+  template <typename Container>
+  std::size_t BC_get_size(Container* cont) { return cont->size(); };
+  
+  template <typename Container>
+  std::size_t BC_get_capacity(const Container& cont) { return cont.capacity(); };
+  
+  template <typename Container>
+  std::size_t BC_get_capacity(Container* cont) { return cont->capacity(); };
+  
+  template <typename Container>
+  void BC_clear_all(Container& cont) { cont.clear(); };
+  
+  template <typename Container>
+  void BC_clear_all(Container* cont) { cont->clear(); };
   
 }; // detail
 
@@ -138,7 +162,7 @@ namespace detail {
   
   template <class ValueType>
   struct BC_container_gen<poolBC, ValueType> {
-    typedef BC_pooled_vector<ValueType> type;
+    typedef graph::detail::BC_pooled_vector<ValueType> type;
   };
   
   template <class ValueType>
@@ -184,6 +208,42 @@ namespace detail {
   template <class ValueType>
   struct BC_container_gen<unordered_multimapBC, ValueType> {
     typedef ::boost::unordered_multiset<ValueType> type;
+  };
+  
+  namespace detail {
+    
+    
+    template <class Selector>
+    struct parallel_edge_BC_traits {
+      typedef allow_parallel_edge_tag type; };
+    
+    template <>
+    struct parallel_edge_BC_traits<setBC> {
+      typedef disallow_parallel_edge_tag type; };
+    
+    template <>
+    struct parallel_edge_BC_traits<unordered_setBC> {
+      typedef disallow_parallel_edge_tag type;
+    };
+    
+    // mapBC is obsolete, replaced with setBC
+    template <>
+    struct parallel_edge_BC_traits<mapBC> {
+      typedef disallow_parallel_edge_tag type; };
+    
+    template <>
+    struct parallel_edge_BC_traits<unordered_mapBC> {
+      typedef disallow_parallel_edge_tag type;
+    };
+    
+    
+    template <typename Selector>
+    struct is_random_access_BC : mpl::false_ { };
+    
+    template <>
+    struct is_random_access_BC<vecBC> : mpl::true_ { };
+    
+    
   };
   
   
@@ -294,12 +354,24 @@ namespace detail {
   Iter BC_desc_to_iterator(const Container&, Iter it) { return it; };
   
   template <typename ValueType>
-  std::size_t BC_iterator_to_desc( ::boost::container::vector<ValueType>& c, typename ::boost::container::vector<ValueType>::iterator it) {
+  std::size_t BC_iterator_to_desc(const ::boost::container::vector<ValueType>& c, 
+                                  typename ::boost::container::vector<ValueType>::iterator it) {
     return it - c.begin();
   };
   
   template <typename ValueType>
-  std::size_t BC_iterator_to_desc(const ::boost::container::vector<ValueType>& c, typename ::boost::container::vector<ValueType>::const_iterator it) {
+  std::size_t BC_iterator_to_desc(const ::boost::container::vector<ValueType>& c, 
+                                  typename ::boost::container::vector<ValueType>::const_iterator it) {
+    return it - c.begin();
+  };
+  
+  template <typename ValueType>
+  std::size_t BC_iterator_to_desc(const BC_pooled_vector<ValueType>& c, typename BC_pooled_vector<ValueType>::iterator it) {
+    return it - c.begin();
+  };
+  
+  template <typename ValueType>
+  std::size_t BC_iterator_to_desc(const BC_pooled_vector<ValueType>& c, typename BC_pooled_vector<ValueType>::const_iterator it) {
     return it - c.begin();
   };
   
@@ -307,6 +379,15 @@ namespace detail {
   Iter BC_iterator_to_desc(const Container&, Iter it) { return it; };
   
   
+  
+  template <typename Container>
+  typename Container::iterator BC_get_begin_iter(Container& c) {
+    return c.begin();
+  };
+  template <typename Container>
+  typename Container::iterator BC_get_begin_iter(Container* c) {
+    return BC_get_begin_iter(*c);
+  };
   
   template <typename ValueType>
   std::size_t BC_get_begin_desc(const ::boost::container::vector<ValueType>& c) {
@@ -341,6 +422,14 @@ namespace detail {
   typename Container::iterator BC_get_end_desc(Container* c) {
     return BC_get_end_desc(*c);
   };
+  template <typename Container>
+  typename Container::iterator BC_get_end_iter(Container& c) {
+    return c.end();
+  };
+  template <typename Container>
+  typename Container::iterator BC_get_end_iter(Container* c) {
+    return BC_get_end_iter(*c);
+  };
   
   
 /*************************************************************************
@@ -348,7 +437,7 @@ namespace detail {
  * **********************************************************************/
   
   template <typename ValueType>
-  ValueType& BC_desc_to_value(::boost::container::vector<ValueType>& c, std::size_t d) {
+  ValueType& BC_desc_to_value( ::boost::container::vector<ValueType>& c, std::size_t d) {
     return c[d];
   };
   template <typename ValueType>
@@ -377,31 +466,27 @@ namespace detail {
   
   
   
-  template <typename ListS, typename Iter>
+  template <typename Container>
   struct BC_select_descriptor {
-    typedef Iter type;
+    typedef typename Container::iterator type;
   };
   
-  template <typename Iter>
-  struct BC_select_descriptor<vecBC, Iter> {
-    typedef std::size_t type;
-  };
-  
-  template <typename Iter>
-  struct BC_select_descriptor<poolBC, Iter> {
-    typedef std::size_t type;
-  };
-  
-  
-  template <typename ListS, typename ValueType>
-  struct BC_select_value_type {
-    typedef ValueType type;
+  template <typename Container>
+  struct BC_select_descriptor<Container*> {
+    typedef typename Container::iterator type;
   };
   
   template <typename ValueType>
-  struct BC_select_value_type<poolBC, ValueType> {
-    typedef variant< ValueType, BC_hole_desc > type;
+  struct BC_select_descriptor< ::boost::container::vector<ValueType> > {
+    typedef std::size_t type;
   };
+  
+  template <typename ValueType>
+  struct BC_select_descriptor< BC_pooled_vector<ValueType> > {
+    typedef std::size_t type;
+  };
+  
+  
   
   
 }; // namespace detail

@@ -27,7 +27,6 @@
 
 namespace boost {
 
-
 namespace graph { 
 
 namespace detail {

@@ -5,16 +5,16 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 /**
- * \file adjlistBC_containers.hpp
+ * \file ltreeBC_containers.hpp
  * 
- * This library implements adjacency-list data structures that underpin the adjacency_list_v2 template. 
+ * This library implements adjacency-list data structures that underpin the linked_tree template. 
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date June 2013
  */
 
-#ifndef BOOST_ADJLISTBC_CONTAINERS_HPP
-#define BOOST_ADJLISTBC_CONTAINERS_HPP
+#ifndef BOOST_LTREEBC_CONTAINERS_HPP
+#define BOOST_LTREEBC_CONTAINERS_HPP
 
 #include <boost/config.hpp>
 
@@ -47,14 +47,14 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_vertex_stored_type;  // forward declaration.
+  struct ltreeBC_vertex_stored_type;  // forward declaration.
   
   
   // this is fine because boost-containers allow incomplete types:
-  template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
+  template <typename VertexListS, typename OutEdgeListS,  typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_vertex_config {
-    typedef adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> stored_type;
+  struct ltreeBC_vertex_config {
+    typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> stored_type;
     typedef typename BC_container_gen<VertexListS, stored_type >::type container;
     typedef typename container::value_type value_type;
     typedef typename BC_select_descriptor< container >::type descriptor;
@@ -65,18 +65,18 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_edge_stored_type {
-    typedef adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> self;
-    typedef adjlistBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VConfig;
+  struct ltreeBC_edge_stored_type {
+    typedef ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> self;
+    typedef ltreeBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VConfig;
     typedef typename VConfig::descriptor vertex_descriptor;
     
     vertex_descriptor target;
-    mutable EdgeProperties data;
+    EdgeProperties data;
     
-    adjlistBC_edge_stored_type(vertex_descriptor aTarget = VConfig::null_vertex()) : target(aTarget), data() { };
-    adjlistBC_edge_stored_type(vertex_descriptor aTarget, const EdgeProperties& aData) : target(aTarget), data(aData) { };
+    ltreeBC_edge_stored_type(vertex_descriptor aTarget = VConfig::null_vertex()) : target(aTarget), data() { };
+    ltreeBC_edge_stored_type(vertex_descriptor aTarget, const EdgeProperties& aData) : target(aTarget), data(aData) { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    adjlistBC_edge_stored_type(vertex_descriptor aTarget, EdgeProperties&& aData) : target(aTarget), data(std::move(aData)) { };
+    ltreeBC_edge_stored_type(vertex_descriptor aTarget, EdgeProperties&& aData) : target(aTarget), data(std::move(aData)) { };
 #endif
     
     bool operator<(const self& rhs) const { return BC_desc_less_than(this->target, rhs.target); };
@@ -89,8 +89,8 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
-  std::size_t hash_value(const adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& ep) {
-    typedef typename adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::vertex_descriptor Vertex;
+  std::size_t hash_value(const ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& ep) {
+    typedef typename ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::vertex_descriptor Vertex;
     ::boost::hash<Vertex> hasher;
     return hasher(ep.target);
   };
@@ -98,10 +98,10 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_edge_config {
-    typedef typename adjlistBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::descriptor vertex_descriptor;
+  struct ltreeBC_edge_config {
+    typedef typename ltreeBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::descriptor vertex_descriptor;
     
-    typedef adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> stored_type;
+    typedef ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> stored_type;
     typedef typename BC_container_gen<OutEdgeListS, stored_type >::type container;
     typedef typename container::value_type value_type;
     typedef typename BC_select_descriptor< container >::type raw_descriptor;
@@ -123,31 +123,36 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS,
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_vertex_stored_type {
-    typedef adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> self;
+  struct ltreeBC_vertex_stored_type {
+    typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> self;
     typedef DirectedS directed_tag;
-    typedef adjlistBC_edge_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> Config;
+    typedef ltreeBC_edge_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> Config;
     typedef typename Config::container edge_container;
     typedef typename Config::container_ptr edge_container_ptr;
     typedef typename Config::descriptor edge_descriptor;
-    typedef ::boost::container::vector<edge_descriptor> in_edge_container;
-    typedef typename in_edge_container::iterator in_edge_iterator;
     
     VertexProperties data;
     edge_container_ptr out_edges;
-    in_edge_container in_edges;
+    edge_descriptor in_edge_id;
     
-    adjlistBC_vertex_stored_type() : data(), out_edges(), in_edges() { };
-    adjlistBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges(), in_edges() { };
+    ltreeBC_vertex_stored_type() : data(), out_edges(), in_edge_id() { };
+    ltreeBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges(), in_edge_id() { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    adjlistBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges(), in_edges() { };
+    ltreeBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges(), in_edge_id() { };
 #endif
+    
+    bool operator<(const self& rhs) const { return (this->data < rhs.data); };
+    bool operator<=(const self& rhs) const { return !(rhs.data < this->data); };
+    bool operator>(const self& rhs) const { return (rhs.data < this->data); };
+    bool operator>=(const self& rhs) const { return !(this->data < rhs.data); };
+    bool operator==(const self& rhs) const { return (this->data == rhs.data); };
+    bool operator!=(const self& rhs) const { return !(this->data == rhs.data); };
   };
   
   template <typename VertexListS, typename OutEdgeListS, 
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> {
-    typedef adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> self;
+  struct ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> {
+    typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> self;
     typedef directedS directed_tag;
     typedef adjlistBC_edge_config<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> Config;
     typedef typename Config::container edge_container;
@@ -158,11 +163,25 @@ namespace detail {
     VertexProperties data;
     edge_container_ptr out_edges;
     
-    adjlistBC_vertex_stored_type() : data(), out_edges() { };
-    adjlistBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges() { };
+    ltreeBC_vertex_stored_type() : data(), out_edges() { };
+    ltreeBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges() { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    adjlistBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges() { };
+    ltreeBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges() { };
 #endif
+    
+    bool operator<(const self& rhs) const { return (this->data < rhs.data); };
+    bool operator<=(const self& rhs) const { return !(rhs.data < this->data); };
+    bool operator>(const self& rhs) const { return (rhs.data < this->data); };
+    bool operator>=(const self& rhs) const { return !(this->data < rhs.data); };
+    bool operator==(const self& rhs) const { return (this->data == rhs.data); };
+    bool operator!=(const self& rhs) const { return !(this->data == rhs.data); };
+  };
+  
+  template <typename VertexListS, typename OutEdgeListS, typename DirectedS,
+            typename VertexProperties, typename EdgeProperties>
+  std::size_t hash_value(const ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp) {
+    ::boost::hash<VertexProperties> hasher;
+    return hasher(vp.data);
   };
   
   
@@ -679,15 +698,6 @@ namespace detail {
     cont.erase(v);
   };
   
-  template <typename Container>
-  void adjlistBC_update_out_edges_impl(Container& cont, std::size_t old_v_id, std::size_t new_v_id) {
-    typedef typename Container::iterator OEIter;
-    for(OEIter ei = cont.begin(); ei != cont.end(); ++ei)
-      if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id))
-        BC_get_value(*ei).target = new_v_id;
-  };
-  
-  
   // O(E)
   template <typename DirectedS, typename ValueType>
   typename enable_if< is_same< DirectedS, directedS >,
@@ -918,7 +928,7 @@ namespace detail {
       return BC_get_value(*BC_desc_to_iterator(m_vertices, v));
     };
     
-    const edge_stored_type& get_stored_edge(edge_descriptor e) const { 
+    edge_stored_type& get_stored_edge(edge_descriptor e) const { 
       return BC_get_value(*BC_desc_to_iterator(get_stored_vertex(e.source).out_edges, e.edge_id));
     };
     

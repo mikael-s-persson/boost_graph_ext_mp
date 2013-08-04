@@ -23,12 +23,18 @@
 
 #include <iostream>
 
-// #include "d_ary_bf_tree.hpp"
-// #include "d_ary_cob_tree.hpp"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/tree_adaptor.hpp>
-#include <boost/graph/linked_tree.hpp>
 #include <boost/graph/pooled_adjacency_list.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
+
+
+#if 0
+#define TEST_PRINT_REACHED_MARKER std::cout << __LINE__ << " reached!" << std::endl;
+#else
+#define TEST_PRINT_REACHED_MARKER 
+#endif
+
 
 
 #define BOOST_TEST_DYN_LINK
@@ -37,40 +43,228 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/front_inserter.hpp>
+
+using namespace boost;
 
 
-typedef boost::mpl::list< 
-  boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::listS, boost::vecS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::listS, boost::listS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, int, int>,
-  boost::adjacency_list< boost::listS, boost::vecS, boost::directedS, int, int>,
-  boost::adjacency_list< boost::vecS, boost::listS, boost::directedS, int, int>,
-  boost::adjacency_list< boost::listS, boost::listS, boost::directedS, int, int>,
-  boost::pooled_adjacency_list<boost::bidirectionalS, int, int>,
-  boost::pooled_adjacency_list<boost::directedS, int, int> > intint_graphtest_types;
+typedef mpl::list< 
+  adjacency_list< vecS,  vecS,  bidirectionalS, int, int>,
+  adjacency_list< listS, vecS,  bidirectionalS, int, int>,
+  adjacency_list< vecS,  listS, bidirectionalS, int, int>,
+  adjacency_list< listS, listS, bidirectionalS, int, int>,
+  adjacency_list< vecS,  vecS,  directedS, int, int>,
+  adjacency_list< listS, vecS,  directedS, int, int>,
+  adjacency_list< vecS,  listS, directedS, int, int>,
+  adjacency_list< listS, listS, directedS, int, int>,
+  pooled_adjacency_list<bidirectionalS, int, int>,
+  pooled_adjacency_list<directedS, int, int> > intint_adjlist_types;
+  
+  
+  
+typedef mpl::list< 
+  adjacency_list_BC< vecBC,  vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  vecBC,  directedS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, directedS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, directedS, int, int>,
+  adjacency_list_BC< listBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< listBC, listBC, directedS, int, int>,
+  adjacency_list_BC< listBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< poolBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< poolBC, listBC, directedS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, directedS, int, int> > intint_adjlistBC_nosets_types;
+
+typedef mpl::list< 
+  adjacency_list_BC< vecBC,  vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, undirectedS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, undirectedS, int, int>,
+  adjacency_list_BC< listBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< listBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< listBC, poolBC, undirectedS, int, int>,
+  adjacency_list_BC< poolBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< poolBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, undirectedS, int, int> > intint_adjlistBC_nosets_undir_types;
+  
+  
+  
+typedef mpl::list< 
+  adjacency_list_BC< vecBC,  vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< vecBC,  vecBC,  directedS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, directedS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, directedS, int, int>,
+  adjacency_list_BC< vecBC,  vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< vecBC,  listBC, undirectedS, int, int>,
+  adjacency_list_BC< vecBC,  poolBC, undirectedS, int, int> > intint_adjlistBC_vec_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< listBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< listBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< listBC, listBC, directedS, int, int>,
+  adjacency_list_BC< listBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< listBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< listBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< listBC, poolBC, undirectedS, int, int> > intint_adjlistBC_list_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< poolBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< poolBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< poolBC, listBC, directedS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< poolBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< poolBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< poolBC, poolBC, undirectedS, int, int> > intint_adjlistBC_pool_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< setBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< setBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< setBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< setBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< setBC, listBC, directedS, int, int>,
+  adjacency_list_BC< setBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< setBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< setBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< setBC, poolBC, undirectedS, int, int> > intint_adjlistBC_set_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< unordered_setBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_setBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_setBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_setBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< unordered_setBC, listBC, directedS, int, int>,
+  adjacency_list_BC< unordered_setBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< unordered_setBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< unordered_setBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< unordered_setBC, poolBC, undirectedS, int, int> > intint_adjlistBC_unordered_set_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< multisetBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< multisetBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< multisetBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< multisetBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< multisetBC, listBC, directedS, int, int>,
+  adjacency_list_BC< multisetBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< multisetBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< multisetBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< multisetBC, poolBC, undirectedS, int, int> > intint_adjlistBC_multiset_types;
+  
+typedef mpl::list< 
+  adjacency_list_BC< unordered_multisetBC, vecBC,  bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, listBC, bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, poolBC, bidirectionalS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, vecBC,  directedS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, listBC, directedS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, poolBC, directedS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, vecBC,  undirectedS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, listBC, undirectedS, int, int>,
+  adjacency_list_BC< unordered_multisetBC, poolBC, undirectedS, int, int> > intint_adjlistBC_unordered_multiset_types;
+
+  
+
+template <typename Seq1, typename Seq2>
+struct join_seqs {
+  typedef typename mpl::copy< Seq1, mpl::front_inserter< Seq2 > >::type type;
+};
+
+
+// These types are currently not supported, but should be since having sets for storing out-edges could be useful:
+
+// typedef mpl::list< adjacency_list_BC< setBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< setBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< setBC, poolBC, bidirectionalS, int, int> > intint_graphtest_types;
+// 
+// typedef mpl::list< adjacency_list_BC< multisetBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< multisetBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< multisetBC, poolBC, bidirectionalS, int, int> > intint_graphtest_types;
+// 
+// typedef mpl::list< adjacency_list_BC< unordered_setBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< unordered_setBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< unordered_setBC, poolBC, bidirectionalS, int, int> > intint_graphtest_types;
+// 
+// typedef mpl::list< adjacency_list_BC< unordered_multisetBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< unordered_multisetBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< unordered_multisetBC, poolBC, bidirectionalS, int, int> > intint_graphtest_types;
+
+
+// These types should all trigger an "disallowed vertex list" compile-time error:
+
+// typedef mpl::list< adjacency_list_BC< vecBC, setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, unordered_setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, unordered_multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, multisetBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, unordered_setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< vecBC, unordered_multisetBC,  directedS, int, int> > intint_graphtest_types;
+
+// typedef mpl::list< adjacency_list_BC< listBC, setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, unordered_setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, unordered_multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, multisetBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, unordered_setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< listBC, unordered_multisetBC,  directedS, int, int> > intint_graphtest_types;
+
+// typedef mpl::list< adjacency_list_BC< poolBC, setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, unordered_setBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, unordered_multisetBC,  bidirectionalS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, multisetBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, unordered_setBC,  directedS, int, int> > intint_graphtest_types;
+// typedef mpl::list< adjacency_list_BC< poolBC, unordered_multisetBC,  directedS, int, int> > intint_graphtest_types;
+
+
+typedef join_seqs< intint_adjlistBC_nosets_types, intint_adjlistBC_nosets_undir_types >::type intint_graphtest_types;
+
+
+// typedef 
+//   join_seqs< intint_adjlistBC_vec_types,
+//   join_seqs< intint_adjlistBC_list_types, 
+//   join_seqs< intint_adjlistBC_pool_types, 
+//   join_seqs< intint_adjlistBC_set_types, 
+//   join_seqs< intint_adjlistBC_unordered_set_types,
+//   join_seqs< intint_adjlistBC_multiset_types, 
+//   join_seqs< intint_adjlistBC_unordered_multiset_types,
+//   intint_adjlist_types
+//   >::type >::type >::type >::type >::type >::type >::type intint_graphtest_types;
+
   
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_vertex_list_graph< Graph >,
+typename enable_if< is_vertex_list_graph< Graph >,
 void >::type check_graph_vertex_count(const Graph& g, std::size_t expected_count) {
   BOOST_CHECK_EQUAL( num_vertices(g), expected_count );
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_vertex_list_graph< Graph >,
+typename disable_if< is_vertex_list_graph< Graph >,
 void >::type check_graph_vertex_count(const Graph&, std::size_t) { };
 
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_vertex_list_graph< Graph >,
+typename enable_if< is_vertex_list_graph< Graph >,
 void >::type intint_check_graph_vertex_values(const Graph& g, std::size_t expected_count, const int* ref_values) {
-  typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
+  typedef typename graph_traits<Graph>::vertex_iterator VertexIter;
   VertexIter vi, vi_end;
-  BOOST_CHECK_NO_THROW( boost::tie(vi, vi_end) = vertices(g) );
+  BOOST_CHECK_NO_THROW( tie(vi, vi_end) = vertices(g) );
   std::vector<int> vp_list;
   for(; vi != vi_end; ++vi)
     vp_list.push_back( g[*vi] );
@@ -82,7 +276,7 @@ void >::type intint_check_graph_vertex_values(const Graph& g, std::size_t expect
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_vertex_list_graph< Graph >,
+typename disable_if< is_vertex_list_graph< Graph >,
 void >::type intint_check_graph_vertex_values(const Graph&, std::size_t, const int*) { };
 
 
@@ -91,23 +285,23 @@ void >::type intint_check_graph_vertex_values(const Graph&, std::size_t, const i
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_edge_list_graph< Graph >,
+typename enable_if< is_edge_list_graph< Graph >,
 void >::type check_graph_edge_count(const Graph& g, std::size_t expected_count) {
   BOOST_CHECK_EQUAL( num_edges(g), expected_count );
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_edge_list_graph< Graph >,
+typename disable_if< is_edge_list_graph< Graph >,
 void >::type check_graph_edge_count(const Graph&, std::size_t) { };
 
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_edge_list_graph< Graph >,
+typename enable_if< is_edge_list_graph< Graph >,
 void >::type intint_check_graph_edge_values(const Graph& g, std::size_t expected_count, const int* ref_values) {
-  typedef typename boost::graph_traits<Graph>::edge_iterator EdgeIter;
+  typedef typename graph_traits<Graph>::edge_iterator EdgeIter;
   EdgeIter ei, ei_end;
-  BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = edges(g) );
+  BOOST_CHECK_NO_THROW( tie(ei, ei_end) = edges(g) );
   std::vector<int> ep_list;
   for(; ei != ei_end; ++ei)
     ep_list.push_back( g[*ei] );
@@ -119,36 +313,36 @@ void >::type intint_check_graph_edge_values(const Graph& g, std::size_t expected
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_edge_list_graph< Graph >,
+typename disable_if< is_edge_list_graph< Graph >,
 void >::type intint_check_graph_edge_values(const Graph&, std::size_t, const int*) { };
 
 
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_bidirectional_graph< Graph >,
+typename enable_if< is_bidirectional_graph< Graph >,
 void >::type check_graph_in_degree(const Graph& g, 
-                                   typename boost::graph_traits<Graph>::vertex_descriptor v,
+                                   typename graph_traits<Graph>::vertex_descriptor v,
                                    std::size_t expected_count) {
   BOOST_CHECK_EQUAL( in_degree(v,g), expected_count );
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_bidirectional_graph< Graph >,
-void >::type check_graph_in_degree(const Graph&, typename boost::graph_traits<Graph>::vertex_descriptor, std::size_t) {};
+typename disable_if< is_bidirectional_graph< Graph >,
+void >::type check_graph_in_degree(const Graph&, typename graph_traits<Graph>::vertex_descriptor, std::size_t) {};
 
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_bidirectional_graph< Graph >,
+typename enable_if< is_bidirectional_graph< Graph >,
 void >::type check_graph_in_edge_values(const Graph& g, 
-                                        typename boost::graph_traits<Graph>::vertex_descriptor v,
+                                        typename graph_traits<Graph>::vertex_descriptor v,
                                         std::size_t expected_count,
                                         const int* edge_values, const int* vertex_values) {
-  typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
+  typedef typename graph_traits<Graph>::in_edge_iterator InEdgeIter;
   BOOST_CHECK_EQUAL( in_degree(v,g), expected_count );
   InEdgeIter ei, ei_end;
-  BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = in_edges(v, g) );
+  BOOST_CHECK_NO_THROW( tie(ei, ei_end) = in_edges(v, g) );
   
   std::vector<int> e_list;
   std::vector<int> vp_list;
@@ -166,36 +360,36 @@ void >::type check_graph_in_edge_values(const Graph& g,
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_bidirectional_graph< Graph >,
+typename disable_if< is_bidirectional_graph< Graph >,
 void >::type check_graph_in_edge_values(const Graph&, 
-                                        typename boost::graph_traits<Graph>::vertex_descriptor,
+                                        typename graph_traits<Graph>::vertex_descriptor,
                                         std::size_t, const int*, const int*) { };
 
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_incidence_graph< Graph >,
+typename enable_if< is_incidence_graph< Graph >,
 void >::type check_graph_out_degree(const Graph& g, 
-                                   typename boost::graph_traits<Graph>::vertex_descriptor u,
+                                   typename graph_traits<Graph>::vertex_descriptor u,
                                    std::size_t expected_count) {
   BOOST_CHECK_EQUAL( out_degree(u,g), expected_count );
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_incidence_graph< Graph >,
-void >::type check_graph_out_degree(const Graph&, typename boost::graph_traits<Graph>::vertex_descriptor, std::size_t) {};
+typename disable_if< is_incidence_graph< Graph >,
+void >::type check_graph_out_degree(const Graph&, typename graph_traits<Graph>::vertex_descriptor, std::size_t) {};
 
 
 template <typename Graph>
-typename boost::enable_if< boost::is_incidence_graph< Graph >,
+typename enable_if< is_incidence_graph< Graph >,
 void >::type check_graph_out_edge_values(const Graph& g, 
-                                         typename boost::graph_traits<Graph>::vertex_descriptor u,
+                                         typename graph_traits<Graph>::vertex_descriptor u,
                                          std::size_t expected_count,
                                          const int* edge_values, const int* vertex_values) {
-  typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+  typedef typename graph_traits<Graph>::out_edge_iterator OutEdgeIter;
   BOOST_CHECK_EQUAL( out_degree(u,g), expected_count );
   OutEdgeIter ei, ei_end;
-  BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(u,g) );
+  BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(u,g) );
   
   std::vector<int> e_list;
   std::vector<int> vp_list;
@@ -213,9 +407,9 @@ void >::type check_graph_out_edge_values(const Graph& g,
 };
 
 template <typename Graph>
-typename boost::disable_if< boost::is_incidence_graph< Graph >,
+typename disable_if< is_incidence_graph< Graph >,
 void >::type check_graph_out_edge_values(const Graph&, 
-                                         typename boost::graph_traits<Graph>::vertex_descriptor,
+                                         typename graph_traits<Graph>::vertex_descriptor,
                                          std::size_t, const int*, const int*) { };
 
 
@@ -223,40 +417,40 @@ void >::type check_graph_out_edge_values(const Graph&,
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_graphtest_types )
 {
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+  typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
+  typedef typename graph_traits<Graph>::edge_descriptor Edge;
   
   Graph g;
-  Vertex v_root = Vertex();
+  Vertex v_root = Vertex(); TEST_PRINT_REACHED_MARKER
   
   /* MutableGraph */
-  BOOST_CHECK_NO_THROW( v_root = add_vertex(g) );
-  check_graph_vertex_count(g, 1);
-  BOOST_CHECK_NO_THROW( remove_vertex(v_root,g) );
-  check_graph_vertex_count(g, 0);
+  BOOST_CHECK_NO_THROW( v_root = add_vertex(g) ); TEST_PRINT_REACHED_MARKER
+  check_graph_vertex_count(g, 1); TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_NO_THROW( remove_vertex(v_root,g) ); TEST_PRINT_REACHED_MARKER
+  check_graph_vertex_count(g, 0); TEST_PRINT_REACHED_MARKER
   
   /* MutablePropertyGraph */
-  BOOST_CHECK_NO_THROW( v_root = add_vertex(1, g) );
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
-  g[v_root] = 1;
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
+  BOOST_CHECK_NO_THROW( v_root = add_vertex(1, g) ); TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); TEST_PRINT_REACHED_MARKER
+  g[v_root] = 1; TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); TEST_PRINT_REACHED_MARKER
   
   /* MutableGraph */
   int vp_rc[] = {2,3,4,5};
   int ep_rc[] = {1002,1003,1004,1005};
   Vertex v_rc[4];
-  Edge e_rc[4];
+  Edge e_rc[4]; 
   for(int i = 0; i < 4; ++i) {
-    BOOST_CHECK_NO_THROW( v_rc[i] = add_vertex(g) );
+    BOOST_CHECK_NO_THROW( v_rc[i] = add_vertex(g) ); TEST_PRINT_REACHED_MARKER
     g[ v_rc[i] ] = vp_rc[i];
-    BOOST_CHECK_EQUAL( g[ v_rc[i] ], vp_rc[i] );
+    BOOST_CHECK_EQUAL( g[ v_rc[i] ], vp_rc[i] ); TEST_PRINT_REACHED_MARKER
     bool edge_added_success = false;
-    BOOST_CHECK_NO_THROW( boost::tie(e_rc[i],edge_added_success) = add_edge(v_root, v_rc[i], g) );
-    BOOST_CHECK( edge_added_success );
+    BOOST_CHECK_NO_THROW( tie(e_rc[i],edge_added_success) = add_edge(v_root, v_rc[i], g) ); TEST_PRINT_REACHED_MARKER
+    BOOST_CHECK( edge_added_success ); TEST_PRINT_REACHED_MARKER
     g[ e_rc[i] ] = ep_rc[i];
-    BOOST_CHECK_EQUAL( g[ e_rc[i] ], ep_rc[i] );
+    BOOST_CHECK_EQUAL( g[ e_rc[i] ], ep_rc[i] ); TEST_PRINT_REACHED_MARKER
   };
-  check_graph_vertex_count(g, 5);
+  check_graph_vertex_count(g, 5); TEST_PRINT_REACHED_MARKER
   
   /* MutablePropertyGraph */
   int vp_rc1c[] = {6,7,8,9};
@@ -264,37 +458,37 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   Vertex v_rc1c[4];
   Edge e_rc1c[4];
   for(std::size_t i = 0; i < 4; ++i) {
-    BOOST_CHECK_NO_THROW( v_rc1c[i] = add_vertex(vp_rc1c[i], g) );
-    BOOST_CHECK_EQUAL( g[ v_rc1c[i] ], vp_rc1c[i] );
+    BOOST_CHECK_NO_THROW( v_rc1c[i] = add_vertex(vp_rc1c[i], g) ); TEST_PRINT_REACHED_MARKER
+    BOOST_CHECK_EQUAL( g[ v_rc1c[i] ], vp_rc1c[i] ); TEST_PRINT_REACHED_MARKER
     bool edge_added_success = false;
-    BOOST_CHECK_NO_THROW( boost::tie(e_rc1c[i],edge_added_success) = add_edge(v_rc[0], v_rc1c[i], ep_rc1c[i], g) );
-    BOOST_CHECK( edge_added_success );
-    BOOST_CHECK_EQUAL( g[ e_rc1c[i] ], ep_rc1c[i] );
+    BOOST_CHECK_NO_THROW( tie(e_rc1c[i],edge_added_success) = add_edge(v_rc[0], v_rc1c[i], ep_rc1c[i], g) ); TEST_PRINT_REACHED_MARKER
+    BOOST_CHECK( edge_added_success ); TEST_PRINT_REACHED_MARKER
+    BOOST_CHECK_EQUAL( g[ e_rc1c[i] ], ep_rc1c[i] ); TEST_PRINT_REACHED_MARKER
   };
-  check_graph_vertex_count(g, 9);
+  check_graph_vertex_count(g, 9); TEST_PRINT_REACHED_MARKER
   
   
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); TEST_PRINT_REACHED_MARKER
   {
     /* IncidenceGraph */
     {
       const int e_vals[] = {1002, 1003, 1004, 1005};
       const int v_vals[] = {2, 3, 4, 5};
-      check_graph_out_edge_values(g, v_root, 4, e_vals, v_vals);
+      check_graph_out_edge_values(g, v_root, 4, e_vals, v_vals); TEST_PRINT_REACHED_MARKER
     };
     
     /* BidirectionalGraph */
     {
       const int e_vals[] = {1002};
       const int v_vals[] = {1};
-      check_graph_in_edge_values(g, v_rc[0], 1, e_vals, v_vals);
+      check_graph_in_edge_values(g, v_rc[0], 1, e_vals, v_vals); TEST_PRINT_REACHED_MARKER
     };
     
     /* IncidenceGraph */
     {
       const int e_vals[] = {2006, 2007, 2008, 2009};
       const int v_vals[] = {6, 7, 8, 9};
-      check_graph_out_edge_values(g, v_rc[0], 4, e_vals, v_vals);
+      check_graph_out_edge_values(g, v_rc[0], 4, e_vals, v_vals); TEST_PRINT_REACHED_MARKER
     };
   };
   
@@ -305,111 +499,114 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   Edge e_rc2c[4];
   for(std::size_t i = 0; i < 4; ++i) {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(std::move(vp_rc2c[i]), g) );
+    BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(std::move(vp_rc2c[i]), g) ); TEST_PRINT_REACHED_MARKER
 #else
-    BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(vp_rc2c[i], g) );
+    BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(vp_rc2c[i], g) ); TEST_PRINT_REACHED_MARKER
 #endif
     bool edge_added_success = false;
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    BOOST_CHECK_NO_THROW( boost::tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) );
+    BOOST_CHECK_NO_THROW( tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) ); TEST_PRINT_REACHED_MARKER
 #else
-    BOOST_CHECK_NO_THROW( boost::tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) );
+    BOOST_CHECK_NO_THROW( tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) ); TEST_PRINT_REACHED_MARKER
 #endif
-    BOOST_CHECK( edge_added_success );
+    BOOST_CHECK( edge_added_success ); TEST_PRINT_REACHED_MARKER
   };
-  check_graph_vertex_count(g, 13);
+  check_graph_vertex_count(g, 13); TEST_PRINT_REACHED_MARKER
   
   {
     /* IncidenceGraph */
     const int e_vals[] = {3010, 3011, 3012, 3013};
     const int v_vals[] = {10, 11, 12, 13};
-    check_graph_out_edge_values(g, v_rc[1], 4, e_vals, v_vals);
+    check_graph_out_edge_values(g, v_rc[1], 4, e_vals, v_vals); TEST_PRINT_REACHED_MARKER
   };
   
   /* MutableGraph */
-  BOOST_CHECK_NO_THROW( clear_vertex(v_rc[0],g) );
+  BOOST_CHECK_NO_THROW( clear_vertex(v_rc[0],g) ); TEST_PRINT_REACHED_MARKER
   
   /* IncidenceGraph */
-  check_graph_out_degree(g, v_rc[0], 0);
-  check_graph_out_degree(g, v_root, 3);
+  check_graph_out_degree(g, v_rc[0], 0); TEST_PRINT_REACHED_MARKER
+  check_graph_out_degree(g, v_root, 3); TEST_PRINT_REACHED_MARKER
   
   /* BidirectionalGraph */
-  check_graph_in_degree(g, v_rc[0], 0);
-  check_graph_in_degree(g, v_rc1c[0], 0);
-  check_graph_in_degree(g, v_rc1c[1], 0);
-  check_graph_in_degree(g, v_rc1c[2], 0);
-  check_graph_in_degree(g, v_rc1c[3], 0);
+  check_graph_in_degree(g, v_rc[0], 0); TEST_PRINT_REACHED_MARKER
+  check_graph_in_degree(g, v_rc1c[0], 0); TEST_PRINT_REACHED_MARKER
+  check_graph_in_degree(g, v_rc1c[1], 0); TEST_PRINT_REACHED_MARKER
+  check_graph_in_degree(g, v_rc1c[2], 0); TEST_PRINT_REACHED_MARKER
+  check_graph_in_degree(g, v_rc1c[3], 0); TEST_PRINT_REACHED_MARKER
   
   /* VertexListGraph */
-  check_graph_vertex_count(g, 13);
+  check_graph_vertex_count(g, 13); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    intint_check_graph_vertex_values(g, 13, ref_values);
+    intint_check_graph_vertex_values(g, 13, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   /* EdgeListGraph */
-  check_graph_edge_count(g, 7);
+  check_graph_edge_count(g, 7); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1003, 1004, 1005, 3010, 3011, 3012, 3013};
-    intint_check_graph_edge_values(g, 7, ref_values);
+    intint_check_graph_edge_values(g, 7, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   
   
   /* MutableGraph */
-  BOOST_CHECK_NO_THROW( remove_edge(v_rc[1], v_rc2c[2], g) );
+  BOOST_CHECK_NO_THROW( remove_edge(v_rc[1], v_rc2c[2], g) ); TEST_PRINT_REACHED_MARKER
   
   /* VertexListGraph */
-  check_graph_vertex_count(g, 13);
+  check_graph_vertex_count(g, 13); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    intint_check_graph_vertex_values(g, 13, ref_values);
+    intint_check_graph_vertex_values(g, 13, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   /* EdgeListGraph */
-  check_graph_edge_count(g, 6);
+  check_graph_edge_count(g, 6); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1003, 1004, 1005, 3010, 3011, 3013};
-    intint_check_graph_edge_values(g, 6, ref_values);
+    intint_check_graph_edge_values(g, 6, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   
   
   /* MutableGraph */
-  BOOST_CHECK_NO_THROW( remove_edge(e_rc2c[3], g) );
+  std::pair<Edge, bool> last_e_of_rc2;
+  BOOST_CHECK_NO_THROW( last_e_of_rc2 = edge(v_rc[1], v_rc2c[3], g) ); TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_EQUAL( last_e_of_rc2.second, true ); TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_NO_THROW( remove_edge(last_e_of_rc2.first, g) ); TEST_PRINT_REACHED_MARKER
   
   /* VertexListGraph */
-  check_graph_vertex_count(g, 13);
+  check_graph_vertex_count(g, 13); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    intint_check_graph_vertex_values(g, 13, ref_values);
+    intint_check_graph_vertex_values(g, 13, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   /* EdgeListGraph */
-  check_graph_edge_count(g, 5);
+  check_graph_edge_count(g, 5); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1003, 1004, 1005, 3010, 3011};
-    intint_check_graph_edge_values(g, 5, ref_values);
+    intint_check_graph_edge_values(g, 5, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   
   
   /* MutableGraph */
-  BOOST_CHECK_NO_THROW( clear_vertex(v_rc2c[0], g) );
-  BOOST_CHECK_NO_THROW( remove_vertex(v_rc2c[0], g) );
+  BOOST_CHECK_NO_THROW( clear_vertex(v_rc2c[0], g) ); TEST_PRINT_REACHED_MARKER
+  BOOST_CHECK_NO_THROW( remove_vertex(v_rc2c[0], g) ); TEST_PRINT_REACHED_MARKER
   
   /* VertexListGraph */
-  check_graph_vertex_count(g, 12);
+  check_graph_vertex_count(g, 12); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13};
-    intint_check_graph_vertex_values(g, 12, ref_values);
+    intint_check_graph_vertex_values(g, 12, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   /* EdgeListGraph */
-  check_graph_edge_count(g, 4);
+  check_graph_edge_count(g, 4); TEST_PRINT_REACHED_MARKER
   {
     const int ref_values[] = {1003, 1004, 1005, 3011};
-    intint_check_graph_edge_values(g, 4, ref_values);
+    intint_check_graph_edge_values(g, 4, ref_values); TEST_PRINT_REACHED_MARKER
   };
   
   

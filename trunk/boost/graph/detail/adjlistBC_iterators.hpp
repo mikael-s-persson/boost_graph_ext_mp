@@ -33,6 +33,32 @@ namespace graph {
 namespace detail {
   
   
+  
+  template <typename DirectedS>
+  struct adjlistBC_traversal_tag :
+    public virtual vertex_list_graph_tag,
+    public virtual incidence_graph_tag,
+    public virtual adjacency_graph_tag,
+    public virtual edge_list_graph_tag { };
+  
+  template <>
+  struct adjlistBC_traversal_tag< undirectedS > :
+    public virtual vertex_list_graph_tag,
+    public virtual incidence_graph_tag,
+    public virtual adjacency_graph_tag,
+    public virtual edge_list_graph_tag,
+    public virtual bidirectional_graph_tag { };
+  
+  template <>
+  struct adjlistBC_traversal_tag< bidirectionalS > :
+    public virtual vertex_list_graph_tag,
+    public virtual incidence_graph_tag,
+    public virtual adjacency_graph_tag,
+    public virtual edge_list_graph_tag,
+    public virtual bidirectional_graph_tag { };
+  
+  
+  
   template <typename ContIterator>
   class adjlistBC_viter_from_iter : 
     public iterator_facade<
@@ -324,7 +350,7 @@ namespace detail {
   
   template <typename ValueType, typename Desc>
   int adjlistBC_check_desc_validity( BC_pooled_vector<ValueType>& cont, Desc d) {
-    if(d >= cont.size())
+    if(d >= cont.m_data.size())
       return 1;
     if(cont.m_data[d].which() == 1)
       return 2;
@@ -348,18 +374,18 @@ namespace detail {
         typedef typename EDesc::edge_id_type RawEDesc;
         self result;
         result.p_cont = &vcont;
-        result.e.source = BC_get_begin_desc(vcont);
+        result.e.source = BC_iterator_to_desc(vcont, BC_get_begin_iter(vcont));
         while(true) {
-          while(adjlistBC_check_desc_validity(*p_cont, result.e.source) == 2)
+          while(adjlistBC_check_desc_validity(*result.p_cont, result.e.source) == 2)
             ++(result.e.source);
-          if(adjlistBC_check_desc_validity(*p_cont, result.e.source) == 1) {
+          if(adjlistBC_check_desc_validity(*result.p_cont, result.e.source) == 1) {
             result.e.edge_id = RawEDesc(); // end iterator (also begin iterator, vertex range is empty).
             break;
           };
-          result.e.edge_id = BC_get_begin_desc(BC_desc_to_value(*p_cont, result.e.source).out_edges);
-          while(adjlistBC_check_desc_validity(BC_desc_to_value(*p_cont, result.e.source).out_edges, result.e.edge_id) == 2)
+          result.e.edge_id = BC_iterator_to_desc(BC_desc_to_value(*result.p_cont, result.e.source).out_edges, BC_get_begin_iter(BC_desc_to_value(*result.p_cont, result.e.source).out_edges));
+          while(adjlistBC_check_desc_validity(BC_desc_to_value(*result.p_cont, result.e.source).out_edges, result.e.edge_id) == 2)
             ++(result.e.edge_id);
-          if(adjlistBC_check_desc_validity(BC_desc_to_value(*p_cont, result.e.source).out_edges, result.e.edge_id) == 1) {
+          if(adjlistBC_check_desc_validity(BC_desc_to_value(*result.p_cont, result.e.source).out_edges, result.e.edge_id) == 1) {
             ++(result.e.source);
             continue;
           };
@@ -372,7 +398,7 @@ namespace detail {
         typedef typename EDesc::edge_id_type RawEDesc;
         self result;
         result.p_cont = &vcont;
-        result.e.source = BC_get_end_desc(vcont);
+        result.e.source = BC_iterator_to_desc(vcont, BC_get_end_iter(vcont));
         result.e.edge_id = RawEDesc();
         return result;
       };
@@ -399,7 +425,7 @@ namespace detail {
             e.edge_id = RawEDesc(); // end iterator.
             return;
           };
-          e.edge_id = BC_get_begin_desc(BC_desc_to_value(*p_cont, e.source).out_edges);
+          e.edge_id = BC_iterator_to_desc(BC_desc_to_value(*p_cont, e.source).out_edges, BC_get_begin_iter(BC_desc_to_value(*p_cont, e.source).out_edges));
         };
       };
       void decrement() { 
@@ -416,7 +442,7 @@ namespace detail {
             --(tmp_e.source);
           };
           if(tmp_e.source != last_source) // if we moved back the vertex
-            tmp_e.edge_id = BC_get_end_desc(BC_desc_to_value(*p_cont, tmp_e.source).out_edges);
+            tmp_e.edge_id = BC_iterator_to_desc(BC_desc_to_value(*p_cont, tmp_e.source).out_edges, BC_get_end_iter(BC_desc_to_value(*p_cont, tmp_e.source).out_edges));
           
           bool edge_range_was_empty = false;
           while(adjlistBC_check_desc_validity(BC_desc_to_value(*p_cont, tmp_e.source).out_edges, tmp_e.edge_id)) {
