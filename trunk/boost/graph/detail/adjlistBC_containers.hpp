@@ -90,9 +90,7 @@ namespace detail {
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
   std::size_t hash_value(const adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& ep) {
-    typedef typename adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::vertex_descriptor Vertex;
-    ::boost::hash<Vertex> hasher;
-    return hasher(ep.target);
+    return BC_desc_get_hash(ep.target);
   };
   
   
@@ -679,6 +677,7 @@ namespace detail {
     cont.erase(v);
   };
   
+  
   template <typename Container>
   void adjlistBC_update_out_edges_impl(Container& cont, std::size_t old_v_id, std::size_t new_v_id) {
     typedef typename Container::iterator OEIter;
@@ -686,6 +685,79 @@ namespace detail {
       if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id))
         BC_get_value(*ei).target = new_v_id;
   };
+  
+  template <typename Container>
+  void adjlistBC_update_assoc_out_edges_impl(Container& cont, std::size_t old_v_id, std::size_t new_v_id) {
+    typedef typename Container::iterator OEIter;
+    typedef typename Container::value_type ValueType;
+    using std::inserter;
+    ValueType v_test = ValueType(old_v_id);
+    std::pair< OEIter, OEIter > eq_rg = cont.equal_range(v_test);
+    std::vector< ValueType > v_temp;
+    std::copy(eq_rg.first, eq_rg.second, std::back_inserter(v_temp));
+    for(typename std::vector< ValueType >::iterator it = v_temp.begin(); it != v_temp.end(); ++it)
+      it->target = new_v_id;
+    cont.erase(eq_rg.first, eq_rg.second);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    std::move(v_temp.begin(), v_temp.end(), inserter(cont, cont.end()));
+#else
+    std::copy(v_temp.begin(), v_temp.end(), inserter(cont, cont.end()));
+#endif
+  };
+  
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::container::set<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::container::multiset<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::unordered_set<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::unordered_multiset<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  
+  
+  template <typename Container>
+  void adjlistBC_update_out_edges_impl(Container* cont, std::size_t old_v_id, std::size_t new_v_id) {
+    adjlistBC_update_out_edges_impl(*cont, old_v_id, new_v_id);
+  };
+  
+  
+  template <typename Container>
+  void adjlistBC_update_out_edges_impl(Container& cont, std::size_t old_v_id, std::size_t new_v_id, typename Container::iterator ei) {
+    BC_get_value(*ei).target = new_v_id;
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::container::set<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id, 
+                                        typename ::boost::container::set<ValueType>::iterator) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::container::multiset<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id, 
+                                        typename ::boost::container::multiset<ValueType>::iterator) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::unordered_set<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id, 
+                                        typename ::boost::unordered_set<ValueType>::iterator) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename ValueType>
+  void adjlistBC_update_out_edges_impl( ::boost::unordered_multiset<ValueType>& cont, std::size_t old_v_id, std::size_t new_v_id, 
+                                        typename ::boost::unordered_multiset<ValueType>::iterator) {
+    adjlistBC_update_assoc_out_edges_impl(cont, old_v_id, new_v_id);
+  };
+  template <typename Container>
+  void adjlistBC_update_out_edges_impl(Container* cont, std::size_t old_v_id, std::size_t new_v_id, typename Container::iterator ei) {
+    adjlistBC_update_out_edges_impl(*cont, old_v_id, new_v_id, ei);
+  };
+  
   
   
   // O(E)
@@ -696,14 +768,11 @@ namespace detail {
     typedef ::boost::container::vector<ValueType> VContainer;
     typedef typename VContainer::iterator VIter;
     typedef typename ValueType::edge_container OutEdgeCont;
-    typedef adjlistBC_out_edges_range< typename ValueType::edge_container_ptr > OERange;
     typedef typename OutEdgeCont::iterator OEIter;
     typedef typename ValueType::edge_descriptor EdgeDesc;
     
     for(VIter vi = cont.begin(); vi != cont.end(); ++vi)
-      for(OEIter ei = OERange::begin(vi->out_edges); ei != OERange::end(vi->out_edges); ++ei)
-        if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id))
-          BC_get_value(*ei).target = new_v_id;
+      adjlistBC_update_out_edges_impl(vi->out_edges, old_v_id, new_v_id);
     
   };
   
@@ -715,7 +784,6 @@ namespace detail {
     typedef ::boost::container::vector<ValueType> VContainer;
     typedef typename VContainer::iterator VIter;
     typedef typename ValueType::edge_container OutEdgeCont;
-    typedef adjlistBC_out_edges_range< typename ValueType::edge_container_ptr > OERange;
     typedef typename OutEdgeCont::iterator OEIter;
     typedef typename ValueType::edge_descriptor EdgeDesc;
     typedef typename ValueType::in_edge_container InEdgeCont;
@@ -724,23 +792,17 @@ namespace detail {
     // first, update in-edge vertices
     for(InEdgeIter iei = cont[new_v_id].in_edges.begin(); iei != cont[new_v_id].in_edges.end(); ++iei) {
       ValueType& up = cont[iei->source];
-      OEIter ed = OERange::from_desc(up.out_edges, iei->edge_id);
-      for(OEIter ei = OERange::begin(up.out_edges); ei != OERange::end(up.out_edges); ++ei) {
-        if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id) && (ed == ei)) {
-          BC_get_value(*ei).target = new_v_id;
-          break;
-        };
-      };
+      adjlistBC_update_out_edges_impl(up.out_edges, old_v_id, new_v_id, BC_desc_to_iterator(up.out_edges, iei->edge_id));
     };
     
     // second, update out-edge vertices
-    for(OEIter ei = OERange::begin(cont[new_v_id].out_edges); ei != OERange::end(cont[new_v_id].out_edges); ++ei) {
+    for(OEIter ei = BC_get_begin_iter(cont[new_v_id].out_edges); ei != BC_get_end_iter(cont[new_v_id].out_edges); ++ei) {
       if(!BC_is_elem_valid(*ei))
         continue;
       ValueType& wp = cont[BC_get_value(*ei).target];
       for(InEdgeIter iei = wp.in_edges.begin(); iei != wp.in_edges.end(); ++iei) {
         if((iei->source == old_v_id) && 
-           (ei == OERange::from_desc(cont[new_v_id].out_edges, iei->edge_id))) {
+           (ei == BC_desc_to_iterator(cont[new_v_id].out_edges, iei->edge_id))) {
           iei->source = new_v_id;
           break;
         };

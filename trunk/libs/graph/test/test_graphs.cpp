@@ -181,7 +181,7 @@ struct join_seqs {
 };
 
 
-// These types are currently not supported, but should be since having sets for storing out-edges could be useful:
+// These types are currently supported, but should be since having sets for storing out-edges could be useful:
 
 // typedef mpl::list< adjacency_list_BC< setBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
 // typedef mpl::list< adjacency_list_BC< setBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
@@ -198,6 +198,7 @@ struct join_seqs {
 // typedef mpl::list< adjacency_list_BC< unordered_multisetBC, vecBC,  bidirectionalS, int, int> > intint_graphtest_types;
 // typedef mpl::list< adjacency_list_BC< unordered_multisetBC, listBC, bidirectionalS, int, int> > intint_graphtest_types;
 // typedef mpl::list< adjacency_list_BC< unordered_multisetBC, poolBC, bidirectionalS, int, int> > intint_graphtest_types;
+
 
 
 // These types should all trigger an "disallowed vertex list" compile-time error:
@@ -230,19 +231,19 @@ struct join_seqs {
 // typedef mpl::list< adjacency_list_BC< poolBC, unordered_multisetBC,  directedS, int, int> > intint_graphtest_types;
 
 
-typedef join_seqs< intint_adjlistBC_nosets_types, intint_adjlistBC_nosets_undir_types >::type intint_graphtest_types;
+// typedef join_seqs< intint_adjlistBC_nosets_types, intint_adjlistBC_nosets_undir_types >::type intint_graphtest_types;
 
 
-// typedef 
-//   join_seqs< intint_adjlistBC_vec_types,
-//   join_seqs< intint_adjlistBC_list_types, 
-//   join_seqs< intint_adjlistBC_pool_types, 
-//   join_seqs< intint_adjlistBC_set_types, 
-//   join_seqs< intint_adjlistBC_unordered_set_types,
-//   join_seqs< intint_adjlistBC_multiset_types, 
-//   join_seqs< intint_adjlistBC_unordered_multiset_types,
-//   intint_adjlist_types
-//   >::type >::type >::type >::type >::type >::type >::type intint_graphtest_types;
+typedef 
+  join_seqs< intint_adjlistBC_vec_types,
+  join_seqs< intint_adjlistBC_list_types, 
+  join_seqs< intint_adjlistBC_pool_types, 
+  join_seqs< intint_adjlistBC_set_types, 
+  join_seqs< intint_adjlistBC_unordered_set_types,
+  join_seqs< intint_adjlistBC_multiset_types, 
+  join_seqs< intint_adjlistBC_unordered_multiset_types,
+  intint_adjlist_types
+  >::type >::type >::type >::type >::type >::type >::type intint_graphtest_types;
 
   
 

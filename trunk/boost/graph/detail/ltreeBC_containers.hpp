@@ -7,14 +7,14 @@
 /**
  * \file ltreeBC_containers.hpp
  * 
- * This library implements adjacency-list data structures that underpin the linked_tree template. 
+ * This library implements adjacency-list data structures that underpin the adjacency_list_v2 template. 
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date June 2013
  */
 
-#ifndef BOOST_LTREEBC_CONTAINERS_HPP
-#define BOOST_LTREEBC_CONTAINERS_HPP
+#ifndef BOOST_ADJLISTBC_CONTAINERS_HPP
+#define BOOST_ADJLISTBC_CONTAINERS_HPP
 
 #include <boost/config.hpp>
 
@@ -51,7 +51,7 @@ namespace detail {
   
   
   // this is fine because boost-containers allow incomplete types:
-  template <typename VertexListS, typename OutEdgeListS,  typename DirectedS, 
+  template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
   struct ltreeBC_vertex_config {
     typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> stored_type;
@@ -71,7 +71,7 @@ namespace detail {
     typedef typename VConfig::descriptor vertex_descriptor;
     
     vertex_descriptor target;
-    EdgeProperties data;
+    mutable EdgeProperties data;
     
     ltreeBC_edge_stored_type(vertex_descriptor aTarget = VConfig::null_vertex()) : target(aTarget), data() { };
     ltreeBC_edge_stored_type(vertex_descriptor aTarget, const EdgeProperties& aData) : target(aTarget), data(aData) { };
@@ -90,9 +90,7 @@ namespace detail {
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
   std::size_t hash_value(const ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& ep) {
-    typedef typename ltreeBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>::vertex_descriptor Vertex;
-    ::boost::hash<Vertex> hasher;
-    return hasher(ep.target);
+    return BC_desc_get_hash(ep.target);
   };
   
   
@@ -130,23 +128,17 @@ namespace detail {
     typedef typename Config::container edge_container;
     typedef typename Config::container_ptr edge_container_ptr;
     typedef typename Config::descriptor edge_descriptor;
+    typedef edge_descriptor* in_edge_iterator;
     
     VertexProperties data;
     edge_container_ptr out_edges;
-    edge_descriptor in_edge_id;
+    edge_descriptor in_edge;
     
-    ltreeBC_vertex_stored_type() : data(), out_edges(), in_edge_id() { };
-    ltreeBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges(), in_edge_id() { };
+    ltreeBC_vertex_stored_type() : data(), out_edges(), in_edge() { };
+    ltreeBC_vertex_stored_type(const VertexProperties& aData) : data(aData), out_edges(), in_edge() { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    ltreeBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges(), in_edge_id() { };
+    ltreeBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges(), in_edge() { };
 #endif
-    
-    bool operator<(const self& rhs) const { return (this->data < rhs.data); };
-    bool operator<=(const self& rhs) const { return !(rhs.data < this->data); };
-    bool operator>(const self& rhs) const { return (rhs.data < this->data); };
-    bool operator>=(const self& rhs) const { return !(this->data < rhs.data); };
-    bool operator==(const self& rhs) const { return (this->data == rhs.data); };
-    bool operator!=(const self& rhs) const { return !(this->data == rhs.data); };
   };
   
   template <typename VertexListS, typename OutEdgeListS, 
@@ -154,7 +146,7 @@ namespace detail {
   struct ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> {
     typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> self;
     typedef directedS directed_tag;
-    typedef adjlistBC_edge_config<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> Config;
+    typedef ltreeBC_edge_config<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties> Config;
     typedef typename Config::container edge_container;
     typedef typename Config::container_ptr edge_container_ptr;
     typedef typename Config::descriptor edge_descriptor;
@@ -168,85 +160,13 @@ namespace detail {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     ltreeBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges() { };
 #endif
-    
-    bool operator<(const self& rhs) const { return (this->data < rhs.data); };
-    bool operator<=(const self& rhs) const { return !(rhs.data < this->data); };
-    bool operator>(const self& rhs) const { return (rhs.data < this->data); };
-    bool operator>=(const self& rhs) const { return !(this->data < rhs.data); };
-    bool operator==(const self& rhs) const { return (this->data == rhs.data); };
-    bool operator!=(const self& rhs) const { return !(this->data == rhs.data); };
-  };
-  
-  template <typename VertexListS, typename OutEdgeListS, typename DirectedS,
-            typename VertexProperties, typename EdgeProperties>
-  std::size_t hash_value(const ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp) {
-    ::boost::hash<VertexProperties> hasher;
-    return hasher(vp.data);
   };
   
   
   
-/*************************************************************************
- *        out-edges container pointers (or not): create and destroy
- * **********************************************************************/
-  
-  template <typename OutEdgeCont>
-  struct adjlistBC_out_edges_factory {
-    template <typename VertexValue>
-    static void create_out_edges(VertexValue&) { };
-    template <typename VertexValue>
-    static void destroy_out_edges(VertexValue&) { };
-    template <typename VertexContainer>
-    static void destroy_all_out_edges(VertexContainer&) { };
-  };
-  
-  template <typename OutEdgeCont>
-  struct adjlistBC_out_edges_factory<OutEdgeCont*> {
-    template <typename VertexValue>
-    static void create_out_edges(VertexValue& vp) {
-      vp.out_edges = new OutEdgeCont();
-    };
-    template <typename VertexValue>
-    static void destroy_out_edges(VertexValue& vp) {
-      delete vp.out_edges;
-    };
-    template <typename VertexValue>
-    static void destroy_all_out_edges( ::boost::container::vector<VertexValue>& vcont) {
-      typedef ::boost::container::vector<VertexValue> VertexContainer;
-      typedef typename VertexContainer::iterator Iter;
-      for(Iter vi = vcont.begin(); vi != vcont.end(); ++vi)
-        delete vi->out_edges;
-    };
-    template <typename VertexValue>
-    static void destroy_all_out_edges(BC_pooled_vector<VertexValue>& vcont) {
-      typedef typename BC_pooled_vector<VertexValue>::container_type VertexContainer;
-      typedef typename VertexContainer::iterator Iter;
-      for(Iter vi = vcont.m_data.begin(); vi != vcont.m_data.end(); ++vi) {
-        if(vi->which() == 0)
-          delete get<VertexValue>(*vi).out_edges;
-      };
-    };
-  };
-  
-  template <typename OutEdgeCont>
-  struct adjlistBC_out_edges_range {
-    typedef typename OutEdgeCont::iterator Iter;
-    static Iter begin(OutEdgeCont& econt) { return econt.begin(); };
-    static Iter end(OutEdgeCont& econt) { return econt.end(); };
-    template <typename Desc>
-    static Iter from_desc(OutEdgeCont& econt, Desc d) { return BC_desc_to_iterator(econt, d); };
-  };
-  
-  template <typename OutEdgeCont>
-  struct adjlistBC_out_edges_range<OutEdgeCont*> {
-    typedef typename OutEdgeCont::iterator Iter;
-    static Iter begin(OutEdgeCont* econt) { return econt->begin(); };
-    static Iter end(OutEdgeCont* econt) { return econt->end(); };
-    template <typename Desc>
-    static Iter from_desc(OutEdgeCont* econt, Desc d) { return BC_desc_to_iterator(*econt, d); };
-  };
-  
-  
+  //NOTE: ltreeBC_out_edges_factory == adjlistBC_out_edges_factory
+  //NOTE: ltreeBC_add_edge = adjlistBC_add_edge
+  //NOTE: ltreeBC_find_edge_to = adjlistBC_find_edge_to
   
   
   
@@ -261,30 +181,31 @@ namespace detail {
   
   
   template <typename VertexListS, typename OutEdgeListS, typename VertexProperties, typename EdgeProperties, typename EdgeDesc>
-  void adjlistBC_erase_in_edge(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
+  void ltreeBC_erase_in_edge(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
                                EdgeDesc e) { };
   
   // for vector of edge-desc (in-edges)
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, typename VertexProperties, typename EdgeProperties, typename EdgeDesc>
-  void adjlistBC_erase_in_edge(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
+  void ltreeBC_erase_in_edge(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
                                EdgeDesc e) {
-    vp.in_edges.erase( std::find(vp.in_edges.begin(), vp.in_edges.end(), e) );
+    if(e == vp.in_edge)
+      vp.in_edge = EdgeDesc::null_value();
   };
   
   
   // for OutEdgeListS = listS, setS, ...
   template <typename Container, typename EdgeDesc, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edge(Container& cont, EdgeDesc e, VertexCont&, VertexDesc) {
-    cont.erase(e.edge_id);
+  void ltreeBC_erase_edge(Container& cont, EdgeDesc e, VertexCont& vcont, VertexDesc v) {
+    adjlistBC_erase_edge(cont, e, vcont, v);
   };
   template <typename Container, typename EdgeDesc, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edge(Container* cont, EdgeDesc e, VertexCont& vcont, VertexDesc v) {
+  void ltreeBC_erase_edge(Container* cont, EdgeDesc e, VertexCont& vcont, VertexDesc v) {
     adjlistBC_erase_edge(*cont, e, vcont, v);
   };
   
   // for OutEdgeListS = vecS
   template <typename ValueType, typename EdgeDesc, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edge( ::boost::container::vector<ValueType>& cont, EdgeDesc e, VertexCont& vertex_cont, VertexDesc v) {
+  void ltreeBC_erase_edge( ::boost::container::vector<ValueType>& cont, EdgeDesc e, VertexCont& vertex_cont, VertexDesc v) {
     typedef ::boost::container::vector<ValueType> Container;
     typedef typename Container::iterator Iter;
     using std::swap;
@@ -294,18 +215,10 @@ namespace detail {
     if(it != it_last) {
       swap(*it, *it_last);
       // If this graph has in-edge references, then they must be updated.
-      adjlistBC_update_in_edge_id(BC_get_value(*BC_desc_to_iterator(vertex_cont, it->target)), 
+      ltreeBC_update_in_edge_id(BC_get_value(*BC_desc_to_iterator(vertex_cont, it->target)), 
                                   v, it_last - cont.begin(), it - cont.begin());
     };
     cont.erase(it_last, cont.end());
-  };
-  
-  // for OutEdgeListS = poolS
-  template <typename ValueType, typename EdgeDesc, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edge( BC_pooled_vector<ValueType>& cont, EdgeDesc e, VertexCont&, VertexDesc) {
-    cont.m_data[e.edge_id] = cont.m_first_hole;
-    cont.m_first_hole = BC_hole_desc(e.edge_id);
-    --(cont.m_num_elements);
   };
   
   
@@ -319,192 +232,17 @@ namespace detail {
 // bidir:         O(1)        O(1)        O(1)
   
   
+  /* THESE FUNCTIONS SHOULD NOT BE NEEDED
   template <typename VertexListS, typename OutEdgeListS, typename VertexProperties, typename EdgeProperties, typename EdgeDesc>
-  void adjlistBC_add_in_edge(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
+  void ltreeBC_add_in_edge(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
                              EdgeDesc e) { };
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, typename VertexProperties, typename EdgeProperties, typename EdgeDesc>
-  void adjlistBC_add_in_edge(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
+  void ltreeBC_add_in_edge(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
                              EdgeDesc e) {
-    vp.in_edges.push_back(e);
+    vp.in_edge = e;
   };
-  
-  
-  // for OutEdgeListS = listS, multisetS, ...
-  template <typename Container, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename BC_select_descriptor<Container>::type, bool> adjlistBC_add_edge(Container& cont, const EdgeProperties& ep, VertexDesc v) {
-    typedef typename Container::value_type ValueType;
-    return std::pair<typename Container::iterator, bool>(cont.insert(cont.end(), ValueType(v, ep)), true);
-  };
-  
-  // for OutEdgeListS = setS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename ::boost::container::set<ValueType>::iterator, bool> adjlistBC_add_edge( ::boost::container::set<ValueType>& cont, const EdgeProperties& ep, VertexDesc v) {
-    return cont.insert(ValueType(v, ep));
-  };
-  
-  // for OutEdgeListS = unordered_setS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename ::boost::unordered_set<ValueType>::iterator, bool> adjlistBC_add_edge( ::boost::unordered_set<ValueType>& cont, const EdgeProperties& ep, VertexDesc v) {
-    return cont.insert(ValueType(v, ep));
-  };
-  
-  // for OutEdgeListS = vecS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<std::size_t, bool> adjlistBC_add_edge( ::boost::container::vector<ValueType>& cont, const EdgeProperties& ep, VertexDesc v) {
-    cont.push_back(ValueType(v, ep));
-    return std::pair<std::size_t, bool>(cont.size() - 1, true);
-  };
-  
-  // for OutEdgeListS = poolS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<std::size_t, bool> adjlistBC_add_edge( BC_pooled_vector<ValueType>& cont, const EdgeProperties& ep, VertexDesc v) {
-    typedef typename BC_pooled_vector<ValueType>::iterator Iter;
-    
-    if(cont.m_first_hole == BC_hole_desc()) {
-      Iter it = cont.m_data.insert(cont.m_data.end(), ValueType(v, ep));
-      ++(cont.m_num_elements);
-      return std::pair<std::size_t, bool>(it - cont.m_data.begin(), true);
-    } else {
-      Iter it = cont.m_data.begin() + cont.m_first_hole.value;
-      cont.m_first_hole = get<BC_hole_desc>(cont.m_data[cont.m_first_hole.value]);
-      *it = ValueType(v, ep);
-      ++(cont.m_num_elements);
-      return std::pair<std::size_t, bool>(it - cont.m_data.begin(), true);
-    };
-  };
-  
-  template <typename Container, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename BC_select_descriptor<Container>::type, bool> adjlistBC_add_edge(Container* cont, const EdgeProperties& ep, VertexDesc v) {
-    return adjlistBC_add_edge(*cont, ep, v);
-  };
-  
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-  
-  // for OutEdgeListS = listS, multisetS, ...
-  template <typename Container, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename BC_select_descriptor<Container>::type, bool> adjlistBC_add_edge(Container& cont, EdgeProperties&& ep, VertexDesc v) {
-    typedef typename Container::value_type ValueType;
-    return std::pair<typename BC_select_descriptor<Container>::type, bool>(cont.insert(cont.end(), ValueType(v, std::move(ep))), true);
-  };
-  
-  // for OutEdgeListS = setS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename ::boost::container::set<ValueType>::iterator, bool> adjlistBC_add_edge( ::boost::container::set<ValueType>& cont, EdgeProperties&& ep, VertexDesc v) {
-    return cont.insert(ValueType(v, std::move(ep)));
-  };
-  
-  // for OutEdgeListS = unordered_setS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename ::boost::unordered_set<ValueType>::iterator, bool> adjlistBC_add_edge( ::boost::unordered_set<ValueType>& cont, EdgeProperties&& ep, VertexDesc v) {
-    return cont.insert(ValueType(v, std::move(ep)));
-  };
-  
-  // for OutEdgeListS = vecS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<std::size_t, bool> adjlistBC_add_edge( ::boost::container::vector<ValueType>& cont, EdgeProperties&& ep, VertexDesc v) {
-    cont.push_back(ValueType(v, std::move(ep)));
-    return std::pair<std::size_t, bool>(cont.size() - 1, true);
-  };
-  
-  // for OutEdgeListS = poolS
-  template <typename ValueType, typename EdgeProperties, typename VertexDesc>
-  std::pair<std::size_t, bool> adjlistBC_add_edge( BC_pooled_vector<ValueType>& cont, EdgeProperties&& ep, VertexDesc v) {
-    typedef typename BC_pooled_vector<ValueType>::iterator Iter;
-    
-    if(cont.m_first_hole == BC_hole_desc()) {
-      Iter it = cont.m_data.insert(cont.m_data.end(), ValueType(v, std::move(ep)));
-      ++(cont.m_num_elements);
-      return std::pair<std::size_t, bool>(it - cont.m_data.begin(), true);
-    } else {
-      Iter it = cont.m_data.begin() + cont.m_first_hole.value;
-      cont.m_first_hole = get<BC_hole_desc>(cont.m_data[cont.m_first_hole.value]);
-      *it = ValueType(v, std::move(ep));
-      ++(cont.m_num_elements);
-      return std::pair<std::size_t, bool>(it - cont.m_data.begin(), true);
-    };
-  };
-  
-  template <typename Container, typename EdgeProperties, typename VertexDesc>
-  std::pair<typename BC_select_descriptor<Container>::type, bool> adjlistBC_add_edge(Container* cont, EdgeProperties&& ep, VertexDesc v) {
-    return adjlistBC_add_edge(*cont, std::move(ep), v);
-  };
-  
-#endif
-  
-  
-  
-  
-  
-  
-  
-/*************************************************************************
- *        helper functions for finding an edgee between two vertices
- * **********************************************************************/
-// NOTE: Time complexities: 
-//               vecBC      poolBC      listBC    (multi)setBC      unordered_(multi)setBC
-// any-dir.:    O(E/V)      O(E/V)      O(E/V)    O(log(E/V))       O(1)
-  
-  
-  // for OutEdgeListS = listS
-  template <typename ValueType, typename VertexDesc>
-  std::pair< typename ::boost::container::list<ValueType>::iterator, bool >
-      adjlistBC_find_edge_to( ::boost::container::list<ValueType>& cont, VertexDesc v) {
-    typedef typename ::boost::container::list<ValueType>::iterator Iter;
-    typedef std::pair< Iter, bool > ResultType;
-    Iter it = cont.begin();
-    for(; it != cont.end(); ++it)
-      if( (it->target == v) )
-        return ResultType(it,true);
-    return ResultType(it, false);
-  };
-  
-  // for OutEdgeListS = setS, multisetS, ...
-  template <typename Container, typename VertexDesc>
-  std::pair< typename BC_select_descriptor<Container>::type, bool >
-      adjlistBC_find_edge_to(Container& cont, VertexDesc v) {
-    typedef typename Container::value_type ValueType;
-    typedef typename Container::iterator Iter;
-    typedef std::pair< Iter, bool > ResultType;
-    ValueType ep = ValueType(v);
-    Iter it = cont.find(ep);
-    return ResultType(it, (it != cont.end()));
-  };
-  
-  // for OutEdgeListS = vecS
-  template <typename ValueType, typename VertexDesc>
-  std::pair< std::size_t, bool >
-      adjlistBC_find_edge_to( ::boost::container::vector<ValueType>& cont, VertexDesc v) {
-    typedef ::boost::container::vector<ValueType> Container;
-    typedef typename Container::iterator Iter;
-    typedef std::pair< std::size_t, bool > ResultType;
-    
-    for(Iter it = cont.begin(); it != cont.end(); ++it)
-      if( (it->target == v) )
-        return ResultType(it - cont.begin(),true);
-    return ResultType(cont.size(), false);
-  };
-  
-  // for OutEdgeListS = poolS
-  template <typename ValueType, typename VertexDesc>
-  std::pair< std::size_t, bool >
-      adjlistBC_find_edge_to( BC_pooled_vector<ValueType>& cont, VertexDesc v) {
-    typedef typename BC_pooled_vector<ValueType>::container_type Container;
-    typedef typename Container::iterator Iter;
-    typedef std::pair< std::size_t, bool > ResultType;
-    
-    for(Iter it = cont.m_data.begin(); it != cont.m_data.end(); ++it)
-      if( (it->which() == 0) && 
-          (get<ValueType>(*it).target == v) )
-        return ResultType(it - cont.m_data.begin(),true);
-    return ResultType(cont.m_data.size(), false);
-  };
-  
-  template <typename Container, typename VertexDesc>
-  std::pair< typename BC_select_descriptor<Container>::type, bool >
-      adjlistBC_find_edge_to(Container* cont, VertexDesc v) {
-    return adjlistBC_find_edge_to(*cont, v);
-  };
+  */
   
   
   
@@ -518,100 +256,30 @@ namespace detail {
 // directedS:   O(E/V)      O(E/V)      O(E/V)    O(log(E/V))       O(1)
 // bidir:     O((E/V)^2)    O(E/V)      O(E/V)    O(log(E/V))       O(1)
   
-  
-  // for OutEdgeListS = listS
-  template <typename ValueType, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edges_to( ::boost::container::list<ValueType>& cont, VertexCont&, VertexDesc, VertexDesc v, 
-                                 std::size_t& e_count) {
-    typedef typename ::boost::container::list<ValueType>::iterator Iter;
-    for(Iter it = cont.begin(); it != cont.end(); ) {
-      if( (it->target == v) ) {
-        it = cont.erase(it);
-        --e_count;
-      } else
-        ++it;
-    };
-  };
-  
-  // for OutEdgeListS = setS, multisetS, ...
-  template <typename Container, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edges_to(Container& cont, VertexCont&, VertexDesc, VertexDesc v, std::size_t& e_count) {
-    typedef typename Container::value_type ValueType;
-    ValueType ep = ValueType(v);
-    e_count -= cont.erase(ep);
-  };
+  //NOTE: ltreeBC_erase_edges_to = adjlistBC_erase_edges_to
+  // As long as these special versions of update_in_edge_id are used (by ADL):
   
   template <typename VertexListS, typename OutEdgeListS, typename VertexProperties, typename EdgeProperties, typename VertexDesc>
-  void adjlistBC_update_in_edge_id(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
+  void adjlistBC_update_in_edge_id(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, directedS, VertexProperties, EdgeProperties>& vp,
                                    VertexDesc v, std::size_t old_id, std::size_t new_id) { };
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, typename VertexProperties, typename EdgeProperties, typename VertexDesc>
-  void adjlistBC_update_in_edge_id(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
+  void adjlistBC_update_in_edge_id(ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& vp,
                                    VertexDesc v, std::size_t old_id, std::size_t new_id) {
-    typedef adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VertexValue;
-    typedef typename VertexValue::in_edge_container InEdgeCont;
-    typedef typename InEdgeCont::iterator InEdgeIter;
+    typedef ltreeBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VertexValue;
+    typedef typename VertexValue::edge_descriptor EdgeDesc;
     
-    for(InEdgeIter ei = vp.in_edges.begin(); ei != vp.in_edges.end(); ++ei) {
-      if( (ei->source == v) && (ei->edge_id == old_id) ) {
-        ei->edge_id = new_id;
-        break;
-      };
-    };
-  };
-  
-  // for OutEdgeListS = vecS
-  template <typename ValueType, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edges_to( ::boost::container::vector<ValueType>& cont, VertexCont& vertex_cont, VertexDesc u, VertexDesc v, 
-                                 std::size_t& e_count) {
-    typedef ::boost::container::vector<ValueType> Container;
-    typedef typename Container::iterator Iter;
-    using std::swap;
-    
-    Iter it_last = cont.end();
-    for(Iter it = cont.begin(); it != it_last; ) {
-      if( (BC_get_value(*it).target == v) ) {
-        --it_last;
-        if(it != it_last) {
-          swap(*it, *it_last);
-          // If this graph has in-edge references, then they must be updated.
-          adjlistBC_update_in_edge_id(BC_get_value(*BC_desc_to_iterator(vertex_cont, it->target)), 
-                                      u, it_last - cont.begin(), it - cont.begin());
-        };
-        --e_count;
-      } else
-        ++it;
-    };
-    cont.erase(it_last, cont.end());
-  };
-  
-  // for OutEdgeListS = poolS
-  template <typename ValueType, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edges_to( BC_pooled_vector<ValueType>& cont, VertexCont&, VertexDesc, VertexDesc v, std::size_t& e_count) {
-    typedef typename BC_pooled_vector<ValueType>::container_type Container;
-    typedef typename Container::iterator Iter;
-    
-    for(Iter it = cont.m_data.begin(); it != cont.m_data.end(); ++it) {
-      if( (it->which() == 0) && 
-          (BC_get_value(*it).target == v) ) {
-        *it = cont.m_first_hole;
-        cont.m_first_hole = BC_hole_desc(it - cont.m_data.begin());
-        --(cont.m_num_elements);
-        --e_count;
-      };
-    };
-  };
-  
-  template <typename Container, typename VertexCont, typename VertexDesc>
-  void adjlistBC_erase_edges_to(Container* cont, VertexCont& vcont, VertexDesc u, VertexDesc v, std::size_t& e_count) {
-    adjlistBC_erase_edges_to(*cont, vcont, u, v, e_count);
+    if(vp.in_edge == EdgeDesc::null_value())
+      return;
+    if((vp.in_edge.source == v) && (vp.in_edge.edge_id == old_id))
+      vp.in_edge.edge_id = new_id;
   };
   
   
 /*************************************************************************
  *        functions for clearing the edges of a vertex
  * **********************************************************************/
-  // NOTE: The function 'adjlistBC_clear_vertex' works for all graph types.
+  // NOTE: The function 'ltreeBC_clear_vertex' works for all graph types.
   
 // NOTE: Time complexities: 
 //                 vecBC         poolBC         listBC
@@ -621,56 +289,38 @@ namespace detail {
   
   template <typename DirectedS, typename VertexCont, typename VertexValue, typename VertexDesc>
   typename enable_if< is_same< DirectedS, directedS >,
-  void >::type adjlistBC_clear_vertex(VertexCont& cont, VertexValue& vp, VertexDesc v, std::size_t& e_count) {
-    typedef typename VertexCont::iterator VertexIter;
-    
-    // first, just clear the out-going edges. No need to synchronize in-edges (there are none).
-    e_count -= BC_get_size(vp.out_edges);
-    BC_clear_all(vp.out_edges);
-    VertexIter vi = BC_desc_to_iterator(cont, v);
-    
-    // now, the stupid part... we have to traverse all other vertices (and their edges) 
-    // to look for in-edges that lead to "v", and erase them.
-    for(VertexIter ui = cont.begin(); ui != cont.end(); ++ui) {
-      if((ui == vi) || (!BC_is_elem_valid(*ui)))
-        continue;
-      VertexValue& up = BC_get_value(*ui);
-      adjlistBC_erase_edges_to(up.out_edges, cont, BC_iterator_to_desc(cont, ui), v, e_count);
-    };
+  void >::type ltreeBC_clear_vertex(VertexCont& cont, VertexValue& vp, VertexDesc v, std::size_t& e_count) {
+    adjlistBC_clear_vertex<DirectedS>(cont, vp, v, e_count);
   };
   
   template <typename DirectedS, typename VertexCont, typename VertexValue, typename VertexDesc>
   typename disable_if< is_same< DirectedS, directedS >,
-  void >::type adjlistBC_clear_vertex(VertexCont& cont, VertexValue& vp, VertexDesc v, std::size_t& e_count) {
+  void >::type ltreeBC_clear_vertex(VertexCont& cont, VertexValue& vp, VertexDesc v, std::size_t& e_count) {
     typedef typename VertexValue::edge_container OutEdgeCont;
     typedef typename OutEdgeCont::iterator OutEdgeIter;
-    typedef typename VertexValue::in_edge_container InEdgeCont;
-    typedef typename InEdgeCont::iterator InEdgeIter;
+    typedef typename VertexValue::edge_descriptor EdgeDesc;
     
     // first, remove the in-edge references from the adjacent vertices of v.
     for(OutEdgeIter ei = BC_get_begin_iter(vp.out_edges); ei != BC_get_end_iter(vp.out_edges); ++ei) {
       if( !BC_is_elem_valid(*ei) )
         continue;
       VertexValue& wp = BC_get_value( *BC_desc_to_iterator(cont, BC_get_value(*ei).target) );
-      for(InEdgeIter iei = wp.in_edges.begin(); iei != wp.in_edges.end(); ++iei) {
-        if( (iei->source == v) && (BC_desc_to_iterator(vp.out_edges, iei->edge_id) == ei) ) {
-          wp.in_edges.erase(iei);
-          break;
-        };
-      };
+      if((wp.in_edge != EdgeDesc::null_value()) && (wp.in_edge.source == v) && 
+         (BC_desc_to_iterator(vp.out_edges, wp.in_edge.edge_id) == ei))
+        wp.in_edge = EdgeDesc::null_value();
     };
     
     // then, clear the out-going edges.
     e_count -= BC_get_size(vp.out_edges);
     BC_clear_all(vp.out_edges);
     
-    // finally, remove the required out-edges of the "parent" vertices of v.
-    for(InEdgeIter iei = vp.in_edges.begin(); iei != vp.in_edges.end(); ++iei) {
-      VertexDesc u = iei->source;
-      VertexValue& up = BC_get_value( *BC_desc_to_iterator(cont, iei->source) );
+    // finally, remove the required out-edges of the "parent" vertex of v.
+    if(vp.in_edge != EdgeDesc::null_value()) {
+      VertexDesc u = vp.in_edge.source;
+      VertexValue& up = BC_get_value( *BC_desc_to_iterator(cont, vp.in_edge.source) );
       adjlistBC_erase_edges_to(up.out_edges, cont, u, v, e_count);
+      vp.in_edge = EdgeDesc::null_value();
     };
-    vp.in_edges.clear();
     
   };
   
@@ -682,7 +332,7 @@ namespace detail {
 /*************************************************************************
  *        functions for erasing a vertex (including updating edges of surrounding vertices
  * **********************************************************************/
-  // NOTE: The function 'adjlistBC_erase_vertex' works for all graph types.
+  // NOTE: The function 'ltreeBC_erase_vertex' works for all graph types.
 // NOTE: Time complexities: 
 //               vecBC      poolBC      listBC
 // directedS:     O(E)        O(1)        O(1)
@@ -690,68 +340,49 @@ namespace detail {
 
   
   template <typename Container, typename VertexDesc>
-  void adjlistBC_erase_vertex(Container& cont, VertexDesc v) {
-    typedef typename Container::iterator Iter;
-    typedef typename Container::value_type VertexValue;
-    typedef adjlistBC_out_edges_factory< typename VertexValue::edge_container_ptr > OutEdgeFactory;
-    OutEdgeFactory::destroy_out_edges(*v);
-    cont.erase(v);
+  void ltreeBC_erase_vertex(Container& cont, VertexDesc v) {
+    adjlistBC_erase_vertex(cont, v);
   };
+  
+  
+  //NOTE: ltreeBC_update_out_edges_impl = adjlistBC_update_out_edges_impl
+  
   
   // O(E)
   template <typename DirectedS, typename ValueType>
   typename enable_if< is_same< DirectedS, directedS >,
-  void >::type adjlistBC_update_out_edges(::boost::container::vector<ValueType>& cont, 
+  void >::type ltreeBC_update_out_edges(::boost::container::vector<ValueType>& cont, 
                                           std::size_t old_v_id, std::size_t new_v_id) {
-    typedef ::boost::container::vector<ValueType> VContainer;
-    typedef typename VContainer::iterator VIter;
-    typedef typename ValueType::edge_container OutEdgeCont;
-    typedef adjlistBC_out_edges_range< typename ValueType::edge_container_ptr > OERange;
-    typedef typename OutEdgeCont::iterator OEIter;
-    typedef typename ValueType::edge_descriptor EdgeDesc;
-    
-    for(VIter vi = cont.begin(); vi != cont.end(); ++vi)
-      for(OEIter ei = OERange::begin(vi->out_edges); ei != OERange::end(vi->out_edges); ++ei)
-        if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id))
-          BC_get_value(*ei).target = new_v_id;
-    
+    adjlistBC_update_out_edges(cont, old_v_id, new_v_id);
   };
   
-  // O((E/V)^2)
+  // O(E/V)
   template <typename DirectedS, typename ValueType>
   typename disable_if< is_same< DirectedS, directedS >,
-  void >::type adjlistBC_update_out_edges(::boost::container::vector<ValueType>& cont, 
+  void >::type ltreeBC_update_out_edges(::boost::container::vector<ValueType>& cont, 
                                           std::size_t old_v_id, std::size_t new_v_id) {
-    typedef ::boost::container::vector<ValueType> VContainer;
-    typedef typename VContainer::iterator VIter;
     typedef typename ValueType::edge_container OutEdgeCont;
-    typedef adjlistBC_out_edges_range< typename ValueType::edge_container_ptr > OERange;
     typedef typename OutEdgeCont::iterator OEIter;
     typedef typename ValueType::edge_descriptor EdgeDesc;
-    typedef typename ValueType::in_edge_container InEdgeCont;
     typedef typename InEdgeCont::iterator InEdgeIter;
     
     // first, update in-edge vertices
-    for(InEdgeIter iei = cont[new_v_id].in_edges.begin(); iei != cont[new_v_id].in_edges.end(); ++iei) {
-      ValueType& up = cont[iei->source];
-      OEIter ed = OERange::from_desc(up.out_edges, iei->edge_id);
-      for(OEIter ei = OERange::begin(up.out_edges); ei != OERange::end(up.out_edges); ++ei) {
-        if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id) && (ed == ei)) {
-          BC_get_value(*ei).target = new_v_id;
-          break;
-        };
-      };
+    if(cont[new_v_id].in_edge != EdgeDesc::null_value()) {
+      EdgeDesc& e_in = cont[new_v_id].in_edge;
+      ValueType& up = cont[e_in.source];
+      adjlistBC_update_out_edges_impl(up.out_edges, old_v_id, new_v_id, BC_desc_to_iterator(up.out_edges, e_in.edge_id));
     };
     
     // second, update out-edge vertices
-    for(OEIter ei = OERange::begin(cont[new_v_id].out_edges); ei != OERange::end(cont[new_v_id].out_edges); ++ei) {
+    for(OEIter ei = BC_get_begin_iter(cont[new_v_id].out_edges); ei != BC_get_end_iter(cont[new_v_id].out_edges); ++ei) {
       if(!BC_is_elem_valid(*ei))
         continue;
       ValueType& wp = cont[BC_get_value(*ei).target];
-      for(InEdgeIter iei = wp.in_edges.begin(); iei != wp.in_edges.end(); ++iei) {
-        if((iei->source == old_v_id) && 
-           (ei == OERange::from_desc(cont[new_v_id].out_edges, iei->edge_id))) {
-          iei->source = new_v_id;
+      EdgeDesc& e_in = wp.in_edge;
+      if(e_in != EdgeDesc::null_value()) {
+        if((e_in.source == old_v_id) && 
+           (ei == BC_desc_to_iterator(cont[new_v_id].out_edges, e_in.edge_id))) {
+          e_in.source = new_v_id;
           break;
         };
       };
@@ -760,7 +391,7 @@ namespace detail {
   };
   
   template <typename ValueType>
-  void adjlistBC_erase_vertex( ::boost::container::vector<ValueType>& cont, std::size_t v) {
+  void ltreeBC_erase_vertex( ::boost::container::vector<ValueType>& cont, std::size_t v) {
     typedef ::boost::container::vector<ValueType> Container;
     typedef typename Container::iterator Iter;
     typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OutEdgeFactory;
@@ -778,119 +409,17 @@ namespace detail {
     std::size_t old_id = it_last - cont.begin();
     std::size_t new_id = it - cont.begin();
     cont.erase(it_last); 
-    adjlistBC_update_out_edges<DirectedS>(cont, old_id, new_id);
+    ltreeBC_update_out_edges<DirectedS>(cont, old_id, new_id);
   };
   
   template <typename ValueType>
-  void adjlistBC_erase_vertex(BC_pooled_vector<ValueType>& cont, std::size_t v) {
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OutEdgeFactory;
-    // the first_hole will become v and v will be referring to first_hole (i.e., like a simple linked-list):
-    OutEdgeFactory::destroy_out_edges(get<ValueType>(cont.m_data[v]));
-    cont.m_data[v] = cont.m_first_hole;
-    cont.m_first_hole = BC_hole_desc(v);
-    --(cont.m_num_elements);
+  void ltreeBC_erase_vertex(BC_pooled_vector<ValueType>& cont, std::size_t v) {
+    adjlistBC_erase_vertex(cont, v);
   };
   
   
   
-  
-/*************************************************************************
- *        functions for adding an edge
- * **********************************************************************/
-// NOTE: Time complexities: 
-//               vecBC      poolBC      listBC
-// directedS:     O(1)        O(1)        O(1)
-// bidir:         O(1)        O(1)        O(1)
-
-  
-  template <typename Container, typename VertexProperties>
-  typename BC_select_descriptor<Container>::type adjlistBC_add_vertex(Container& cont, const VertexProperties& vp) {
-    typedef typename Container::value_type ValueType;
-    typedef typename Container::iterator Iter;
-    Iter it = cont.insert(cont.end(), ValueType(vp));
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OEFactory;
-    OEFactory::create_out_edges(*it);
-    return it;
-  };
-  
-  template <typename ValueType, typename VertexProperties>
-  std::size_t adjlistBC_add_vertex( ::boost::container::vector<ValueType>& cont, const VertexProperties& vp) {
-    typedef typename ::boost::container::vector<ValueType>::iterator Iter;
-    Iter it = cont.insert(cont.end(), ValueType(vp));
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OEFactory;
-    OEFactory::create_out_edges(*it);
-    return it - cont.begin();
-  };
-  
-  template <typename ValueType, typename VertexProperties>
-  std::size_t adjlistBC_add_vertex( BC_pooled_vector<ValueType>& cont, const VertexProperties& vp) {
-    typedef typename BC_pooled_vector<ValueType>::iterator Iter;
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OEFactory;
-    
-    if(cont.m_first_hole == BC_hole_desc()) {
-      Iter it = cont.m_data.insert(cont.m_data.end(), ValueType(vp));
-      ++(cont.m_num_elements);
-      OEFactory::create_out_edges(get<ValueType>(*it));
-      return it - cont.m_data.begin();
-    } else {
-      Iter it = cont.m_data.begin() + cont.m_first_hole.value;
-      cont.m_first_hole = get<BC_hole_desc>(cont.m_data[cont.m_first_hole.value]);
-      *it = ValueType(vp);
-      ++(cont.m_num_elements);
-      OEFactory::create_out_edges(get<ValueType>(*it));
-      return it - cont.m_data.begin();
-    };
-  };
-  
-  template <typename Container, typename VertexProperties>
-  typename BC_select_descriptor<Container>::type adjlistBC_add_vertex(Container* cont, const VertexProperties& vp) {
-    return adjlistBC_add_vertex(*cont, vp);
-  };
-  
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-  
-  template <typename Container, typename VertexProperties>
-  typename BC_select_descriptor<Container>::type adjlistBC_add_vertex(Container& cont, VertexProperties&& vp) {
-    typedef typename Container::value_type ValueType;
-    return cont.insert(cont.end(), ValueType(std::move(vp)));
-  };
-  
-  template <typename ValueType, typename VertexProperties>
-  std::size_t adjlistBC_add_vertex( ::boost::container::vector<ValueType>& cont, VertexProperties&& vp) {
-    typedef typename ::boost::container::vector<ValueType>::iterator Iter;
-    Iter it = cont.insert(cont.end(), ValueType(std::move(vp)));
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OEFactory;
-    OEFactory::create_out_edges(*it);
-    return it - cont.begin();
-  };
-  
-  template <typename ValueType, typename VertexProperties>
-  std::size_t adjlistBC_add_vertex( BC_pooled_vector<ValueType>& cont, VertexProperties&& vp) {
-    typedef typename BC_pooled_vector<ValueType>::iterator Iter;
-    typedef adjlistBC_out_edges_factory< typename ValueType::edge_container_ptr > OEFactory;
-    
-    if(cont.m_first_hole == BC_hole_desc()) {
-      Iter it = cont.m_data.insert(cont.m_data.end(), ValueType(std::move(vp)));
-      ++(cont.m_num_elements);
-      OEFactory::create_out_edges(get<ValueType>(*it));
-      return it - cont.m_data.begin();
-    } else {
-      Iter it = cont.m_data.begin() + cont.m_first_hole.value;
-      cont.m_first_hole = get<BC_hole_desc>(cont.m_data[cont.m_first_hole.value]);
-      *it = ValueType(std::move(vp));
-      ++(cont.m_num_elements);
-      OEFactory::create_out_edges(get<ValueType>(*it));
-      return it - cont.m_data.begin();
-    };
-  };
-  
-  template <typename Container, typename VertexProperties>
-  typename BC_select_descriptor<Container>::type adjlistBC_add_vertex(Container* cont, VertexProperties&& vp) {
-    return adjlistBC_add_vertex(*cont, std::move(vp));
-  };
-  
-#endif
-  
+  //NOTE: ltreeBC_add_vertex = adjlistBC_add_vertex
   
   
   
@@ -898,16 +427,16 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS,
             typename VertexProperties, typename EdgeProperties>
-  struct adjlistBC_vertex_container {
+  struct ltreeBC_vertex_container {
     
-    typedef adjlistBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VConfig;
+    typedef ltreeBC_vertex_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> VConfig;
     typedef typename VConfig::container vertex_container;
     typedef typename vertex_container::size_type vertices_size_type;
     typedef typename VConfig::descriptor vertex_descriptor;
     typedef typename VConfig::stored_type vertex_stored_type;
     typedef typename VConfig::value_type vertex_value_type;
     
-    typedef adjlistBC_edge_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> EConfig;
+    typedef ltreeBC_edge_config<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties> EConfig;
     typedef typename EConfig::container edge_container;
     typedef typename edge_container::size_type edges_size_type;
     typedef typename EConfig::descriptor edge_descriptor;
@@ -917,7 +446,12 @@ namespace detail {
     mutable vertex_container m_vertices;
     std::size_t m_num_edges;
     
-    adjlistBC_vertex_container() : m_vertices(), m_num_edges(0) { };
+    ltreeBC_vertex_container() : m_vertices(), m_num_edges(0) { };
+    
+    
+/********************************************************************************
+ * NOTE NOTE NOTE - FUNCTIONS THAT ARE THE SAME AS ADJ-LIST-BC - NOTE NOTE NOTE *
+ * ******************************************************************************/
     
     std::size_t size() const { return m_vertices.size(); };
     std::size_t capacity() const { return m_vertices.capacity(); };
@@ -928,7 +462,7 @@ namespace detail {
       return BC_get_value(*BC_desc_to_iterator(m_vertices, v));
     };
     
-    edge_stored_type& get_stored_edge(edge_descriptor e) const { 
+    const edge_stored_type& get_stored_edge(edge_descriptor e) const { 
       return BC_get_value(*BC_desc_to_iterator(get_stored_vertex(e.source).out_edges, e.edge_id));
     };
     
@@ -940,6 +474,103 @@ namespace detail {
       return BC_get_size(get_stored_vertex(v).in_edges);
     };
     
+    
+    
+    
+    
+/********************************************************************************
+ * NOTE NOTE NOTE - FUNCTIONS THAT ARE THE SAME AS ADJ-LIST-BC - NOTE NOTE NOTE *
+ * ******************************************************************************/
+    
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    void clear() { 
+      typedef adjlistBC_out_edges_factory< typename vertex_value_type::edge_container_ptr > OEFactory;
+      OEFactory::destroy_all_out_edges(m_vertices);
+      m_vertices.clear();
+      m_num_edges = 0;
+    };
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    typedef adjlistBC_select_vertex_iterator<VertexListS, vertex_container> VIterSelect;
+    typedef typename VIterSelect::type vertex_iterator;
+    
+    std::pair< vertex_iterator, vertex_iterator > vertices() const {
+      return VIterSelect::create_range(m_vertices);
+    };
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    // NOTE: This WORKS for ALL edge container types.
+    typedef adjlistBC_select_out_edge_iterator<OutEdgeListS, edge_container, edge_descriptor> OEIterSelect;
+    typedef typename OEIterSelect::type out_edge_iterator;
+    
+    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor u) const {
+      return OEIterSelect::create_range(u, get_stored_vertex(u).out_edges);
+    };
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    // NOTE: This WORKS for ALL edge container types.
+    typedef ltreeBC_adjacent_viter<vertex_descriptor, edge_container, out_edge_iterator> adjacency_iterator;
+    
+    std::pair< adjacency_iterator, adjacency_iterator > adjacent_vertices(vertex_descriptor u) const {
+      std::pair< out_edge_iterator, out_edge_iterator > oe_pair = out_edges(u);
+      return std::pair< adjacency_iterator, adjacency_iterator >(
+        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.first),
+        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.second)
+      );
+    };
+    
+    
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    typedef adjlistBC_edge_iterator<vertex_container, edge_descriptor> edge_iterator;
+    
+    std::pair< edge_iterator, edge_iterator > edges() const {
+      return std::pair< edge_iterator, edge_iterator >(edge_iterator::begin(m_vertices), edge_iterator::end(m_vertices));
+    };
+    
+    
+    
+/***************************************************************************************
+ * NOTE NOTE NOTE - FUNCTIONS THAT ARE THE DIFFERENT FROM ADJ-LIST-BC - NOTE NOTE NOTE *
+ * *************************************************************************************/
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    typedef typename vertex_stored_type::in_edge_iterator in_edge_iterator;
+    
+    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) const {
+      if(get_stored_vertex(u).in_edge == EConfig::null_edge())
+        return std::pair< in_edge_iterator, in_edge_iterator >(NULL,NULL);
+      else
+        return std::pair< in_edge_iterator, in_edge_iterator >(&(get_stored_vertex(v).in_edge), 
+                                                               &(get_stored_vertex(v).in_edge) + 1);
+    };
+    
+    // NOTE: This WORKS for ALL vertex container types.
+    typedef typename mpl::if_< is_same< DirectedS, directedS >,
+      void, 
+      adjlistBC_inv_adjacent_viter<vertex_descriptor, in_edge_iterator> >::type inv_adjacency_iterator;
+    
+    std::pair< inv_adjacency_iterator, inv_adjacency_iterator > inv_adjacent_vertices(vertex_descriptor v) const {
+      std::pair< in_edge_iterator, in_edge_iterator > result_ie = in_edges(v);
+      return std::pair< inv_adjacency_iterator, inv_adjacency_iterator >(
+        inv_adjacency_iterator(result_ie.first), 
+        inv_adjacency_iterator(result_ie.second)
+      );
+    };
+    
+    
+    
+  
+  
+/*********************************************************
+ * NOTE NOTE NOTE - VERIFIED UP TO HERE - NOTE NOTE NOTE *
+ * *******************************************************/
+  
+    
+/*************************************************************************
+ * NOTE NOTE NOTE - FUNCTIONS WILL DISAPPEAR FOR L-TREE - NOTE NOTE NOTE *
+ * ***********************************************************************/
     
     // NOTE: this operation does not invalidate anything.
     // NOTE: This WORKS for ALL vertex container types.
@@ -956,7 +587,7 @@ namespace detail {
     // and possibly edge-descriptors linked to vertices adjacent to v (if edge-list is vecBC).
     // NOTE: This WORKS for ALL vertex container types.
     void clear_vertex(vertex_descriptor v) {
-      adjlistBC_clear_vertex<DirectedS>(m_vertices, get_stored_vertex(v), v, m_num_edges);
+      ltreeBC_clear_vertex<DirectedS>(m_vertices, get_stored_vertex(v), v, m_num_edges);
     };
     
     // NOTE: this operation only invalidates existing vertex-descriptors, 
@@ -964,7 +595,7 @@ namespace detail {
     // NOTE: This WORKS for ALL vertex container types.
     void remove_vertex(vertex_descriptor v) {
       clear_vertex(v);
-      adjlistBC_erase_vertex(m_vertices, v);
+      ltreeBC_erase_vertex(m_vertices, v);
     };
     
     // NOTE: this operation does not invalidate anything.
@@ -976,7 +607,7 @@ namespace detail {
       
       if( raw_result.second ) {
         ++m_num_edges;
-        adjlistBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
+        ltreeBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
         return std::pair< edge_descriptor, bool >(edge_descriptor(u, raw_result.first), true);
       } else 
         return std::pair< edge_descriptor, bool >(edge_descriptor(), false);
@@ -989,7 +620,7 @@ namespace detail {
       
       if( raw_result.second ) {
         ++m_num_edges;
-        adjlistBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
+        ltreeBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
         return std::pair< edge_descriptor, bool >(edge_descriptor(u, raw_result.first), true);
       } else 
         return std::pair< edge_descriptor, bool >(edge_descriptor(), false);
@@ -999,38 +630,9 @@ namespace detail {
     // NOTE: this operation might invalidate other out-edge iterators/descriptors of the same source vertex.
     // NOTE: This WORKS for ALL vertex container types.
     void remove_edge(edge_descriptor e) {
-      adjlistBC_erase_in_edge(get_stored_vertex(get_stored_edge(e).target), e);
-      adjlistBC_erase_edge(get_stored_vertex(e.source).out_edges, e, m_vertices, e.source);
+      ltreeBC_erase_in_edge(get_stored_vertex(get_stored_edge(e).target), e);
+      ltreeBC_erase_edge(get_stored_vertex(e.source).out_edges, e, m_vertices, e.source);
       --m_num_edges;
-    };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    void clear() { 
-      typedef adjlistBC_out_edges_factory< typename vertex_value_type::edge_container_ptr > OEFactory;
-      OEFactory::destroy_all_out_edges(m_vertices);
-      m_vertices.clear();
-      m_num_edges = 0;
-    };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef adjlistBC_select_vertex_iterator<VertexListS, vertex_container> VIterSelect;
-    typedef typename VIterSelect::type vertex_iterator;
-    
-    std::pair< vertex_iterator, vertex_iterator > vertices() const {
-      return VIterSelect::create_range(m_vertices);
-    };
-    
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    // NOTE: This WORKS for ALL edge container types.
-    typedef adjlistBC_select_out_edge_iterator<OutEdgeListS, edge_container, edge_descriptor> OEIterSelect;
-    typedef typename OEIterSelect::type out_edge_iterator;
-    
-    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor u) const {
-      return OEIterSelect::create_range(u, get_stored_vertex(u).out_edges);
     };
     
     // NOTE: This WORKS for ALL vertex container types.
@@ -1047,47 +649,7 @@ namespace detail {
     };
     
     
-    // NOTE: This WORKS for ALL vertex container types.
-    // NOTE: This WORKS for ALL edge container types.
-    typedef adjlistBC_adjacent_viter<vertex_descriptor, edge_container, out_edge_iterator> adjacency_iterator;
     
-    std::pair< adjacency_iterator, adjacency_iterator > adjacent_vertices(vertex_descriptor u) const {
-      std::pair< out_edge_iterator, out_edge_iterator > oe_pair = out_edges(u);
-      return std::pair< adjacency_iterator, adjacency_iterator >(
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.first),
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.second)
-      );
-    };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef typename vertex_stored_type::in_edge_iterator in_edge_iterator;
-    
-    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) const {
-      return std::pair< in_edge_iterator, in_edge_iterator >(get_stored_vertex(v).in_edges.begin(), 
-                                                             get_stored_vertex(v).in_edges.end());
-    };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef typename mpl::if_< is_same< DirectedS, directedS >,
-      void, 
-      adjlistBC_inv_adjacent_viter<vertex_descriptor, in_edge_iterator> >::type inv_adjacency_iterator;
-    
-    std::pair< inv_adjacency_iterator, inv_adjacency_iterator > inv_adjacent_vertices(vertex_descriptor v) const {
-      return std::pair< inv_adjacency_iterator, inv_adjacency_iterator >(
-        inv_adjacency_iterator(get_stored_vertex(v).in_edges.begin()), 
-        inv_adjacency_iterator(get_stored_vertex(v).in_edges.end())
-      );
-    };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef adjlistBC_edge_iterator<vertex_container, edge_descriptor> edge_iterator;
-    
-    std::pair< edge_iterator, edge_iterator > edges() const {
-      return std::pair< edge_iterator, edge_iterator >(edge_iterator::begin(m_vertices), edge_iterator::end(m_vertices));
-    };
     
   };
   

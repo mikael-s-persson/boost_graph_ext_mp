@@ -269,7 +269,7 @@ namespace detail {
   };
   
   
-  bool BC_desc_less_than(std::size_t lhs, std::size_t rhs) {
+  inline bool BC_desc_less_than(std::size_t lhs, std::size_t rhs) {
     return (lhs < rhs);
   };
   
@@ -277,6 +277,20 @@ namespace detail {
   bool BC_desc_less_than(Iter lhs, Iter rhs) {
     return (&(*lhs) < &(*rhs));
   };
+  
+  
+  inline std::size_t BC_desc_get_hash(std::size_t d) {
+    ::boost::hash< std::size_t > hasher;
+    return hasher(d);
+  };
+  
+  template <typename Iter>
+  std::size_t BC_desc_get_hash(Iter it) { 
+    typedef typename Iter::value_type ValueType;
+    ::boost::hash< ValueType* > hasher;
+    return hasher(&(*it));
+  };
+  
   
   
 /*************************************************************************
