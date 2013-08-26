@@ -322,21 +322,6 @@ OutputIter remove_branch(const typename graph_traits<Graph>::vertex_descriptor& 
 
 
 
-/***********************************************************************************************
- *                             NonCompactGraphConcept
- * ********************************************************************************************/
-
-
-template <typename Graph>
-bool is_vertex_valid( typename graph_traits<Graph>::vertex_descriptor, const Graph&) {
-  return true;
-};
-
-template <typename Graph>
-bool is_edge_valid( typename graph_traits<Graph>::edge_descriptor, const Graph&) {
-  return true;
-};
-
 
 
 

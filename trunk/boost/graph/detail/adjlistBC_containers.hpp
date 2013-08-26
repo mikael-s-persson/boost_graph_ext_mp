@@ -89,6 +89,15 @@ namespace detail {
   
   template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
             typename VertexProperties, typename EdgeProperties>
+  void swap(adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& lhs,
+            adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& rhs) {
+    using std::swap;
+    swap(lhs.target, rhs.target);
+    swap(lhs.data, rhs.data);
+  };
+  
+  template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
+            typename VertexProperties, typename EdgeProperties>
   std::size_t hash_value(const adjlistBC_edge_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& ep) {
     return BC_desc_get_hash(ep.target);
   };
@@ -140,6 +149,12 @@ namespace detail {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     adjlistBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges(), in_edges() { };
 #endif
+    void swap(self& rhs) {
+      using std::swap;
+      swap(data, rhs.data);
+      swap(out_edges, rhs.out_edges);
+      swap(in_edges, rhs.in_edges);
+    };
   };
   
   template <typename VertexListS, typename OutEdgeListS, 
@@ -161,8 +176,19 @@ namespace detail {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     adjlistBC_vertex_stored_type(VertexProperties&& aData) : data(std::move(aData)), out_edges() { };
 #endif
+    void swap(self& rhs) {
+      using std::swap;
+      swap(data, rhs.data);
+      swap(out_edges, rhs.out_edges);
+    };
   };
   
+  template <typename VertexListS, typename OutEdgeListS, typename DirectedS, 
+            typename VertexProperties, typename EdgeProperties>
+  void swap(adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& lhs,
+            adjlistBC_vertex_stored_type<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& rhs) {
+    lhs.swap(rhs);
+  };
   
   
 /*************************************************************************
@@ -971,6 +997,32 @@ namespace detail {
     
     adjlistBC_vertex_container() : m_vertices(), m_num_edges(0) { };
     
+    ~adjlistBC_vertex_container() { clear(); };
+    
+    
+  private:
+    adjlistBC_vertex_container(const adjlistBC_vertex_container&);
+    adjlistBC_vertex_container& operator=(const adjlistBC_vertex_container&);
+  public:
+    
+    void swap(adjlistBC_vertex_container& rhs) {
+      using std::swap;
+      swap(m_vertices, rhs.m_vertices);
+      swap(m_num_edges, rhs.m_num_edges);
+    };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    adjlistBC_vertex_container(adjlistBC_vertex_container&& rhs) : m_vertices(), m_num_edges(0) {
+      swap(rhs);
+    };
+    adjlistBC_vertex_container& operator=(adjlistBC_vertex_container&& rhs) {
+      swap(rhs);
+      return *this;
+    };
+#endif
+    
+    
+    
     std::size_t size() const { return m_vertices.size(); };
     std::size_t capacity() const { return m_vertices.capacity(); };
     
@@ -1143,6 +1195,12 @@ namespace detail {
     
   };
   
+  template <typename VertexListS, typename OutEdgeListS, typename DirectedS,
+            typename VertexProperties, typename EdgeProperties>
+  void swap(adjlistBC_vertex_container<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& lhs,
+            adjlistBC_vertex_container<VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>& rhs) {
+    lhs.swap(rhs);
+  };
   
   
   

@@ -161,6 +161,23 @@ class adjacency_list_BC
      */
     adjacency_list_BC() : m_pack() { };
     
+    
+    void do_deep_copy_from(const self& rhs);
+    
+    adjacency_list_BC(const self& rhs) : m_pack() { do_deep_copy_from(rhs); };
+    self& operator=(const self& rhs) {
+      do_deep_copy_from(rhs);
+      return *this;
+    };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    adjacency_list_BC(self&& rhs) : m_pack(std::move(rhs.m_pack)) { };
+    self& operator=(self&& rhs) {
+      m_pack = std::move(rhs.m_pack);
+      return *this;
+    };
+#endif
+    
     /**
      * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
      * \param v The vertex descriptor of the sought-after vertex-property.
@@ -724,6 +741,33 @@ void put(Property p, BGL_ADJACENCY_LIST_BC& g, const Key& k, Value&& val) {
 };
 
 #endif
+
+
+
+
+template < BGL_ADJACENCY_LIST_BC_ARGS >
+void BGL_ADJACENCY_LIST_BC::do_deep_copy_from(const BGL_ADJACENCY_LIST_BC& rhs) {
+  typedef typename BGL_ADJACENCY_LIST_BC::vertex_descriptor Vertex;
+  typedef typename BGL_ADJACENCY_LIST_BC::vertex_iterator VIter;
+  typedef typename BGL_ADJACENCY_LIST_BC::edge_iterator EIter;
+  
+  this->m_pack.clear();
+  
+  // first, add all the vertices (keep unordered_map of correspondance).
+  ::boost::unordered_map< Vertex, Vertex > v_map;
+  VIter vi, vi_end;
+  for(tie(vi, vi_end) = vertices(rhs); vi != vi_end; ++vi) {
+    Vertex v = add_vertex(rhs[*vi], *this);
+    v_map[*vi] = v;
+  };
+  
+  // then, go through all the edges and add them to the lhs:
+  EIter ei, ei_end;
+  for(tie(ei, ei_end) = vertices(rhs); ei != ei_end; ++ei)
+    add_edge(v_map[source(*ei, rhs)], v_map[target(*ei, rhs)], rhs[*ei], *this);
+  
+};
+
 
 
 #undef BGL_ADJACENCY_LIST_BC_ARGS

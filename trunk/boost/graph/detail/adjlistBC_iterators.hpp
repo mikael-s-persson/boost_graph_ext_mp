@@ -260,7 +260,7 @@ namespace detail {
       void increment() { ++e_it; };
       void decrement() { --e_it; };
       bool equal(const self& rhs) const { return (this->e_it == rhs.e_it); };
-      const VDesc& dereference() const { return BC_desc_to_iterator(*p_cont, e_it->edge_id)->target; };
+      const VDesc& dereference() const { return BC_get_value(*BC_desc_to_iterator(*p_cont, e_it->edge_id)).target; };
       
       void advance(std::ptrdiff_t i) { std::advance(this->e_it, i); };
       std::ptrdiff_t distance_to(const self& rhs) const { return std::distance(this->e_it, rhs.e_it); }; 
