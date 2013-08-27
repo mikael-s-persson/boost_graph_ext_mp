@@ -754,7 +754,7 @@ void BGL_ADJACENCY_LIST_BC::do_deep_copy_from(const BGL_ADJACENCY_LIST_BC& rhs) 
   this->m_pack.clear();
   
   // first, add all the vertices (keep unordered_map of correspondance).
-  ::boost::unordered_map< Vertex, Vertex > v_map;
+  ::boost::unordered_map< Vertex, Vertex, graph::detail::BC_desc_hasher > v_map;
   VIter vi, vi_end;
   for(tie(vi, vi_end) = vertices(rhs); vi != vi_end; ++vi) {
     Vertex v = add_vertex(rhs[*vi], *this);
@@ -763,7 +763,7 @@ void BGL_ADJACENCY_LIST_BC::do_deep_copy_from(const BGL_ADJACENCY_LIST_BC& rhs) 
   
   // then, go through all the edges and add them to the lhs:
   EIter ei, ei_end;
-  for(tie(ei, ei_end) = vertices(rhs); ei != ei_end; ++ei)
+  for(tie(ei, ei_end) = edges(rhs); ei != ei_end; ++ei)
     add_edge(v_map[source(*ei, rhs)], v_map[target(*ei, rhs)], rhs[*ei], *this);
   
 };

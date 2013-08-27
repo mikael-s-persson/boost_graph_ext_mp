@@ -216,6 +216,7 @@ class linked_tree_BC
      */
     linked_tree_BC& operator=(self&& rhs) {
       m_pack = std::move(rhs.m_pack);
+      return *this;
     };
 #endif
     
@@ -301,6 +302,7 @@ class linked_tree_BC
 
 
 
+#if 0
 
 /**
  * This is the tree-storage specifier for a linked-tree of the given edge and vertex storage policies.
@@ -319,7 +321,7 @@ template <typename OutEdgeListS, typename VertexListS, typename DirectedS>
 struct tree_storage_traits< linked_tree_BC_storage<OutEdgeListS, VertexListS, DirectedS> > :
   linked_tree_BC_traits<OutEdgeListS, VertexListS, DirectedS> { };
 
-
+#endif
 
 
 

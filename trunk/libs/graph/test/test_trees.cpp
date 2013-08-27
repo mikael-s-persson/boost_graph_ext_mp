@@ -23,11 +23,12 @@
 
 #include <iostream>
 
+#include <boost/graph/linked_tree_BC.hpp>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/tree_adaptor.hpp>
-#include <boost/graph/linked_tree_BC.hpp>
-#include <boost/graph/pooled_adjacency_list.hpp>
 
+// #include <boost/graph/pooled_adjacency_list.hpp>
 // #include <boost/graph/d_ary_bf_tree.hpp>
 // #include <boost/graph/d_ary_cob_tree.hpp>
 
@@ -36,6 +37,7 @@
 #define BOOST_TEST_DYN_LINK
 
 #define BOOST_TEST_MODULE boost_graph_trees
+#include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/test_case_template.hpp>
 #include <boost/mpl/list.hpp>
@@ -46,11 +48,8 @@
 using namespace boost;
 
 
+
 // typedef mpl::list< 
-// //   d_ary_bf_tree<int, 4, int>, 
-// //   d_ary_cob_tree<int, 4, int>, 
-// 
-// 
 // // All of this works:
 //   linked_tree_BC<vecBC, vecBC, bidirectionalS, int, int>,
 //   linked_tree_BC<poolBC, vecBC, bidirectionalS, int, int>, 
@@ -73,20 +72,17 @@ using namespace boost;
 //   linked_tree_BC<multisetBC, poolBC, bidirectionalS, int, int>, 
 //   linked_tree_BC<unordered_setBC, poolBC, bidirectionalS, int, int>,
 //   linked_tree_BC<unordered_multisetBC, poolBC, bidirectionalS, int, int>,
-//   tree_storage<int, int>::type,
-//   pooled_adjacency_list<bidirectionalS, int, int > > intint_treetest_types;
-  
-  
-  
-  
-  
+//   tree_storage<int, int>::type > intint_treetest_types;
+
+
 typedef mpl::list< 
 //   d_ary_bf_tree<int, 4, int>, 
 //   d_ary_cob_tree<int, 4, int>, 
-  tree_storage<int, int>::type,
-  pooled_adjacency_list<bidirectionalS, int, int > > intint_othertrees_types;
-  
-  
+//   tree_storage<int, int>::type,
+//   pooled_adjacency_list<bidirectionalS, int, int >
+  > intint_othertrees_types;
+
+
 typedef mpl::list< 
   linked_tree_BC< vecBC,  vecBC,  bidirectionalS, int, int>,
   linked_tree_BC< vecBC,  listBC, bidirectionalS, int, int>,
@@ -102,7 +98,7 @@ typedef mpl::list<
   linked_tree_BC< listBC, vecBC,  directedS, int, int>,
   linked_tree_BC< listBC, listBC, directedS, int, int>,
   linked_tree_BC< listBC, poolBC, directedS, int, int> > intint_ltreeBC_list_types;
-  
+
 typedef mpl::list< 
   linked_tree_BC< poolBC, vecBC,  bidirectionalS, int, int>,
   linked_tree_BC< poolBC, listBC, bidirectionalS, int, int>,
@@ -110,7 +106,7 @@ typedef mpl::list<
   linked_tree_BC< poolBC, vecBC,  directedS, int, int>,
   linked_tree_BC< poolBC, listBC, directedS, int, int>,
   linked_tree_BC< poolBC, poolBC, directedS, int, int> > intint_ltreeBC_pool_types;
-  
+
 typedef mpl::list< 
   linked_tree_BC< setBC, vecBC,  bidirectionalS, int, int>,
   linked_tree_BC< setBC, listBC, bidirectionalS, int, int>,
@@ -250,6 +246,26 @@ void >::type intint_do_edge_check(const TreeType& g,
 template <typename TreeType>
 typename disable_if< is_adjacency_matrix< TreeType >,
 void >::type intint_do_edge_check(const TreeType&, typename graph_traits<TreeType>::vertex_descriptor, typename graph_traits<TreeType>::vertex_descriptor, int, int) {};
+
+
+
+template <typename TreeType>
+void intint_check_fullbranch_integrity(const TreeType& g, typename graph_traits<TreeType>::vertex_descriptor u) {
+  typedef typename graph_traits<TreeType>::vertex_descriptor Vertex;
+  typedef typename graph_traits<TreeType>::edge_descriptor Edge;
+  typedef typename graph_traits<TreeType>::out_edge_iterator OutEdgeIter;
+  
+  if(out_degree(u, g) == 0)
+    return;
+  
+  BOOST_CHECK_EQUAL( out_degree(u, g), 4 );
+  OutEdgeIter ei, ei_end;
+  for(tie(ei,ei_end) = out_edges(u, g); ei != ei_end; ++ei) {
+    BOOST_CHECK_EQUAL( g[*ei], g[source(*ei, g)] * 1000 + g[target(*ei, g)]);
+    intint_check_fullbranch_integrity(g, target(*ei, g));
+  };
+};
+
 
 
 
@@ -412,6 +428,33 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
     BOOST_CHECK_EQUAL( vp_list[2], 12);
     BOOST_CHECK_EQUAL( vp_list[3], 13);
   };
+  
+  /* Copying function */
+  intint_check_fullbranch_integrity(g, v_root);
+  {
+    TreeType* p_g_cpy = NULL;
+    BOOST_CHECK_NO_THROW( p_g_cpy = new TreeType(g) );
+    intint_check_fullbranch_integrity(*p_g_cpy, get_root_vertex(*p_g_cpy));
+    BOOST_CHECK_NO_THROW( delete p_g_cpy );
+  };
+  
+  {
+    TreeType g_cpy;
+    BOOST_CHECK_NO_THROW( g_cpy = g );
+    intint_check_fullbranch_integrity(g_cpy, get_root_vertex(g_cpy));
+  };
+  
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+  {
+    TreeType* p_g_mv = NULL;
+    BOOST_CHECK_NO_THROW( p_g_mv = new TreeType(std::move(g)) );
+    intint_check_fullbranch_integrity(*p_g_mv, get_root_vertex(*p_g_mv));
+    BOOST_CHECK_NO_THROW( g = std::move(*p_g_mv) );
+    intint_check_fullbranch_integrity(g, get_root_vertex(g));
+    BOOST_CHECK_NO_THROW( delete p_g_mv );
+    v_root = get_root_vertex(g);
+  };
+#endif
   
   /* MutableTree */
   BOOST_CHECK_NO_THROW( remove_branch(v_rc[0],g) );

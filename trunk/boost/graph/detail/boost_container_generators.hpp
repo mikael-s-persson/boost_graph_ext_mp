@@ -20,6 +20,8 @@
 
 #include <boost/variant.hpp>
 
+#include <boost/graph/graph_selectors.hpp>
+
 #include <boost/container/vector.hpp>
 #include <boost/container/list.hpp>
 
@@ -102,6 +104,13 @@ namespace detail {
     std::size_t m_num_elements;
     
     BC_pooled_vector() : m_data(), m_first_hole(), m_num_elements(0) { };
+    
+    void swap(BC_pooled_vector& rhs) { 
+      using std::swap;
+      m_data.swap(rhs.m_data);
+      swap(m_first_hole, rhs.m_first_hole);
+      swap(m_num_elements, rhs.m_num_elements);
+    };
     
     std::size_t size() const { return m_num_elements; };
     std::size_t capacity() const { return m_data.capacity(); };
@@ -289,6 +298,19 @@ namespace detail {
     typedef typename Iter::value_type ValueType;
     ::boost::hash< ValueType* > hasher;
     return hasher(&(*it));
+  };
+  
+  struct BC_desc_hasher {
+    std::size_t operator()(std::size_t d) const {
+      ::boost::hash< std::size_t > hasher;
+      return hasher(d);
+    };
+    template <typename Iter>
+    std::size_t operator()(Iter it) const {
+      typedef typename Iter::value_type ValueType;
+      ::boost::hash< ValueType* > hasher;
+      return hasher(&(*it));
+    };
   };
   
   

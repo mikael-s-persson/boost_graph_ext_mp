@@ -27,6 +27,7 @@
 #include <iterator>
 #include <utility>
 #include <stack>
+#include <queue>
 #include <vector>
 
 #include <boost/mpl/if.hpp>
@@ -506,7 +507,8 @@ namespace detail {
     
     void swap(ltreeBC_vertex_container& rhs) {
       using std::swap;
-      swap(m_vertices, rhs.m_vertices);
+      m_vertices.swap(rhs.m_vertices);
+      // swap(m_vertices, rhs.m_vertices);
       swap(m_root, rhs.m_root);
     };
     

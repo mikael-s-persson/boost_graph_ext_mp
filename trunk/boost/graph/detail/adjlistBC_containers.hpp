@@ -1007,8 +1007,9 @@ namespace detail {
     
     void swap(adjlistBC_vertex_container& rhs) {
       using std::swap;
-      swap(m_vertices, rhs.m_vertices);
-      swap(m_num_edges, rhs.m_num_edges);
+      m_vertices.swap(rhs.m_vertices);
+      // swap(m_vertices, rhs.m_vertices);
+      swap(m_num_edges, rhs.m_num_edges); 
     };
     
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
