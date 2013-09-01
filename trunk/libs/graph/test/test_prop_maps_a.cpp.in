@@ -1,0 +1,61 @@
+// Copyright Sven Mikael Persson 2013.
+//
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+#include "test_prop_maps_incl.hpp"
+
+template <typename VertexProp, typename EdgeProp>
+struct graphtype_list {
+  
+  typedef mpl::list< 
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  vecBC,  bidirectionalS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  listBC, bidirectionalS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  poolBC, bidirectionalS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  vecBC,  directedS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  listBC, directedS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  poolBC, directedS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  vecBC,  undirectedS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  listBC, undirectedS, VertexProp, EdgeProp>,
+    adjacency_list_BC< ${EDGE_STORAGE_TYPE},  poolBC, undirectedS, VertexProp, EdgeProp> 
+  > types;
+  
+};
+
+typedef graphtype_list<VertexPropTest, EdgePropTest>::types propmap_graphtest_types;
+typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types bundlemap_graphtest_types;
+
+
+#define PROPMAP_GRAPHTEST_NAME propmap_graphtest
+#define PROPMAP_GRAPHTEST_TYPES propmap_graphtest_types
+#define PROPMAP_GRAPHTEST_MAPS PropMapMaps
+
+#include "test_prop_maps_impl.hpp"
+
+#undef PROPMAP_GRAPHTEST_NAME
+#undef PROPMAP_GRAPHTEST_TYPES
+#undef PROPMAP_GRAPHTEST_MAPS
+
+
+
+#define PROPMAP_GRAPHTEST_NAME bundlemap_graphtest
+#define PROPMAP_GRAPHTEST_TYPES bundlemap_graphtest_types
+#define PROPMAP_GRAPHTEST_MAPS BundleMaps
+
+#include "test_prop_maps_impl.hpp"
+
+#undef PROPMAP_GRAPHTEST_NAME
+#undef PROPMAP_GRAPHTEST_TYPES
+#undef PROPMAP_GRAPHTEST_MAPS
+
+
+
+
+
+
+
+
+
+
+

@@ -25,6 +25,7 @@
 #include <boost/graph/detail/adjlistBC_iterators.hpp>
 #include <boost/graph/detail/adjlistBC_containers.hpp>
 #include <boost/graph/more_property_maps.hpp>
+#include <boost/unordered_map.hpp>
 
 #include <utility>
 
@@ -691,7 +692,12 @@ void put( T Bundle::* p, BGL_ADJACENCY_LIST_BC& g, const Key& k, T&& val) {
 
 struct adj_list_BC_property_selector {
   template <class Graph, class Property, class Tag>
-  struct bind_ : tagged_from_bundle_property_map<Property, Graph, Tag> {};
+  struct bind_ {
+    typedef typename property_value<Property, Tag>::type value_type;
+    
+    typedef tagged_from_bundle_property_map<value_type, Graph, Tag> type;
+    typedef tagged_from_bundle_property_map<const value_type, const Graph, Tag> const_type;
+  };
 };
 
 /* specializations used by graph/properties.hpp */

@@ -75,6 +75,7 @@ struct linked_tree_BC_traits {
 
 
 
+struct linked_tree_BC_tag { };
 
 template <typename VertexListS>
 struct linked_tree_BC_disallowed_vertex_list {
@@ -163,6 +164,7 @@ class linked_tree_BC
     typedef typename Traits::edge_parallel_category edge_parallel_category;
     typedef typename Traits::traversal_category traversal_category;
     
+    typedef linked_tree_BC_tag graph_tag;
     
     /**
      * This static member function outputs the null-vertex (invalid vertex descriptor).
@@ -297,8 +299,8 @@ class linked_tree_BC
 
 
 
-#define BGL_LINKED_LIST_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
-#define BGL_LINKED_LIST_BC linked_tree_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
+#define BGL_LINKED_TREE_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
+#define BGL_LINKED_TREE_BC linked_tree_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
 
 
 
@@ -335,9 +337,9 @@ struct tree_storage_traits< linked_tree_BC_storage<OutEdgeListS, VertexListS, Di
  * \param g The graph.
  * \return The source vertex of the given edge descriptor.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor
-  source( typename BGL_LINKED_LIST_BC::edge_descriptor e, const BGL_LINKED_LIST_BC &) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor
+  source( typename BGL_LINKED_TREE_BC::edge_descriptor e, const BGL_LINKED_TREE_BC &) {
   return e.source;
 };
 
@@ -347,9 +349,9 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor
  * \param g The graph.
  * \return The target vertex of the given edge descriptor.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor
-  target( typename BGL_LINKED_LIST_BC::edge_descriptor e, const BGL_LINKED_LIST_BC& g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor
+  target( typename BGL_LINKED_TREE_BC::edge_descriptor e, const BGL_LINKED_TREE_BC& g) {
   return g.m_pack.get_stored_edge(e).target;
 };
 
@@ -359,11 +361,11 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor
  * \param g The graph.
  * \return The edge iterator range for the out-edges of a given vertex descriptor.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair<
- typename BGL_LINKED_LIST_BC::out_edge_iterator,
- typename BGL_LINKED_LIST_BC::out_edge_iterator >
-  out_edges( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+ typename BGL_LINKED_TREE_BC::out_edge_iterator,
+ typename BGL_LINKED_TREE_BC::out_edge_iterator >
+  out_edges( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.out_edges(v);
 };
 
@@ -373,9 +375,9 @@ std::pair<
  * \param g The graph.
  * \return The out-degree of the given vertex descriptor.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::size_t
-  out_degree( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+  out_degree( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.get_out_degree(v);
 };
 
@@ -389,11 +391,11 @@ std::size_t
  * \param g The graph.
  * \return The edge iterator range for the in-edges of a given vertex descriptor.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair<
- typename BGL_LINKED_LIST_BC::in_edge_iterator,
- typename BGL_LINKED_LIST_BC::in_edge_iterator >
-  in_edges( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+ typename BGL_LINKED_TREE_BC::in_edge_iterator,
+ typename BGL_LINKED_TREE_BC::in_edge_iterator >
+  in_edges( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.in_edges(v);
 };
 
@@ -403,8 +405,8 @@ std::pair<
  * \param g The graph.
  * \return The in-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-std::size_t in_degree( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+std::size_t in_degree( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.get_in_degree(v);
 };
 
@@ -414,8 +416,8 @@ std::size_t in_degree( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const B
  * \param g The graph.
  * \return The in-degree plus out-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-std::size_t degree( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+std::size_t degree( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.get_in_degree(v) + g.m_pack.get_out_degree(v);
 };
 
@@ -430,10 +432,10 @@ std::size_t degree( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_
  * \param g The graph.
  * \return The vertex iterator range for all the vertices of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair<
- typename BGL_LINKED_LIST_BC::vertex_iterator,
- typename BGL_LINKED_LIST_BC::vertex_iterator > vertices( const BGL_LINKED_LIST_BC & g) {
+ typename BGL_LINKED_TREE_BC::vertex_iterator,
+ typename BGL_LINKED_TREE_BC::vertex_iterator > vertices( const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.vertices();
 };
 
@@ -442,8 +444,8 @@ std::pair<
  * \param g The graph.
  * \return The size of the tree (the number of vertices it contains).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertices_size_type num_vertices( const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertices_size_type num_vertices( const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.size();
 };
 
@@ -457,10 +459,10 @@ typename BGL_LINKED_LIST_BC::vertices_size_type num_vertices( const BGL_LINKED_L
  * \param g The graph.
  * \return The edge iterator range for all the edges of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair<
- typename BGL_LINKED_LIST_BC::edge_iterator,
- typename BGL_LINKED_LIST_BC::edge_iterator > edges( const BGL_LINKED_LIST_BC & g) {
+ typename BGL_LINKED_TREE_BC::edge_iterator,
+ typename BGL_LINKED_TREE_BC::edge_iterator > edges( const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.edges();
 };
 
@@ -469,8 +471,8 @@ std::pair<
  * \param g The graph.
  * \return The number of edges in the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::edges_size_type num_edges( const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::edges_size_type num_edges( const BGL_LINKED_TREE_BC & g) {
   std::size_t tmp = g.m_pack.size();
   if(tmp > 0)
     return tmp - 1;
@@ -490,11 +492,11 @@ typename BGL_LINKED_LIST_BC::edges_size_type num_edges( const BGL_LINKED_LIST_BC
  * \param g The graph.
  * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::adjacency_iterator,
-typename BGL_LINKED_LIST_BC::adjacency_iterator >
-  adjacent_vertices( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::adjacency_iterator,
+typename BGL_LINKED_TREE_BC::adjacency_iterator >
+  adjacent_vertices( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.child_vertices(v);
 };
 
@@ -510,12 +512,12 @@ typename BGL_LINKED_LIST_BC::adjacency_iterator >
  * \param g The graph.
  * \return The edge descriptor for the given vertex descriptor pair.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair<
-  typename BGL_LINKED_LIST_BC::edge_descriptor,
-  bool > edge( typename BGL_LINKED_LIST_BC::vertex_descriptor u, 
-               typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-               const BGL_LINKED_LIST_BC & g) {
+  typename BGL_LINKED_TREE_BC::edge_descriptor,
+  bool > edge( typename BGL_LINKED_TREE_BC::vertex_descriptor u, 
+               typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+               const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.get_edge(u,v);
 };
 
@@ -530,8 +532,8 @@ std::pair<
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor get_root_vertex( const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor get_root_vertex( const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.m_root;
 };
 
@@ -541,11 +543,11 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor get_root_vertex( const BGL_LINKED
  * \param g The graph.
  * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::child_vertex_iterator,
-typename BGL_LINKED_LIST_BC::child_vertex_iterator >
-  child_vertices( typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::child_vertex_iterator,
+typename BGL_LINKED_TREE_BC::child_vertex_iterator >
+  child_vertices( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.child_vertices(v);
 };
 
@@ -560,9 +562,9 @@ typename BGL_LINKED_LIST_BC::child_vertex_iterator >
  * \param g The graph.
  * \return The parent vertex of the given vertex descriptor (will be null_vertex() if it is the root (no parent)).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor
-  parent_vertex(typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor
+  parent_vertex(typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g.m_pack.get_parent(v);
 };
 
@@ -577,9 +579,9 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor create_root( BGL_LINKED_LIST_BC& g) {
-  typedef typename BGL_LINKED_LIST_BC::vertex_property_type VProp;
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor create_root( BGL_LINKED_TREE_BC& g) {
+  typedef typename BGL_LINKED_TREE_BC::vertex_property_type VProp;
   if(g.m_pack.size())
     g.m_pack.clear();
   g.m_pack.add_root_vertex(VProp());
@@ -593,13 +595,13 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor create_root( BGL_LINKED_LIST_BC& 
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v, BGL_LINKED_LIST_BC & g) {
-  typedef typename BGL_LINKED_LIST_BC::vertex_property_type VProp;
-  typedef typename BGL_LINKED_LIST_BC::edge_property_type EProp;
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v, BGL_LINKED_TREE_BC & g) {
+  typedef typename BGL_LINKED_TREE_BC::vertex_property_type VProp;
+  typedef typename BGL_LINKED_TREE_BC::edge_property_type EProp;
   return g.m_pack.add_child(v, VProp(), EProp());
 };
 
@@ -608,8 +610,8 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
  * \param g The graph.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-void remove_branch( typename BGL_LINKED_LIST_BC::vertex_descriptor v, BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+void remove_branch( typename BGL_LINKED_TREE_BC::vertex_descriptor v, BGL_LINKED_TREE_BC & g) {
   g.m_pack.remove_branch_impl(v);
 };
 
@@ -626,9 +628,9 @@ void remove_branch( typename BGL_LINKED_LIST_BC::vertex_descriptor v, BGL_LINKED
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor
-  create_root( const typename BGL_LINKED_LIST_BC::vertex_property_type& vp,  BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor
+  create_root( const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,  BGL_LINKED_TREE_BC & g) {
   if(g.m_pack.size())
     g.m_pack.clear();
   g.m_pack.add_root_vertex(vp);
@@ -642,9 +644,9 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_descriptor
-  create_root( typename BGL_LINKED_LIST_BC::vertex_property_type&& vp, BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_descriptor
+  create_root( typename BGL_LINKED_TREE_BC::vertex_property_type&& vp, BGL_LINKED_TREE_BC & g) {
   if(g.m_pack.size())
     g.m_pack.clear();
   g.m_pack.add_root_vertex(std::move(vp));
@@ -660,14 +662,14 @@ typename BGL_LINKED_LIST_BC::vertex_descriptor
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_LIST_BC::vertex_property_type& vp,
-                    BGL_LINKED_LIST_BC & g) {
-  typedef typename BGL_LINKED_LIST_BC::edge_property_type EProp;
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
+                    BGL_LINKED_TREE_BC & g) {
+  typedef typename BGL_LINKED_TREE_BC::edge_property_type EProp;
   return g.m_pack.add_child(v, vp, EProp());
 };
 
@@ -680,14 +682,14 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_LIST_BC::vertex_property_type& vp,
-                    const typename BGL_LINKED_LIST_BC::edge_property_type& ep,
-                    BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
+                    const typename BGL_LINKED_TREE_BC::edge_property_type& ep,
+                    BGL_LINKED_TREE_BC & g) {
   return g.m_pack.add_child(v, vp, ep);
 };
 
@@ -701,14 +703,14 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    typename BGL_LINKED_LIST_BC::vertex_property_type&& vp,
-                    BGL_LINKED_LIST_BC & g) {
-  typedef typename BGL_LINKED_LIST_BC::edge_property_type EProp;
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
+                    BGL_LINKED_TREE_BC & g) {
+  typedef typename BGL_LINKED_TREE_BC::edge_property_type EProp;
   return g.m_pack.add_child(v, std::move(vp), EProp());
 };
 
@@ -721,14 +723,14 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_LIST_BC::vertex_property_type& vp,
-                    typename BGL_LINKED_LIST_BC::edge_property_type&& ep,
-                    BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
+                    typename BGL_LINKED_TREE_BC::edge_property_type&& ep,
+                    BGL_LINKED_TREE_BC & g) {
   return g.m_pack.add_child(v, vp, std::move(ep));
 };
 
@@ -741,14 +743,14 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    typename BGL_LINKED_LIST_BC::vertex_property_type&& vp,
-                    const typename BGL_LINKED_LIST_BC::edge_property_type& ep,
-                    BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
+                    const typename BGL_LINKED_TREE_BC::edge_property_type& ep,
+                    BGL_LINKED_TREE_BC & g) {
   return g.m_pack.add_child(v, std::move(vp), ep);
 };
 
@@ -761,14 +763,14 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_LIST_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
-typename BGL_LINKED_LIST_BC::vertex_descriptor,
-typename BGL_LINKED_LIST_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_LIST_BC::vertex_descriptor v,
-                    typename BGL_LINKED_LIST_BC::vertex_property_type&& vp,
-                    typename BGL_LINKED_LIST_BC::edge_property_type&& ep,
-                    BGL_LINKED_LIST_BC & g) {
+typename BGL_LINKED_TREE_BC::vertex_descriptor,
+typename BGL_LINKED_TREE_BC::edge_descriptor >
+  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
+                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
+                    typename BGL_LINKED_TREE_BC::edge_property_type&& ep,
+                    BGL_LINKED_TREE_BC & g) {
   return g.m_pack.add_child(v, std::move(vp), std::move(ep));
 };
 #endif
@@ -782,8 +784,8 @@ typename BGL_LINKED_LIST_BC::edge_descriptor >
  * \return The output-iterator after the collection of all the removed vertices.
  * \note The first vertex-property to figure in the output range is that of the vertex v.
  */
-template < BGL_LINKED_LIST_BC_ARGS , typename OutputIter>
-OutputIter remove_branch( typename BGL_LINKED_LIST_BC::vertex_descriptor v, OutputIter it_out, BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS , typename OutputIter>
+OutputIter remove_branch( typename BGL_LINKED_TREE_BC::vertex_descriptor v, OutputIter it_out, BGL_LINKED_TREE_BC & g) {
   return g.m_pack.remove_branch_impl(v, it_out);
 };
 
@@ -801,8 +803,8 @@ OutputIter remove_branch( typename BGL_LINKED_LIST_BC::vertex_descriptor v, Outp
   * \param v The vertex descriptor of the sought-after vertex-property.
   * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-const typename BGL_LINKED_LIST_BC::vertex_property_type& get(const BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::vertex_descriptor v) {
+template < BGL_LINKED_TREE_BC_ARGS >
+const typename BGL_LINKED_TREE_BC::vertex_property_type& get(const BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::vertex_descriptor v) {
   return g[v];
 };
 
@@ -812,8 +814,8 @@ const typename BGL_LINKED_LIST_BC::vertex_property_type& get(const BGL_LINKED_LI
   * \param e The edge descriptor of the sought-after edge-property.
   * \return The edge-property, by const-reference, associated to the given edge descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-const typename BGL_LINKED_LIST_BC::edge_property_type& get( const BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::edge_descriptor e) {
+template < BGL_LINKED_TREE_BC_ARGS >
+const typename BGL_LINKED_TREE_BC::edge_property_type& get( const BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::edge_descriptor e) {
   return g[e];
 };
 
@@ -823,8 +825,8 @@ const typename BGL_LINKED_LIST_BC::edge_property_type& get( const BGL_LINKED_LIS
   * \param v The vertex descriptor of the vertex-property to be set.
   * \param value The vertex-property, by const-reference, to be associated to the given vertex.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::vertex_descriptor v, const typename BGL_LINKED_LIST_BC::vertex_property_type& value) {
+template < BGL_LINKED_TREE_BC_ARGS >
+void put( BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::vertex_descriptor v, const typename BGL_LINKED_TREE_BC::vertex_property_type& value) {
   g[v] = value;
 };
 
@@ -834,8 +836,8 @@ void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::vertex_descriptor
   * \param e The edge descriptor of the edge-property to be set.
   * \param value The edge-property, by const-reference, to be associated to the given edge.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::edge_descriptor e, const typename BGL_LINKED_LIST_BC::edge_property_type& value) {
+template < BGL_LINKED_TREE_BC_ARGS >
+void put( BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::edge_descriptor e, const typename BGL_LINKED_TREE_BC::edge_property_type& value) {
   g[e] = value;
 };
 
@@ -847,8 +849,8 @@ void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::edge_descriptor e
   * \param v The vertex descriptor of the vertex-property to be set.
   * \param value The vertex-property, by rvalue-reference, to be associated to the given vertex.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::vertex_descriptor v, typename BGL_LINKED_LIST_BC::vertex_property_type&& value) {
+template < BGL_LINKED_TREE_BC_ARGS >
+void put( BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::vertex_descriptor v, typename BGL_LINKED_TREE_BC::vertex_property_type&& value) {
   g[v] = std::move(value);
 };
 
@@ -858,8 +860,8 @@ void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::vertex_descriptor
   * \param e The edge descriptor of the edge-property to be set.
   * \param value The edge-property, by rvalue-reference, to be associated to the given edge.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::edge_descriptor e, typename BGL_LINKED_LIST_BC::edge_property_type&& value) {
+template < BGL_LINKED_TREE_BC_ARGS >
+void put( BGL_LINKED_TREE_BC & g, typename BGL_LINKED_TREE_BC::edge_descriptor e, typename BGL_LINKED_TREE_BC::edge_property_type&& value) {
   g[e] = std::move(value);
 };
 
@@ -872,8 +874,8 @@ void put( BGL_LINKED_LIST_BC & g, typename BGL_LINKED_LIST_BC::edge_descriptor e
   * \param g The tree from which to draw the vertex.
   * \return The vertex-property, by reference, associated to the given vertex descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::vertex_property_type& get_property(typename BGL_LINKED_LIST_BC::vertex_descriptor v, BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::vertex_property_type& get_property(typename BGL_LINKED_TREE_BC::vertex_descriptor v, BGL_LINKED_TREE_BC & g) {
   return g[v];
 };
 
@@ -883,8 +885,8 @@ typename BGL_LINKED_LIST_BC::vertex_property_type& get_property(typename BGL_LIN
   * \param g The tree from which to draw the vertex.
   * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-const typename BGL_LINKED_LIST_BC::vertex_property_type& get_property(typename BGL_LINKED_LIST_BC::vertex_descriptor v, const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+const typename BGL_LINKED_TREE_BC::vertex_property_type& get_property(typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
   return g[v];
 };
 
@@ -894,8 +896,8 @@ const typename BGL_LINKED_LIST_BC::vertex_property_type& get_property(typename B
   * \param g The tree from which to draw the edge.
   * \return The edge-property, by reference, associated to the given edge descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-typename BGL_LINKED_LIST_BC::edge_property_type& get_property(typename BGL_LINKED_LIST_BC::edge_descriptor e, BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+typename BGL_LINKED_TREE_BC::edge_property_type& get_property(typename BGL_LINKED_TREE_BC::edge_descriptor e, BGL_LINKED_TREE_BC & g) {
   return g[e];
 };
 
@@ -905,36 +907,36 @@ typename BGL_LINKED_LIST_BC::edge_property_type& get_property(typename BGL_LINKE
   * \param g The tree from which to draw the edge.
   * \return The edge-property, by const-reference, associated to the given edge descriptor.
   */
-template < BGL_LINKED_LIST_BC_ARGS >
-const typename BGL_LINKED_LIST_BC::edge_property_type& get_property(typename BGL_LINKED_LIST_BC::edge_descriptor e, const BGL_LINKED_LIST_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS >
+const typename BGL_LINKED_TREE_BC::edge_property_type& get_property(typename BGL_LINKED_TREE_BC::edge_descriptor e, const BGL_LINKED_TREE_BC & g) {
   return g[e];
 };
 
 
 #ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
-template < BGL_LINKED_LIST_BC_ARGS, typename T, typename Bundle>
-struct property_map< BGL_LINKED_LIST_BC, T Bundle::* > {
+template < BGL_LINKED_TREE_BC_ARGS, typename T, typename Bundle>
+struct property_map< BGL_LINKED_TREE_BC, T Bundle::* > {
   typedef typename remove_const< Bundle >::type non_const_Bundle;
   typedef typename remove_const< T >::type non_const_T;
-  typedef is_convertible< typename BGL_LINKED_LIST_BC::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
-  typedef bundle_member_property_map< non_const_T, BGL_LINKED_LIST_BC,
+  typedef is_convertible< typename BGL_LINKED_TREE_BC::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
+  typedef bundle_member_property_map< non_const_T, BGL_LINKED_TREE_BC,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > type;
-  typedef bundle_member_property_map< const non_const_T, const BGL_LINKED_LIST_BC,
+  typedef bundle_member_property_map< const non_const_T, const BGL_LINKED_TREE_BC,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > const_type;
 };
 
 
-template < BGL_LINKED_LIST_BC_ARGS, typename T, typename Bundle>
-typename property_map< BGL_LINKED_LIST_BC, T Bundle::* >::type
-get( T Bundle::* p, BGL_LINKED_LIST_BC& g) {
-  return typename property_map< BGL_LINKED_LIST_BC, T Bundle::* >::type(&g, p);
+template < BGL_LINKED_TREE_BC_ARGS, typename T, typename Bundle>
+typename property_map< BGL_LINKED_TREE_BC, T Bundle::* >::type
+get( T Bundle::* p, BGL_LINKED_TREE_BC& g) {
+  return typename property_map< BGL_LINKED_TREE_BC, T Bundle::* >::type(&g, p);
 };
 
-template < BGL_LINKED_LIST_BC_ARGS, typename T, typename Bundle>
-typename property_map< BGL_LINKED_LIST_BC, T Bundle::* >::const_type
-get( T Bundle::* p, const BGL_LINKED_LIST_BC& g) {
-  return typename property_map< BGL_LINKED_LIST_BC, T Bundle::* >::const_type(&g, p);
+template < BGL_LINKED_TREE_BC_ARGS, typename T, typename Bundle>
+typename property_map< BGL_LINKED_TREE_BC, T Bundle::* >::const_type
+get( T Bundle::* p, const BGL_LINKED_TREE_BC& g) {
+  return typename property_map< BGL_LINKED_TREE_BC, T Bundle::* >::const_type(&g, p);
 };
 
 #endif
@@ -944,49 +946,79 @@ get( T Bundle::* p, const BGL_LINKED_LIST_BC& g) {
  *                             Property Maps (from tags)
  * ********************************************************************************************/
 
-/* I'm not sure if the default version will work.
 
-template < BGL_LINKED_LIST_BC_ARGS, typename Property>
-struct property_map<BGL_LINKED_LIST_BC, Property>
-  : property_map<
-      typename BGL_LINKED_LIST_BC::graph_type, 
-      Property> {};
-
-template < BGL_LINKED_LIST_BC_ARGS, typename Property>
-typename property_map< typename BGL_LINKED_LIST_BC::graph_type, Property>::type
-get(Property p, BGL_LINKED_LIST_BC& g) {
-  typedef typename BGL_LINKED_LIST_BC::graph_type BaseGraph;
-  return get(p, g.m_graph);
+struct linked_tree_BC_property_selector {
+  template <class Graph, class Property, class Tag>
+  struct bind_ {
+    typedef typename property_value<Property, Tag>::type value_type;
+    
+    typedef tagged_from_bundle_property_map<value_type, Graph, Tag> type;
+    typedef tagged_from_bundle_property_map<const value_type, const Graph, Tag> const_type;
+  };
 };
 
-template < BGL_LINKED_LIST_BC_ARGS, typename Property>
-typename property_map< typename BGL_LINKED_LIST_BC::graph_type, Property>::const_type
-get(Property p, const BGL_LINKED_LIST_BC& g) {
-  return get(p, g.m_graph);
+/* specializations used by graph/properties.hpp */
+template <>
+struct vertex_property_selector<linked_tree_BC_tag> {
+  typedef linked_tree_BC_property_selector type;
 };
 
-template < BGL_LINKED_LIST_BC_ARGS, typename Property, typename Key>
-typename property_map_value< typename BGL_LINKED_LIST_BC::graph_type, Property>::type
-get(Property p, const BGL_LINKED_LIST_BC& g, const Key& k) {
-  return get(p, g.m_graph, k);
+template <>
+struct edge_property_selector<linked_tree_BC_tag> {
+  typedef linked_tree_BC_property_selector type;
 };
 
-template < BGL_LINKED_LIST_BC_ARGS, typename Property, typename Key, typename Value>
-void put(Property p, BGL_LINKED_LIST_BC& g, const Key& k, const Value& val) {
-  put(p, g.m_graph, k, val);
+
+
+template < BGL_LINKED_TREE_BC_ARGS, typename Property>
+typename property_map< BGL_LINKED_TREE_BC, Property>::type
+get(Property p, BGL_LINKED_TREE_BC& g) {
+  typedef typename property_map< BGL_LINKED_TREE_BC, Property>::type Map;
+  return Map(&g, p);
 };
-*/
+
+template < BGL_LINKED_TREE_BC_ARGS, typename Property>
+typename property_map< BGL_LINKED_TREE_BC, Property>::const_type
+get(Property p, const BGL_LINKED_TREE_BC& g) {
+  typedef typename property_map< BGL_LINKED_TREE_BC, Property>::const_type Map;
+  return Map(&g, p);
+};
+
+
+template < BGL_LINKED_TREE_BC_ARGS, typename Property, typename Key>
+typename property_map_value< BGL_LINKED_TREE_BC, Property>::type
+get(Property p, const BGL_LINKED_TREE_BC& g, const Key& k) {
+  return get_property_value(g[k], p);
+};
+
+template < BGL_LINKED_TREE_BC_ARGS, typename Property, typename Key, typename Value>
+void put(Property p, BGL_LINKED_TREE_BC& g, const Key& k, const Value& val) {
+  get_property_value(g[k], p) = val;
+};
+
+
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+
+template < BGL_LINKED_TREE_BC_ARGS, typename Property, typename Key, typename Value>
+void put(Property p, BGL_LINKED_TREE_BC& g, const Key& k, Value&& val) {
+  get_property_value(g[k], p) = std::move(val);
+};
+
+#endif
 
 
 
 
 
-template < BGL_LINKED_LIST_BC_ARGS >
-void BGL_LINKED_LIST_BC::do_deep_copy_from(const BGL_LINKED_LIST_BC& rhs) {
-  typedef typename BGL_LINKED_LIST_BC::vertex_descriptor Vertex;
-  typedef typename BGL_LINKED_LIST_BC::vertex_iterator VIter;
-  typedef typename BGL_LINKED_LIST_BC::edge_descriptor Edge;
-  typedef typename BGL_LINKED_LIST_BC::out_edge_iterator OEIter;
+
+
+
+template < BGL_LINKED_TREE_BC_ARGS >
+void BGL_LINKED_TREE_BC::do_deep_copy_from(const BGL_LINKED_TREE_BC& rhs) {
+  typedef typename BGL_LINKED_TREE_BC::vertex_descriptor Vertex;
+  typedef typename BGL_LINKED_TREE_BC::vertex_iterator VIter;
+  typedef typename BGL_LINKED_TREE_BC::edge_descriptor Edge;
+  typedef typename BGL_LINKED_TREE_BC::out_edge_iterator OEIter;
   typedef std::pair< Vertex, Vertex > TaskType;
   
   this->m_pack.clear();
@@ -1014,8 +1046,8 @@ void BGL_LINKED_LIST_BC::do_deep_copy_from(const BGL_LINKED_LIST_BC& rhs) {
 
 
 
-#undef BGL_LINKED_LIST_BC_ARGS
-#undef BGL_LINKED_LIST_BC
+#undef BGL_LINKED_TREE_BC_ARGS
+#undef BGL_LINKED_TREE_BC
 
 
 

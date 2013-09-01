@@ -59,7 +59,7 @@ struct whole_bundle_property_map :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
 
-    whole_bundle_property_map(Graph* aPG) : pg(aPG) { };
+    whole_bundle_property_map(Graph* aPG = NULL) : pg(aPG) { };
     reference operator[](key_type k) const { return (*pg)[k]; };
 
 };
@@ -96,7 +96,7 @@ struct tagged_from_bundle_property_map :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
     
-    tagged_from_bundle_property_map(Graph* aPG, PropertyMapTag aTag) : pg(aPG), tag(aTag) { };
+    tagged_from_bundle_property_map(Graph* aPG = NULL, PropertyMapTag aTag = PropertyMapTag()) : pg(aPG), tag(aTag) { };
     reference operator[](key_type k) const { 
       return get_property_value((*pg)[k], tag);
     };
@@ -134,7 +134,7 @@ struct propgraph_property_map :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
 
-    propgraph_property_map(Graph* aPG, PropertyMapTag aTag) : pg(aPG), tag(aTag) { };
+    propgraph_property_map(Graph* aPG = NULL, PropertyMapTag aTag = PropertyMapTag()) : pg(aPG), tag(aTag) { };
     reference operator[](key_type k) const { return get(tag,*pg,k); };
 
 };
@@ -180,7 +180,7 @@ class bundle_member_property_map :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
     
-    bundle_member_property_map(Graph* aPG, member_ptr_type aMemPtr) : pg(aPG), mem_ptr(aMemPtr) { };
+    bundle_member_property_map(Graph* aPG = NULL, member_ptr_type aMemPtr = NULL) : pg(aPG), mem_ptr(aMemPtr) { };
     reference operator[](key_type p) const { return (*pg)[p].*mem_ptr; };
 };
 
@@ -284,7 +284,7 @@ class data_member_property_map :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
 
-    data_member_property_map(member_ptr_type aMemPtr) : mem_ptr(aMemPtr) { };
+    data_member_property_map(member_ptr_type aMemPtr = NULL) : mem_ptr(aMemPtr) { };
     reference operator[](key_type& p) const { return p.*mem_ptr; };
     const_reference operator[](const key_type& p) const { return p.*mem_ptr; };
 };
@@ -314,7 +314,7 @@ class data_member_property_map< const T, const PropertyType> :
       readable_property_map_tag,
       lvalue_property_map_tag >::type category;
 
-    data_member_property_map(member_ptr_type aMemPtr) : mem_ptr(aMemPtr) { };
+    data_member_property_map(member_ptr_type aMemPtr = NULL) : mem_ptr(aMemPtr) { };
     reference operator[](key_type& p) const { return p.*mem_ptr; };
 };
 
@@ -342,7 +342,7 @@ class composite_property_map {
     typedef typename property_traits< OutputMap >::reference reference;
     typedef const reference const_reference;
     
-    composite_property_map(OutputMap aPropOut, InputMap aPropIn) : prop_out(aPropOut), prop_in(aPropIn) { };
+    composite_property_map(OutputMap aPropOut = OutputMap(), InputMap aPropIn = InputMap()) : prop_out(aPropOut), prop_in(aPropIn) { };
     
     reference operator[](const key_type& k) const { return prop_out[ prop_in[k] ]; };
     reference operator[](key_type& k) const { return prop_out[ prop_in[k] ]; };

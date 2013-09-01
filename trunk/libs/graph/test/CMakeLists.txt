@@ -59,14 +59,45 @@ set(BOOST_GRAPH_CONTRIB_INCLUDE_DIRS "../../../")
 
 include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(BEFORE ${BOOST_GRAPH_CONTRIB_INCLUDE_DIRS})
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(test_trees "test_trees.cpp")
-add_test(NAME test_trees COMMAND "./test_trees")
-target_link_libraries(test_trees ${Boost_LIBRARIES})
 
-add_executable(test_graphs "test_graphs.cpp")
-add_test(NAME test_graphs COMMAND "./test_graphs")
-target_link_libraries(test_graphs ${Boost_LIBRARIES})
+set(EDGE_STORAGE_TYPES 
+  vecBC poolBC listBC 
+  setBC unordered_setBC multisetBC unordered_multisetBC)
+
+foreach(EDGE_STORAGE_TYPE ${EDGE_STORAGE_TYPES})
+  set(TEST_TREES_TNAME "test_trees_t${EDGE_STORAGE_TYPE}")
+  configure_file("test_trees_t.cpp.in" "${TEST_TREES_TNAME}.cpp")
+  add_executable(${TEST_TREES_TNAME} "${TEST_TREES_TNAME}.cpp")
+  add_test(NAME ${TEST_TREES_TNAME} COMMAND "./${TEST_TREES_TNAME}")
+  target_link_libraries(${TEST_TREES_TNAME} ${Boost_LIBRARIES})
+  
+  set(TEST_TREES_ANAME "test_trees_a${EDGE_STORAGE_TYPE}")
+  configure_file("test_trees_a.cpp.in" "${TEST_TREES_ANAME}.cpp")
+  add_executable(${TEST_TREES_ANAME} "${TEST_TREES_ANAME}.cpp")
+  add_test(NAME ${TEST_TREES_ANAME} COMMAND "./${TEST_TREES_ANAME}")
+  target_link_libraries(${TEST_TREES_ANAME} ${Boost_LIBRARIES})
+  
+  set(TEST_GRAPHS_ANAME "test_graphs_a${EDGE_STORAGE_TYPE}")
+  configure_file("test_graphs_a.cpp.in" "${TEST_GRAPHS_ANAME}.cpp")
+  add_executable(${TEST_GRAPHS_ANAME} "${TEST_GRAPHS_ANAME}.cpp")
+  add_test(NAME ${TEST_GRAPHS_ANAME} COMMAND "./${TEST_GRAPHS_ANAME}")
+  target_link_libraries(${TEST_GRAPHS_ANAME} ${Boost_LIBRARIES})
+  
+  set(TEST_PROPMAPS_ANAME "test_prop_maps_a${EDGE_STORAGE_TYPE}")
+  configure_file("test_prop_maps_a.cpp.in" "${TEST_PROPMAPS_ANAME}.cpp")
+  add_executable(${TEST_PROPMAPS_ANAME} "${TEST_PROPMAPS_ANAME}.cpp")
+  add_test(NAME ${TEST_PROPMAPS_ANAME} COMMAND "./${TEST_PROPMAPS_ANAME}")
+  target_link_libraries(${TEST_PROPMAPS_ANAME} ${Boost_LIBRARIES})
+  
+  set(TEST_PROPMAPS_TNAME "test_prop_maps_t${EDGE_STORAGE_TYPE}")
+  configure_file("test_prop_maps_t.cpp.in" "${TEST_PROPMAPS_TNAME}.cpp")
+  add_executable(${TEST_PROPMAPS_TNAME} "${TEST_PROPMAPS_TNAME}.cpp")
+  add_test(NAME ${TEST_PROPMAPS_TNAME} COMMAND "./${TEST_PROPMAPS_TNAME}")
+  target_link_libraries(${TEST_PROPMAPS_TNAME} ${Boost_LIBRARIES})
+  
+endforeach(EDGE_STORAGE_TYPE)
 
 
 

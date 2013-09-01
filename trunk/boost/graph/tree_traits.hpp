@@ -25,13 +25,30 @@
 namespace boost {
 
 
+  namespace detail {
+    
+    template <typename A> struct tree_traits_try_child_iter {typedef void type;};
+    
+    template <typename Graph, typename Enable = void>
+    struct tree_traits_get_child_iter {
+      typedef typename Graph::adjacency_iterator type;
+    };
+    
+    template <typename Graph>
+    struct tree_traits_get_child_iter<Graph, 
+             typename tree_traits_try_child_iter<typename Graph::child_vertex_iterator>::type> {
+      typedef typename Graph::child_vertex_iterator type;
+    };
+    
+  };
+
 /**
  * This traits class defines a number of nested types associated to a tree structure.
  */
 template <typename TreeType>
 struct tree_traits {
   /** This type describes iterators to iterate through child vertices of a vertex. */
-  typedef typename TreeType::child_vertex_iterator child_vertex_iterator;
+  typedef typename detail::tree_traits_get_child_iter<TreeType>::type child_vertex_iterator;
 };
 
 

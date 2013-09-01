@@ -21,131 +21,6 @@
 namespace boost {
 
 
-namespace detail {
-  
-  template <typename Graph>
-  class child_vertex_iter_impl {
-    public:
-      typedef Graph graph_type;
-      typedef typename graph_traits< graph_type >::out_edge_iterator out_edge_iter;
-    private:
-      out_edge_iter ei;
-      graph_type const * g;
-    public:
-      
-      child_vertex_iter_impl() : ei(), g(NULL) { };
-      child_vertex_iter_impl(const out_edge_iter& aEi, graph_type const * aG) : ei(aEi), g(aG) { };
-      
-      typedef child_vertex_iter_impl<Graph> self;
-      
-      typedef std::ptrdiff_t difference_type;
-      typedef typename graph_traits< graph_type >::vertex_descriptor value_type;
-      typedef value_type* pointer;
-      typedef value_type& reference;
-      typedef typename std::iterator_traits<out_edge_iter>::iterator_category iterator_category;
-      
-      bool operator==(const self& rhs) { return ei == rhs.ei; };
-      bool operator!=(const self& rhs) { return ei != rhs.ei; };
-      bool operator >(const self& rhs) { return ei > rhs.ei; };
-      bool operator >=(const self& rhs) { return ei >= rhs.ei; };
-      bool operator <(const self& rhs) { return ei < rhs.ei; };
-      bool operator <=(const self& rhs) { return ei <= rhs.ei; };
-      
-      self& operator++() { ++ei; return *this; };
-      self operator++(int) { self result(*this); ++ei; return result; };
-      self& operator--() { --ei; return *this; };
-      self operator--(int) { self result(*this); --ei; return result; };
-      
-      self operator+(difference_type i) const {
-        return self(ei + i, g);
-      };
-      self operator-(difference_type i) const {
-        return self(ei - i, g);
-      };
-      difference_type operator-(const self& rhs) const {
-        return difference_type(ei - rhs.ei);
-      };
-      
-      self& operator +=(difference_type i) { ei += i; return *this; };
-      self& operator -=(difference_type i) { ei -= i; return *this; };
-      
-      value_type operator[](difference_type i) const { return target(*(ei + i), *g); };
-      value_type operator*() { return target(*ei, *g); };
-      pointer operator->() { return &target(*ei, *g); };
-      
-  };
-  
-  template <typename Graph>
-  child_vertex_iter_impl<Graph> operator+(std::ptrdiff_t i, const child_vertex_iter_impl<Graph>& rhs) {
-    return rhs + i;
-  };
-  
-  
-};
-
-
-/***********************************************************************************************
- *                             tree traits for adjacency_list
- * ********************************************************************************************/
-
-
-// forward-declaration:
-template <class OutEdgeListS,
-          class VertexListS,
-          class DirectedS,
-          class VertexProperty,
-          class EdgeProperty,
-          class GraphProperty,
-          class EdgeListS>
-class adjacency_list;
-
-struct adj_list_tree_storage { };
-
-template <typename VertexProperty = no_property, 
-          typename EdgeProperty = no_property, 
-          typename GraphProperty = no_property,
-          typename TreeStorage = adj_list_tree_storage>
-struct tree_storage {
-  typedef adjacency_list< vecS, listS, bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS > type;
-};
-
-template <typename TreeStorage = adj_list_tree_storage>
-struct tree_storage_traits :
-  adjacency_list_traits< vecS, listS, bidirectionalS, listS > { };
-
-template <typename VertexProperty, typename EdgeProperty, typename GraphProperty>
-struct tree_traits< adjacency_list< vecS, listS, bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS> > {
-  typedef detail::child_vertex_iter_impl< adjacency_list< vecS, listS, bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS> > child_vertex_iterator;
-};
-
-
-/***********************************************************************************************
- *                             tree traits for pooled_adjacency_list
- * ********************************************************************************************/
-
-// forward-declaration:
-template <typename DirectedS,
-          typename VertexProperty,
-          typename EdgeProperty,
-          typename GraphProperty,
-          typename EdgeListS>
-class pooled_adjacency_list;
-
-struct pooled_adj_list_tree_storage { };
-
-template <typename VertexProperty, typename EdgeProperty, typename GraphProperty>
-struct tree_storage< VertexProperty, EdgeProperty, GraphProperty, pooled_adj_list_tree_storage > {
-  typedef pooled_adjacency_list< bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS> type;
-};
-
-template <typename VertexProperty, typename EdgeProperty, typename GraphProperty>
-struct tree_traits< pooled_adjacency_list< bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS> > {
-  typedef detail::child_vertex_iter_impl< pooled_adjacency_list< bidirectionalS, VertexProperty, EdgeProperty, GraphProperty, listS> > child_vertex_iterator;
-};
-
-
-
-
 /***********************************************************************************************
  *                             TreeConcept
  * ********************************************************************************************/
@@ -160,10 +35,7 @@ template <typename Graph>
 std::pair<typename tree_traits<Graph>::child_vertex_iterator, 
           typename tree_traits<Graph>::child_vertex_iterator>
   child_vertices(typename graph_traits<Graph>::vertex_descriptor v, const Graph& g) {
-  typedef typename tree_traits<Graph>::child_vertex_iterator CVIter;
-  typename graph_traits<Graph>::out_edge_iterator ei,ei_end;
-  tie(ei,ei_end) = out_edges(v, g);
-  return std::make_pair(CVIter(ei,&g),CVIter(ei_end,&g));
+  return adjacent_vertices(v, g);
 };
 
 
