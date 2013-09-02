@@ -78,8 +78,11 @@ typename graph_traits<Graph>::edge_descriptor >
   return std::make_pair(v, e);
 };
 
-template <typename Graph >
-void remove_branch(const typename graph_traits<Graph>::vertex_descriptor& u, Graph& g) {
+
+
+template <typename Graph, typename DummyTag >
+void remove_branch_impl(const typename graph_traits<Graph>::vertex_descriptor& u, 
+                        Graph& g, const DummyTag&) {
   typedef typename graph_traits<Graph>::out_edge_iterator EdgeIter;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
   std::queue<Vertex> v_queue;
@@ -92,6 +95,20 @@ void remove_branch(const typename graph_traits<Graph>::vertex_descriptor& u, Gra
     clear_vertex(v, g);
     remove_vertex(v, g);
   };
+};
+
+
+template <typename Graph >
+void remove_branch_impl(const typename graph_traits<Graph>::vertex_descriptor& u, 
+                        Graph& g, const std::random_access_iterator_tag&) {
+  /* TODO: Figure out a way to implement this! */
+};
+
+template <typename Graph >
+void remove_branch(const typename graph_traits<Graph>::vertex_descriptor& u, Graph& g) {
+  typedef typename graph_traits<Graph>::vertex_iterator VIter;
+  typedef typename std::iterator_traits<VIter>::iterator_category category;
+  remove_branch_impl(u,g,category());
 };
 
 
@@ -168,9 +185,13 @@ typename graph_traits<Graph>::edge_descriptor >
 };
 #endif
 
+
+
 template <typename Graph,
-          typename OutputIter>
-OutputIter remove_branch(const typename graph_traits<Graph>::vertex_descriptor& u, OutputIter it_out, Graph& g) {
+          typename OutputIter,
+          typename DummyTag>
+OutputIter remove_branch_impl(const typename graph_traits<Graph>::vertex_descriptor& u, 
+                              OutputIter it_out, Graph& g, const DummyTag&) {
   typedef typename graph_traits<Graph>::out_edge_iterator EdgeIter;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
   std::queue<Vertex> v_queue;
@@ -189,6 +210,23 @@ OutputIter remove_branch(const typename graph_traits<Graph>::vertex_descriptor& 
     remove_vertex(v, g);
   };
   return it_out;
+};
+
+template <typename Graph,
+          typename OutputIter>
+OutputIter remove_branch_impl(const typename graph_traits<Graph>::vertex_descriptor& u, 
+                              OutputIter it_out, Graph& g, const std::random_access_iterator_tag&) {
+  /* TODO: Figure out a way to implement this! */
+};
+
+
+
+template <typename Graph,
+          typename OutputIter>
+OutputIter remove_branch(const typename graph_traits<Graph>::vertex_descriptor& u, OutputIter it_out, Graph& g) {
+  typedef typename graph_traits<Graph>::vertex_iterator VIter;
+  typedef typename std::iterator_traits<VIter>::iterator_category category;
+  return remove_branch_impl(u, it_out, g, category());
 };
 
 

@@ -12,11 +12,6 @@
 #include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/tree_adaptor.hpp>
 
-// #include <boost/graph/pooled_adjacency_list.hpp>
-// #include <boost/graph/d_ary_bf_tree.hpp>
-// #include <boost/graph/d_ary_cob_tree.hpp>
-
-
 #define BOOST_TEST_DYN_LINK
 
 #define BOOST_TEST_MODULE boost_graph_trees
