@@ -21,6 +21,7 @@
 #include <boost/variant.hpp>
 
 #include <boost/graph/graph_selectors.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 #include <boost/container/vector.hpp>
 #include <boost/container/list.hpp>
@@ -370,6 +371,22 @@ namespace detail {
            ((lhs.source == rhs.source) && ( ! BC_desc_less_than(rhs.edge_id, lhs.edge_id) )));
   };
   
+  
+  template <typename EdgeDesc>
+  struct BC_undir_edge_desc : EdgeDesc {
+    
+    bool is_reversed;
+    
+    explicit
+    BC_undir_edge_desc(const EdgeDesc& aBase = EdgeDesc(), 
+                       bool aIsReversed = false) : 
+                       EdgeDesc(aBase), 
+                       is_reversed(aIsReversed) { };
+    
+    static BC_undir_edge_desc<EdgeDesc> null_value() { 
+      return BC_undir_edge_desc<EdgeDesc>(EdgeDesc::null_value());
+    };
+  };
   
   
 /*************************************************************************

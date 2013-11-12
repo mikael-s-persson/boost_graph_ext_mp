@@ -5,6 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
+#define PRINT_LINE_NUM_REACHED std::cout << __LINE__ << " reached!" << std::endl;
+
 template <typename Graph>
 typename enable_if< is_vertex_list_graph< Graph >,
 void >::type check_graph_vertex_count(const Graph& g, std::size_t expected_count) {
@@ -105,7 +107,11 @@ void >::type check_graph_in_edge_values(const Graph& g,
   std::vector<int> e_list;
   std::vector<int> vp_list;
   for(; ei != ei_end; ++ei) {
-    BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+    if(is_undirected_graph< Graph >::type::value) {
+      BOOST_CHECK( (g[*ei] == g[source(*ei, g)] * 1000 + g[target(*ei, g)]) || (g[*ei] == g[source(*ei, g)] + g[target(*ei, g)] * 1000) );
+    } else {
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+    };
     e_list.push_back(g[*ei]);
     vp_list.push_back(g[source(*ei,g)]);
   };
@@ -145,23 +151,29 @@ void >::type check_graph_out_edge_values(const Graph& g,
                                          std::size_t expected_count,
                                          const int* edge_values, const int* vertex_values) {
   typedef typename graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-  BOOST_CHECK_EQUAL( out_degree(u,g), expected_count );
+  BOOST_CHECK_EQUAL( out_degree(u,g), expected_count ); 
   OutEdgeIter ei, ei_end;
-  BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(u,g) );
+  BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(u,g) ); 
   
   std::vector<int> e_list;
-  std::vector<int> vp_list;
+  std::vector<int> vp_list; 
   for(; ei != ei_end; ++ei) {
-    BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-    e_list.push_back(g[*ei]);
-    vp_list.push_back(g[target(*ei,g)]);
+    if(is_undirected_graph< Graph >::type::value) { 
+      BOOST_CHECK( (g[*ei] == g[source(*ei, g)] * 1000 + g[target(*ei, g)]) || (g[*ei] == g[source(*ei, g)] + g[target(*ei, g)] * 1000) ); 
+    } else { 
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) ); 
+    }; 
+    e_list.push_back(g[*ei]); 
+    vp_list.push_back(g[target(*ei,g)]); 
+  }; 
+  std::sort(e_list.begin(), e_list.end()); 
+  for(std::size_t i = 0; i < e_list.size(); ++i) {
+    BOOST_CHECK_EQUAL( e_list[i], *(edge_values++) ); 
   };
-  std::sort(e_list.begin(), e_list.end());
-  for(std::size_t i = 0; i < e_list.size(); ++i)
-    BOOST_CHECK_EQUAL( e_list[i], *(edge_values++) );
-  std::sort(vp_list.begin(), vp_list.end());
-  for(std::size_t i = 0; i < vp_list.size(); ++i)
-    BOOST_CHECK_EQUAL( vp_list[i], *(vertex_values++) );
+  std::sort(vp_list.begin(), vp_list.end()); 
+  for(std::size_t i = 0; i < vp_list.size(); ++i) {
+    BOOST_CHECK_EQUAL( vp_list[i], *(vertex_values++) ); 
+  };
 };
 
 template <typename Graph>
@@ -174,9 +186,8 @@ void >::type check_graph_out_edge_values(const Graph&,
 
 
 template <typename Graph>
-void intint_check_fullbranch_integrity(const Graph& g, typename graph_traits<Graph>::vertex_descriptor u) {
-  typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename graph_traits<Graph>::edge_descriptor Edge;
+typename disable_if< is_undirected_graph< Graph >,
+void >::type intint_check_fullbranch_integrity(const Graph& g, typename graph_traits<Graph>::vertex_descriptor u) {
   typedef typename graph_traits<Graph>::out_edge_iterator OutEdgeIter;
   
   if(out_degree(u, g) == 0)
@@ -190,6 +201,22 @@ void intint_check_fullbranch_integrity(const Graph& g, typename graph_traits<Gra
   };
 };
 
+
+template <typename Graph>
+typename enable_if< is_undirected_graph< Graph >,
+void >::type intint_check_fullbranch_integrity(const Graph& g, typename graph_traits<Graph>::vertex_descriptor) {
+  typedef typename graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+  typedef typename graph_traits<Graph>::vertex_iterator VertexIter;
+  
+  VertexIter vi, vi_end;
+  BOOST_CHECK_NO_THROW( tie(vi, vi_end) = vertices(g) );
+  for(; vi != vi_end; ++vi) {
+    OutEdgeIter ei, ei_end;
+    for(tie(ei,ei_end) = out_edges(*vi, g); ei != ei_end; ++ei) {
+      BOOST_CHECK( (g[*ei] == g[source(*ei, g)] * 1000 + g[target(*ei, g)]) || (g[*ei] == g[source(*ei, g)] + g[target(*ei, g)] * 1000) );
+    };
+  };
+};
 
 
 
@@ -251,21 +278,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   {
     /* IncidenceGraph */
     {
-      const int e_vals[] = {1002, 1003, 1004, 1005};
+      const int e_vals[] = {1002, 1003, 1004, 1005}; 
       const int v_vals[] = {2, 3, 4, 5};
       check_graph_out_edge_values(g, v_root, 4, e_vals, v_vals); 
     };
     
     /* BidirectionalGraph */
-    {
-      const int e_vals[] = {1002};
+    if(is_undirected_graph< Graph >::type::value) {
+      const int e_vals[] = {1002,2006,2007,2008,2009}; 
+      const int v_vals[] = {1, 6, 7, 8, 9};
+      check_graph_in_edge_values(g, v_rc[0], 5, e_vals, v_vals); 
+    } else if(is_bidirectional_graph< Graph >::type::value) {
+      const int e_vals[] = {1002}; 
       const int v_vals[] = {1};
       check_graph_in_edge_values(g, v_rc[0], 1, e_vals, v_vals); 
     };
     
     /* IncidenceGraph */
-    {
-      const int e_vals[] = {2006, 2007, 2008, 2009};
+    if(is_undirected_graph< Graph >::type::value) {
+      const int e_vals[] = {1002, 2006, 2007, 2008, 2009}; 
+      const int v_vals[] = {1, 6, 7, 8, 9};
+      check_graph_out_edge_values(g, v_rc[0], 5, e_vals, v_vals); 
+    } else {
+      const int e_vals[] = {2006, 2007, 2008, 2009}; 
       const int v_vals[] = {6, 7, 8, 9};
       check_graph_out_edge_values(g, v_rc[0], 4, e_vals, v_vals); 
     };
@@ -273,7 +308,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   
   /* MutablePropertyGraph (with rvalue-ref) */
   int vp_rc2c[] = {10,11,12,13};
-  int ep_rc2c[] = {3010,3011,3012,3013};
+  int ep_rc2c[] = {3010,3011,3012,3013}; 
   Vertex v_rc2c[4];
   Edge e_rc2c[4];
   for(std::size_t i = 0; i < 4; ++i) {
@@ -282,7 +317,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
 #else
     BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(vp_rc2c[i], g) ); 
 #endif
-    bool edge_added_success = false;
+    bool edge_added_success = false;  
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) ); 
 #else
@@ -292,32 +327,36 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   };
   check_graph_vertex_count(g, 13); 
   
-  {
+  if(is_undirected_graph< Graph >::type::value) {
+    const int e_vals[] = {1003, 3010, 3011, 3012, 3013}; 
+    const int v_vals[] = {1, 10, 11, 12, 13};
+    check_graph_out_edge_values(g, v_rc[1], 5, e_vals, v_vals); 
+  } else {
     /* IncidenceGraph */
-    const int e_vals[] = {3010, 3011, 3012, 3013};
+    const int e_vals[] = {3010, 3011, 3012, 3013}; 
     const int v_vals[] = {10, 11, 12, 13};
     check_graph_out_edge_values(g, v_rc[1], 4, e_vals, v_vals); 
   };
   
   
   /* Copying function */
-  intint_check_fullbranch_integrity(g, v_root);
+  intint_check_fullbranch_integrity(g, v_root); 
   {
-    Graph* p_g_cpy = NULL;
+    Graph* p_g_cpy = NULL; 
     BOOST_CHECK_NO_THROW( p_g_cpy = new Graph(g) ); 
     intint_check_fullbranch_integrity(*p_g_cpy, *(vertices(*p_g_cpy).first)); 
     BOOST_CHECK_NO_THROW( delete p_g_cpy ); 
   };
   
   {
-    Graph g_cpy;
+    Graph g_cpy; 
     BOOST_CHECK_NO_THROW( g_cpy = g ); 
     intint_check_fullbranch_integrity(g_cpy, *(vertices(g_cpy).first)); 
   };
   
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   {
-    Graph* p_g_mv = NULL;
+    Graph* p_g_mv = NULL; 
     BOOST_CHECK_NO_THROW( p_g_mv = new Graph(std::move(g)) ); 
     intint_check_fullbranch_integrity(*p_g_mv, *(vertices(*p_g_mv).first)); 
     BOOST_CHECK_NO_THROW( g = std::move(*p_g_mv) ); 
@@ -330,16 +369,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   /* MutableGraph */
   BOOST_CHECK_NO_THROW( clear_vertex(v_rc[0],g) ); 
   
-  /* IncidenceGraph */
-  check_graph_out_degree(g, v_rc[0], 0); 
-  check_graph_out_degree(g, v_root, 3); 
-  
-  /* BidirectionalGraph */
-  check_graph_in_degree(g, v_rc[0], 0); 
-  check_graph_in_degree(g, v_rc1c[0], 0); 
-  check_graph_in_degree(g, v_rc1c[1], 0); 
-  check_graph_in_degree(g, v_rc1c[2], 0); 
-  check_graph_in_degree(g, v_rc1c[3], 0); 
+  if(is_undirected_graph< Graph >::type::value) {
+    /* IncidenceGraph */
+    check_graph_out_degree(g, v_rc[0], 0); 
+    check_graph_out_degree(g, v_root, 3); 
+    
+    /* BidirectionalGraph */
+    check_graph_in_degree(g, v_rc[0], 0); 
+    check_graph_in_degree(g, v_rc1c[0], 0); 
+    check_graph_in_degree(g, v_rc1c[1], 0); 
+    check_graph_in_degree(g, v_rc1c[2], 0); 
+    check_graph_in_degree(g, v_rc1c[3], 0); 
+  } else {
+    /* IncidenceGraph */
+    check_graph_out_degree(g, v_rc[0], 0); 
+    check_graph_out_degree(g, v_root, 3); 
+    
+    /* BidirectionalGraph */
+    check_graph_in_degree(g, v_rc[0], 0); 
+    check_graph_in_degree(g, v_rc1c[0], 0); 
+    check_graph_in_degree(g, v_rc1c[1], 0); 
+    check_graph_in_degree(g, v_rc1c[2], 0); 
+    check_graph_in_degree(g, v_rc1c[3], 0); 
+  };
   
   /* VertexListGraph */
   check_graph_vertex_count(g, 13); 

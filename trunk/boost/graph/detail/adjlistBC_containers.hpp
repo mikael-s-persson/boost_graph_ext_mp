@@ -166,7 +166,7 @@ namespace detail {
     typedef typename Config::container edge_container;
     typedef typename Config::container_ptr edge_container_ptr;
     typedef typename Config::descriptor edge_descriptor;
-    typedef void in_edge_iterator;
+    typedef int* in_edge_iterator;
     
     VertexProperties data;
     edge_container_ptr out_edges;
@@ -459,7 +459,7 @@ namespace detail {
     typedef std::pair< Iter, bool > ResultType;
     Iter it = cont.begin();
     for(; it != cont.end(); ++it)
-      if( (it->target == v) )
+      if( it->target == v )
         return ResultType(it,true);
     return ResultType(it, false);
   };
@@ -485,7 +485,7 @@ namespace detail {
     typedef std::pair< std::size_t, bool > ResultType;
     
     for(Iter it = cont.begin(); it != cont.end(); ++it)
-      if( (it->target == v) )
+      if( it->target == v )
         return ResultType(it - cont.begin(),true);
     return ResultType(cont.size(), false);
   };
@@ -530,7 +530,7 @@ namespace detail {
                                  std::size_t& e_count) {
     typedef typename ::boost::container::list<ValueType>::iterator Iter;
     for(Iter it = cont.begin(); it != cont.end(); ) {
-      if( (it->target == v) ) {
+      if( it->target == v ) {
         it = cont.erase(it);
         --e_count;
       } else
@@ -575,7 +575,7 @@ namespace detail {
     
     Iter it_last = cont.end();
     for(Iter it = cont.begin(); it != it_last; ) {
-      if( (BC_get_value(*it).target == v) ) {
+      if( BC_get_value(*it).target == v ) {
         --it_last;
         if(it != it_last) {
           swap(*it, *it_last);
@@ -637,7 +637,7 @@ namespace detail {
     // now, the stupid part... we have to traverse all other vertices (and their edges) 
     // to look for in-edges that lead to "v", and erase them.
     for(VertexIter ui = cont.begin(); ui != cont.end(); ++ui) {
-      if((ui == vi) || (!BC_is_elem_valid(*ui)))
+      if((ui == vi) || !BC_is_elem_valid(*ui))
         continue;
       VertexValue& up = BC_get_value(*ui);
       adjlistBC_erase_edges_to(up.out_edges, cont, BC_iterator_to_desc(cont, ui), v, e_count);
@@ -696,7 +696,6 @@ namespace detail {
   
   template <typename Container, typename VertexDesc>
   void adjlistBC_erase_vertex(Container& cont, VertexDesc v) {
-    typedef typename Container::iterator Iter;
     typedef typename Container::value_type VertexValue;
     typedef adjlistBC_out_edges_factory< typename VertexValue::edge_container_ptr > OutEdgeFactory;
     OutEdgeFactory::destroy_out_edges(*v);
@@ -708,7 +707,7 @@ namespace detail {
   void adjlistBC_update_out_edges_impl(Container& cont, std::size_t old_v_id, std::size_t new_v_id) {
     typedef typename Container::iterator OEIter;
     for(OEIter ei = cont.begin(); ei != cont.end(); ++ei)
-      if((BC_is_elem_valid(*ei)) && (BC_get_value(*ei).target == old_v_id))
+      if(BC_is_elem_valid(*ei) && (BC_get_value(*ei).target == old_v_id))
         BC_get_value(*ei).target = new_v_id;
   };
   
@@ -793,9 +792,6 @@ namespace detail {
                                           std::size_t old_v_id, std::size_t new_v_id) {
     typedef ::boost::container::vector<ValueType> VContainer;
     typedef typename VContainer::iterator VIter;
-    typedef typename ValueType::edge_container OutEdgeCont;
-    typedef typename OutEdgeCont::iterator OEIter;
-    typedef typename ValueType::edge_descriptor EdgeDesc;
     
     for(VIter vi = cont.begin(); vi != cont.end(); ++vi)
       adjlistBC_update_out_edges_impl(vi->out_edges, old_v_id, new_v_id);
@@ -807,11 +803,8 @@ namespace detail {
   typename disable_if< is_same< DirectedS, directedS >,
   void >::type adjlistBC_update_out_edges(::boost::container::vector<ValueType>& cont, 
                                           std::size_t old_v_id, std::size_t new_v_id) {
-    typedef ::boost::container::vector<ValueType> VContainer;
-    typedef typename VContainer::iterator VIter;
     typedef typename ValueType::edge_container OutEdgeCont;
     typedef typename OutEdgeCont::iterator OEIter;
-    typedef typename ValueType::edge_descriptor EdgeDesc;
     typedef typename ValueType::in_edge_container InEdgeCont;
     typedef typename InEdgeCont::iterator InEdgeIter;
     
@@ -1033,7 +1026,7 @@ namespace detail {
       return BC_get_value(*BC_desc_to_iterator(m_vertices, v));
     };
     
-    const edge_stored_type& get_stored_edge(edge_descriptor e) const { 
+    const edge_stored_type& get_stored_edge(const edge_descriptor& e) const { 
       return BC_get_value(*BC_desc_to_iterator(get_stored_vertex(e.source).out_edges, e.edge_id));
     };
     
@@ -1103,7 +1096,7 @@ namespace detail {
     
     // NOTE: this operation might invalidate other out-edge iterators/descriptors of the same source vertex.
     // NOTE: This WORKS for ALL vertex container types.
-    void remove_edge(edge_descriptor e) {
+    void remove_edge(const edge_descriptor& e) {
       adjlistBC_erase_in_edge(get_stored_vertex(get_stored_edge(e).target), e);
       adjlistBC_erase_edge(get_stored_vertex(e.source).out_edges, e, m_vertices, e.source);
       --m_num_edges;
@@ -1151,20 +1144,6 @@ namespace detail {
         return std::pair< edge_descriptor, bool >(edge_descriptor(), false);
     };
     
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    // NOTE: This WORKS for ALL edge container types.
-    typedef adjlistBC_adjacent_viter<vertex_descriptor, edge_container, out_edge_iterator> adjacency_iterator;
-    
-    std::pair< adjacency_iterator, adjacency_iterator > adjacent_vertices(vertex_descriptor u) const {
-      std::pair< out_edge_iterator, out_edge_iterator > oe_pair = out_edges(u);
-      return std::pair< adjacency_iterator, adjacency_iterator >(
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.first),
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.second)
-      );
-    };
-    
-    
     // NOTE: This WORKS for ALL vertex container types.
     typedef typename vertex_stored_type::in_edge_iterator in_edge_iterator;
     
@@ -1172,20 +1151,6 @@ namespace detail {
       return std::pair< in_edge_iterator, in_edge_iterator >(get_stored_vertex(v).in_edges.begin(), 
                                                              get_stored_vertex(v).in_edges.end());
     };
-    
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef typename mpl::if_< is_same< DirectedS, directedS >,
-      void, 
-      adjlistBC_inv_adjacent_viter<vertex_descriptor, in_edge_iterator> >::type inv_adjacency_iterator;
-    
-    std::pair< inv_adjacency_iterator, inv_adjacency_iterator > inv_adjacent_vertices(vertex_descriptor v) const {
-      return std::pair< inv_adjacency_iterator, inv_adjacency_iterator >(
-        inv_adjacency_iterator(get_stored_vertex(v).in_edges.begin()), 
-        inv_adjacency_iterator(get_stored_vertex(v).in_edges.end())
-      );
-    };
-    
     
     // NOTE: This WORKS for ALL vertex container types.
     typedef adjlistBC_edge_iterator<vertex_container, edge_descriptor> edge_iterator;

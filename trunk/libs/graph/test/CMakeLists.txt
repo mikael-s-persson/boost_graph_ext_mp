@@ -99,7 +99,30 @@ foreach(EDGE_STORAGE_TYPE ${EDGE_STORAGE_TYPES})
   
 endforeach(EDGE_STORAGE_TYPE)
 
+add_executable(test_trees_bfl "test_trees_bfl.cpp")
+add_test(NAME test_trees_bfl COMMAND "./test_trees_bfl")
+target_link_libraries(test_trees_bfl ${Boost_LIBRARIES})
 
+add_executable(test_prop_maps_bfl "test_prop_maps_bfl.cpp")
+add_test(NAME test_prop_maps_bfl COMMAND "./test_prop_maps_bfl")
+target_link_libraries(test_prop_maps_bfl ${Boost_LIBRARIES})
+
+add_executable(test_trees_vebl "test_trees_vebl.cpp")
+add_test(NAME test_trees_vebl COMMAND "./test_trees_vebl")
+target_link_libraries(test_trees_vebl ${Boost_LIBRARIES})
+
+add_executable(test_prop_maps_vebl "test_prop_maps_vebl.cpp")
+add_test(NAME test_prop_maps_vebl COMMAND "./test_prop_maps_vebl")
+target_link_libraries(test_prop_maps_vebl ${Boost_LIBRARIES})
+
+
+add_executable(basic_vebl_tests "basic_vebl_tests.cpp")
+add_test(NAME basic_vebl_tests COMMAND "./basic_vebl_tests")
+target_link_libraries(basic_vebl_tests ${Boost_LIBRARIES})
+
+add_executable(dummy_tests "dummy_tests.cpp")
+add_test(NAME dummy_tests COMMAND "./dummy_tests")
+target_link_libraries(dummy_tests ${Boost_LIBRARIES})
 
 
 

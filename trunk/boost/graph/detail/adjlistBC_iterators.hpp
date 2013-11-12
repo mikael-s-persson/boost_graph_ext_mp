@@ -22,6 +22,7 @@
 
 #include <boost/variant.hpp>
 
+#include <boost/graph/adjacency_iterator.hpp>
 #include <boost/graph/detail/boost_container_generators.hpp>
 
 #include <iterator>
@@ -194,6 +195,77 @@ namespace detail {
   };
   
   
+  template <typename EDesc, typename IEIter, typename OEIter>
+  class adjlistBC_undir_ioeiter : 
+    public iterator_facade<
+      adjlistBC_undir_ioeiter<EDesc, IEIter, OEIter>,
+      EDesc,
+      std::bidirectional_iterator_tag,
+      EDesc
+    > {
+    public:
+      typedef adjlistBC_undir_ioeiter<EDesc, IEIter, OEIter> self;
+      
+      adjlistBC_undir_ioeiter() : view_as_out_edges(true), cur_ie(), ie_end(), oe_beg(), cur_oe(), oe_end() { };
+      
+      adjlistBC_undir_ioeiter(bool aViewAsOutEdges, 
+                              IEIter aCurIE, IEIter aIEEnd, 
+                              OEIter aOEBeg, OEIter aOEEnd) : 
+                              view_as_out_edges(aViewAsOutEdges),
+                              cur_ie(aCurIE), ie_end(aIEEnd),
+                              oe_beg(aOEBeg), cur_oe(aOEBeg), oe_end(aOEEnd) { };
+      
+      adjlistBC_undir_ioeiter(bool aViewAsOutEdges, 
+                              IEIter aIEEnd, OEIter aOEBeg, OEIter aCurOE, OEIter aOEEnd) : 
+                              view_as_out_edges(aViewAsOutEdges),
+                              cur_ie(aIEEnd), ie_end(aIEEnd),
+                              oe_beg(aOEBeg), cur_oe(aCurOE), oe_end(aOEEnd) { };
+      
+      adjlistBC_undir_ioeiter(bool aViewAsOutEdges, 
+                              IEIter aIEEnd, OEIter aOEBeg, OEIter aOEEnd) : 
+                              view_as_out_edges(aViewAsOutEdges),
+                              cur_ie(aIEEnd), ie_end(aIEEnd),
+                              oe_beg(aOEBeg), cur_oe(aOEEnd), oe_end(aOEEnd) { };
+      
+    public: // private:
+      friend class iterator_core_access;
+      
+      void increment() {
+        if(cur_ie != ie_end)
+          ++cur_ie;
+        else if(cur_oe != oe_end)
+          ++cur_oe;
+      };
+      void decrement() { 
+        if( cur_oe == oe_beg )
+          --cur_ie;
+        else
+          --cur_oe;
+      };
+      bool equal(const self& rhs) const { return (this->cur_ie == rhs.cur_ie) && (this->cur_oe == rhs.cur_oe); };
+      EDesc dereference() const {
+        if(view_as_out_edges) {
+          if( cur_ie != ie_end )
+            return EDesc(*cur_ie,true);
+          return EDesc(*cur_oe,false);
+        } else {
+          if( cur_ie != ie_end )
+            return EDesc(*cur_ie,false);
+          return EDesc(*cur_oe,true);
+        };
+      };
+      
+      bool view_as_out_edges;
+      IEIter cur_ie;
+      IEIter ie_end;
+      OEIter oe_beg;
+      OEIter cur_oe;
+      OEIter oe_end;
+  };
+  
+  
+  
+  
   
   template <typename ListS, typename Container, typename EDesc>
   struct adjlistBC_select_out_edge_iterator {
@@ -234,66 +306,6 @@ namespace detail {
     };
     template <typename Vertex>
     static std::pair< type, type > create_range(Vertex u, Container* cont) { return create_range(u, *cont); };
-  };
-  
-  
-  
-  
-  template <typename VDesc, typename OEdgeContainer, typename OEdgeIterator>
-  class adjlistBC_adjacent_viter : 
-    public iterator_facade<
-      adjlistBC_adjacent_viter<VDesc, OEdgeContainer, OEdgeIterator>,
-      const VDesc,
-      typename std::iterator_traits<OEdgeIterator>::iterator_category
-    > {
-    public:
-      typedef adjlistBC_adjacent_viter<VDesc, OEdgeContainer, OEdgeIterator> self;
-      
-      explicit adjlistBC_adjacent_viter(const OEdgeContainer* aPCont = NULL, 
-                                        OEdgeIterator aEdgeIt = OEdgeIterator()) : p_cont(aPCont), e_it(aEdgeIt) { };
-      explicit adjlistBC_adjacent_viter(const OEdgeContainer& aPCont, 
-                                        OEdgeIterator aEdgeIt) : p_cont(&aPCont), e_it(aEdgeIt) { };
-      
-    public: // private:
-      friend class iterator_core_access;
-      
-      void increment() { ++e_it; };
-      void decrement() { --e_it; };
-      bool equal(const self& rhs) const { return (this->e_it == rhs.e_it); };
-      const VDesc& dereference() const { return BC_get_value(*BC_desc_to_iterator(*p_cont, e_it->edge_id)).target; };
-      
-      void advance(std::ptrdiff_t i) { std::advance(this->e_it, i); };
-      std::ptrdiff_t distance_to(const self& rhs) const { return std::distance(this->e_it, rhs.e_it); }; 
-      
-      const OEdgeContainer* p_cont;
-      OEdgeIterator e_it;
-  };
-  
-  
-  template <typename VDesc, typename ContIterator>
-  class adjlistBC_inv_adjacent_viter : 
-    public iterator_facade<
-      adjlistBC_inv_adjacent_viter<VDesc, ContIterator>,
-      const VDesc,
-      typename std::iterator_traits<ContIterator>::iterator_category
-    > {
-    public:
-      typedef adjlistBC_inv_adjacent_viter<VDesc, ContIterator> self;
-      
-      explicit adjlistBC_inv_adjacent_viter(ContIterator aEdgeIt = ContIterator()) : e_it(aEdgeIt) { };
-      
-    public: // private:
-      friend class iterator_core_access;
-      
-      void increment() { ++e_it; };
-      void decrement() { --e_it; };
-      bool equal(const self& rhs) const { return (this->e_it == rhs.e_it); };
-      const VDesc& dereference() const { return e_it->source; };
-      
-      void advance(std::ptrdiff_t i) { std::advance(this->e_it, i); };
-      std::ptrdiff_t distance_to(const self& rhs) const { return std::distance(this->e_it, rhs.e_it); }; 
-      
-      ContIterator e_it;
   };
   
   
@@ -429,7 +441,6 @@ namespace detail {
         };
       };
       void decrement() { 
-        typedef typename EDesc::edge_id_type RawEDesc;
         typedef typename EDesc::source_descriptor SrcDesc;
         
         EDesc tmp_e = e; // apply decrement to temporary descriptor, in case e is at the beginning.
@@ -471,6 +482,33 @@ namespace detail {
       
       VContainer* p_cont;
       EDesc e;
+  };
+  
+  
+  
+  
+  template <typename EDesc, typename EIter>
+  class adjlistBC_undir_eiter : 
+    public iterator_facade<
+      adjlistBC_undir_eiter<EDesc, EIter>,
+      EDesc,
+      std::bidirectional_iterator_tag,
+      EDesc
+    > {
+    public:
+      typedef adjlistBC_undir_eiter<EDesc, EIter> self;
+      
+      adjlistBC_undir_eiter(EIter aCurIt = EIter()) : cur_it(aCurIt) { };
+      
+    public: // private:
+      friend class iterator_core_access;
+      
+      void increment() { ++cur_it; };
+      void decrement() { --cur_it; };
+      bool equal(const self& rhs) const { return (this->cur_it == rhs.cur_it); };
+      EDesc dereference() const { return EDesc(*cur_it); };
+      
+      EIter cur_it;
   };
   
   

@@ -22,6 +22,7 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
 
+#include <boost/graph/adjacency_iterator.hpp>
 #include <boost/graph/detail/ltreeBC_containers.hpp>
 #include <boost/graph/more_property_maps.hpp>
 
@@ -142,12 +143,15 @@ class linked_tree_BC
     typedef edges_size_type degree_size_type;
     
     typedef typename storage_type::vertex_iterator vertex_iterator;
-    typedef typename storage_type::child_vertex_iterator child_vertex_iterator;
-    typedef typename storage_type::adjacency_iterator adjacency_iterator;
     
     typedef typename storage_type::out_edge_iterator out_edge_iterator;
     typedef typename storage_type::in_edge_iterator in_edge_iterator;
     typedef typename storage_type::edge_iterator edge_iterator;
+    
+    typedef typename adjacency_iterator_generator<self, vertex_descriptor, out_edge_iterator>::type adjacency_iterator;
+    typedef typename inv_adjacency_iterator_generator<self, vertex_descriptor, in_edge_iterator>::type inv_adjacency_iterator;
+    typedef adjacency_iterator child_vertex_iterator;
+    
     
     typedef typename storage_type::vertex_stored_type vertex_stored_impl;
     typedef typename storage_type::vertex_value_type vertex_value_impl;
@@ -486,19 +490,39 @@ typename BGL_LINKED_TREE_BC::edges_size_type num_edges( const BGL_LINKED_TREE_BC
  *                             AdjacencyGraphConcept
  * ********************************************************************************************/
 
-/**
- * Returns the vertex iterator range for all the child-vertices of a given vertex of the tree.
- * \param v The vertex descriptor whose children are sought.
- * \param g The graph.
- * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
- */
 template < BGL_LINKED_TREE_BC_ARGS >
 std::pair< 
 typename BGL_LINKED_TREE_BC::adjacency_iterator,
 typename BGL_LINKED_TREE_BC::adjacency_iterator >
   adjacent_vertices( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
-  return g.m_pack.child_vertices(v);
+  typedef typename BGL_LINKED_TREE_BC::adjacency_iterator AdjIter;
+  typedef typename BGL_LINKED_TREE_BC::out_edge_iterator OEIter;
+  
+  std::pair<OEIter, OEIter> oe_pair = out_edges(v, g);
+  return std::pair<AdjIter, AdjIter>(AdjIter(oe_pair.first, &g), AdjIter(oe_pair.second, &g));
 };
+
+
+
+/***********************************************************************************************
+ *                             InvAdjacencyGraphConcept
+ * ********************************************************************************************/
+
+template < BGL_LINKED_TREE_BC_ARGS >
+std::pair< 
+typename BGL_LINKED_TREE_BC::inv_adjacency_iterator,
+typename BGL_LINKED_TREE_BC::inv_adjacency_iterator >
+  inv_adjacent_vertices( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
+  typedef typename BGL_LINKED_TREE_BC::inv_adjacency_iterator InvAdjIter;
+  typedef typename BGL_LINKED_TREE_BC::in_edge_iterator IEIter;
+  
+  std::pair<IEIter, IEIter> ie_pair = in_edges(v, g);
+  return std::pair<InvAdjIter, InvAdjIter>(InvAdjIter(ie_pair.first, &g), InvAdjIter(ie_pair.second, &g));
+};
+
+
+
+
 
 
 /***********************************************************************************************
@@ -548,7 +572,7 @@ std::pair<
 typename BGL_LINKED_TREE_BC::child_vertex_iterator,
 typename BGL_LINKED_TREE_BC::child_vertex_iterator >
   child_vertices( typename BGL_LINKED_TREE_BC::vertex_descriptor v, const BGL_LINKED_TREE_BC & g) {
-  return g.m_pack.child_vertices(v);
+  return adjacent_vertices(v,g);
 };
 
 
@@ -1016,7 +1040,6 @@ void put(Property p, BGL_LINKED_TREE_BC& g, const Key& k, Value&& val) {
 template < BGL_LINKED_TREE_BC_ARGS >
 void BGL_LINKED_TREE_BC::do_deep_copy_from(const BGL_LINKED_TREE_BC& rhs) {
   typedef typename BGL_LINKED_TREE_BC::vertex_descriptor Vertex;
-  typedef typename BGL_LINKED_TREE_BC::vertex_iterator VIter;
   typedef typename BGL_LINKED_TREE_BC::edge_descriptor Edge;
   typedef typename BGL_LINKED_TREE_BC::out_edge_iterator OEIter;
   typedef std::pair< Vertex, Vertex > TaskType;

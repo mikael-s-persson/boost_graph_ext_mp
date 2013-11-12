@@ -4,7 +4,9 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-  
+
+
+#define PRINT_LINE_NUM_REACHED std::cout << __LINE__ << " reached!" << std::endl;
 
 
 template <typename TreeType>
@@ -96,8 +98,6 @@ void >::type intint_do_edge_check(const TreeType&, typename graph_traits<TreeTyp
 
 template <typename TreeType>
 void intint_check_fullbranch_integrity(const TreeType& g, typename graph_traits<TreeType>::vertex_descriptor u) {
-  typedef typename graph_traits<TreeType>::vertex_descriptor Vertex;
-  typedef typename graph_traits<TreeType>::edge_descriptor Edge;
   typedef typename graph_traits<TreeType>::out_edge_iterator OutEdgeIter;
   
   if(out_degree(u, g) == 0)
@@ -125,108 +125,108 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   TreeType g;
   
   /* MutableTree, Graph */
-  Vertex v_root = graph_traits<TreeType>::null_vertex();
-  BOOST_CHECK_NO_THROW( v_root = create_root(g) );
-  intint_check_tree_vertex_count(g, 1);
+  Vertex v_root = graph_traits<TreeType>::null_vertex(); 
+  BOOST_CHECK_NO_THROW( v_root = create_root(g) ); 
+  intint_check_tree_vertex_count(g, 1); 
   
   /* MutableTree */
-  BOOST_CHECK_NO_THROW( remove_branch(v_root,g) );
-  intint_check_tree_vertex_count(g, 0);
+  BOOST_CHECK_NO_THROW( remove_branch(v_root,g) ); 
+  intint_check_tree_vertex_count(g, 0); 
   
   /* MutableTree */
   int vp_r = 1;
-  BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) );
-  intint_check_tree_vertex_count(g, 1);
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
+  BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) ); 
+  intint_check_tree_vertex_count(g, 1); 
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); 
   
   /* MutablePropertyTree */
   std::vector<int> props;
-  BOOST_CHECK_NO_THROW( remove_branch(v_root, back_inserter(props), g) );
-  intint_check_tree_vertex_count(g, 0);
-  BOOST_CHECK_EQUAL( props.size(), 1 );
-  BOOST_CHECK_EQUAL( props[0], 1 );
-  props.clear();
+  BOOST_CHECK_NO_THROW( remove_branch(v_root, back_inserter(props), g) ); 
+  intint_check_tree_vertex_count(g, 0); 
+  BOOST_CHECK_EQUAL( props.size(), 1 ); 
+  BOOST_CHECK_EQUAL( props[0], 1 ); 
+  props.clear(); 
   
   /* MutablePropertyTree */
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-  BOOST_CHECK_NO_THROW( v_root = create_root(std::move(vp_r), g) );
+  BOOST_CHECK_NO_THROW( v_root = create_root(std::move(vp_r), g) ); 
 #else
-  BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) );
+  BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) ); 
 #endif
-  intint_check_tree_vertex_count(g, 1);
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
+  intint_check_tree_vertex_count(g, 1); 
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); 
   
   /* MutablePropertyTree */
   int vp_rc[] = {2,3,4,5};
   int ep_rc[] = {1002,1003,1004,1005};
   Vertex v_rc[4];
-  Edge e_rc[4];
+  Edge e_rc[4]; 
   for(int i = 0; i < 4; ++i) {
-    BOOST_CHECK_NO_THROW( tie(v_rc[i],e_rc[i]) = add_child_vertex(v_root,vp_rc[i],ep_rc[i],g) );
+    BOOST_CHECK_NO_THROW( tie(v_rc[i],e_rc[i]) = add_child_vertex(v_root,vp_rc[i],ep_rc[i],g) ); 
   };
-  intint_check_tree_vertex_count(g, 5);
+  intint_check_tree_vertex_count(g, 5); 
   
   /* Tree(IncidenceGraph) */
-  BOOST_CHECK_EQUAL( out_degree(v_root,g), 4 );   
+  BOOST_CHECK_EQUAL( out_degree(v_root,g), 4 );    
   
   /* MutablePropertyTree */
   int vp_rc1c[] = {6,7,8,9};
   int ep_rc1c[] = {2006,2007,2008,2009};
   Vertex v_rc1c[4];
-  Edge e_rc1c[4];
+  Edge e_rc1c[4]; 
   for(std::size_t i = 0; i < 4; ++i) {
-    BOOST_CHECK_NO_THROW( tie(v_rc1c[i],e_rc1c[i]) = add_child_vertex(v_rc[0],vp_rc1c[i],ep_rc1c[i],g) );
+    BOOST_CHECK_NO_THROW( tie(v_rc1c[i],e_rc1c[i]) = add_child_vertex(v_rc[0],vp_rc1c[i],ep_rc1c[i],g) ); 
   };
-  intint_check_tree_vertex_count(g, 9);
+  intint_check_tree_vertex_count(g, 9); 
   
   /* Tree */
-  BOOST_CHECK_NO_THROW( v_root = get_root_vertex(g) );
-  BOOST_CHECK_EQUAL( g[v_root], 1 );
+  BOOST_CHECK_NO_THROW( v_root = get_root_vertex(g) ); 
+  BOOST_CHECK_EQUAL( g[v_root], 1 ); 
   {
     /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
-    BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(v_root,g) );
+    BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(v_root,g) ); 
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-      e_list.push_back(g[*ei]);
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) ); 
+      e_list.push_back(g[*ei]); 
     };
-    std::sort(e_list.begin(), e_list.end());
-    BOOST_CHECK_EQUAL( e_list[0], 1002);
-    BOOST_CHECK_EQUAL( e_list[1], 1003);
-    BOOST_CHECK_EQUAL( e_list[2], 1004);
-    BOOST_CHECK_EQUAL( e_list[3], 1005);
+    std::sort(e_list.begin(), e_list.end()); 
+    BOOST_CHECK_EQUAL( e_list[0], 1002); 
+    BOOST_CHECK_EQUAL( e_list[1], 1003); 
+    BOOST_CHECK_EQUAL( e_list[2], 1004); 
+    BOOST_CHECK_EQUAL( e_list[3], 1005); 
     
     /* Tree */
     ChildVertIter cvi, cvi_end;
-    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_root,g) );
+    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_root,g) ); 
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
       vp_list.push_back(g[*cvi]);
-    std::sort(vp_list.begin(), vp_list.end());
-    BOOST_CHECK_EQUAL( vp_list[0], 2);
-    BOOST_CHECK_EQUAL( vp_list[1], 3);
-    BOOST_CHECK_EQUAL( vp_list[2], 4);
-    BOOST_CHECK_EQUAL( vp_list[3], 5);
+    std::sort(vp_list.begin(), vp_list.end()); 
+    BOOST_CHECK_EQUAL( vp_list[0], 2); 
+    BOOST_CHECK_EQUAL( vp_list[1], 3); 
+    BOOST_CHECK_EQUAL( vp_list[2], 4); 
+    BOOST_CHECK_EQUAL( vp_list[3], 5); 
     
     /* Tree */
-    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_root,g) );
+    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_root,g) ); 
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
       if(g[*cvi] == 2) {
         
         /* Tree(IncidenceGraph) */
-        BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(*cvi,g) );
+        BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(*cvi,g) ); 
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
-          BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+          BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) ); 
           e_list2.push_back(g[*ei]);
         };
-        std::sort(e_list2.begin(), e_list2.end());
-        BOOST_CHECK_EQUAL( e_list2[0], 2006);
-        BOOST_CHECK_EQUAL( e_list2[1], 2007);
-        BOOST_CHECK_EQUAL( e_list2[2], 2008);
-        BOOST_CHECK_EQUAL( e_list2[3], 2009);
+        std::sort(e_list2.begin(), e_list2.end()); 
+        BOOST_CHECK_EQUAL( e_list2[0], 2006); 
+        BOOST_CHECK_EQUAL( e_list2[1], 2007); 
+        BOOST_CHECK_EQUAL( e_list2[2], 2008); 
+        BOOST_CHECK_EQUAL( e_list2[3], 2009); 
         
       };
     };
@@ -237,73 +237,73 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_treetest, TreeType, intint_treetest_types 
   int ep_rc2c[] = {3010,3011,3012,3013};
   Vertex v_rc2c[4];
   Edge e_rc2c[4];
-  for(std::size_t i = 0; i < 4; ++i) {
+  for(std::size_t i = 0; i < 4; ++i) { 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],std::move(vp_rc2c[i]),std::move(ep_rc2c[i]),g) );
 #else
     BOOST_CHECK_NO_THROW( tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],vp_rc2c[i],ep_rc2c[i],g) );
 #endif
   };
-  intint_check_tree_vertex_count(g, 13);
+  intint_check_tree_vertex_count(g, 13); 
   
   {
     /* Tree(IncidenceGraph) */
     OutEdgeIter ei, ei_end;
-    BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(v_rc[1],g) );
+    BOOST_CHECK_NO_THROW( tie(ei,ei_end) = out_edges(v_rc[1],g) ); 
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) ); 
       e_list.push_back(g[*ei]);
     };
-    std::sort(e_list.begin(), e_list.end());
-    BOOST_CHECK_EQUAL( e_list[0], 3010);
-    BOOST_CHECK_EQUAL( e_list[1], 3011);
-    BOOST_CHECK_EQUAL( e_list[2], 3012);
-    BOOST_CHECK_EQUAL( e_list[3], 3013);
+    std::sort(e_list.begin(), e_list.end()); 
+    BOOST_CHECK_EQUAL( e_list[0], 3010); 
+    BOOST_CHECK_EQUAL( e_list[1], 3011); 
+    BOOST_CHECK_EQUAL( e_list[2], 3012); 
+    BOOST_CHECK_EQUAL( e_list[3], 3013); 
     
     /* Tree */
     ChildVertIter cvi, cvi_end;
-    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_rc[1],g) );
+    BOOST_CHECK_NO_THROW( tie(cvi,cvi_end) = child_vertices(v_rc[1],g) ); 
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
       vp_list.push_back(g[*cvi]);
-    std::sort(vp_list.begin(), vp_list.end());
-    BOOST_CHECK_EQUAL( vp_list[0], 10);
-    BOOST_CHECK_EQUAL( vp_list[1], 11);
-    BOOST_CHECK_EQUAL( vp_list[2], 12);
-    BOOST_CHECK_EQUAL( vp_list[3], 13);
+    std::sort(vp_list.begin(), vp_list.end()); 
+    BOOST_CHECK_EQUAL( vp_list[0], 10); 
+    BOOST_CHECK_EQUAL( vp_list[1], 11); 
+    BOOST_CHECK_EQUAL( vp_list[2], 12); 
+    BOOST_CHECK_EQUAL( vp_list[3], 13); 
   };
   
   /* Copying function */
-  intint_check_fullbranch_integrity(g, v_root);
+  intint_check_fullbranch_integrity(g, v_root); 
   {
     TreeType* p_g_cpy = NULL;
-    BOOST_CHECK_NO_THROW( p_g_cpy = new TreeType(g) );
-    intint_check_fullbranch_integrity(*p_g_cpy, get_root_vertex(*p_g_cpy));
-    BOOST_CHECK_NO_THROW( delete p_g_cpy );
+    BOOST_CHECK_NO_THROW( p_g_cpy = new TreeType(g) ); 
+    intint_check_fullbranch_integrity(*p_g_cpy, get_root_vertex(*p_g_cpy)); 
+    BOOST_CHECK_NO_THROW( delete p_g_cpy ); 
   };
   
   {
-    TreeType g_cpy;
-    BOOST_CHECK_NO_THROW( g_cpy = g );
-    intint_check_fullbranch_integrity(g_cpy, get_root_vertex(g_cpy));
+    TreeType g_cpy; 
+    BOOST_CHECK_NO_THROW( g_cpy = g ); 
+    intint_check_fullbranch_integrity(g_cpy, get_root_vertex(g_cpy)); 
   };
   
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   {
     TreeType* p_g_mv = NULL;
-    BOOST_CHECK_NO_THROW( p_g_mv = new TreeType(std::move(g)) );
-    intint_check_fullbranch_integrity(*p_g_mv, get_root_vertex(*p_g_mv));
-    BOOST_CHECK_NO_THROW( g = std::move(*p_g_mv) );
-    intint_check_fullbranch_integrity(g, get_root_vertex(g));
-    BOOST_CHECK_NO_THROW( delete p_g_mv );
-    v_root = get_root_vertex(g);
+    BOOST_CHECK_NO_THROW( p_g_mv = new TreeType(std::move(g)) ); 
+    intint_check_fullbranch_integrity(*p_g_mv, get_root_vertex(*p_g_mv)); 
+    BOOST_CHECK_NO_THROW( g = std::move(*p_g_mv) ); 
+    intint_check_fullbranch_integrity(g, get_root_vertex(g)); 
+    BOOST_CHECK_NO_THROW( delete p_g_mv ); 
+    v_root = get_root_vertex(g); 
   };
 #endif
   
   /* MutableTree */
-  BOOST_CHECK_NO_THROW( remove_branch(v_rc[0],g) );
-  intint_check_tree_vertex_count(g, 8);
+  BOOST_CHECK_NO_THROW( remove_branch(v_rc[0],g) ); 
+  intint_check_tree_vertex_count(g, 8); 
   
   
   BOOST_CHECK_EQUAL( g[v_root], 1 );

@@ -169,7 +169,7 @@ namespace detail {
     typedef typename Config::container edge_container;
     typedef typename Config::container_ptr edge_container_ptr;
     typedef typename Config::descriptor edge_descriptor;
-    typedef void* in_edge_iterator;
+    typedef int* in_edge_iterator;
     
     VertexProperties data;
     edge_container_ptr out_edges;
@@ -578,24 +578,6 @@ namespace detail {
       return OEIterSelect::create_range(u, get_stored_vertex(u).out_edges);
     };
     
-    // NOTE: This WORKS for ALL vertex container types.
-    // NOTE: This WORKS for ALL edge container types.
-    typedef adjlistBC_adjacent_viter<vertex_descriptor, edge_container, out_edge_iterator> adjacency_iterator;
-    
-    std::pair< adjacency_iterator, adjacency_iterator > adjacent_vertices(vertex_descriptor u) const {
-      std::pair< out_edge_iterator, out_edge_iterator > oe_pair = out_edges(u);
-      return std::pair< adjacency_iterator, adjacency_iterator >(
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.first),
-        adjacency_iterator(get_stored_vertex(u).out_edges, oe_pair.second)
-      );
-    };
-    
-    typedef adjacency_iterator child_vertex_iterator;
-    
-    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) const {
-      return adjacent_vertices(v);
-    };
-    
     
     // NOTE: This WORKS for ALL vertex container types.
     typedef adjlistBC_edge_iterator<vertex_container, edge_descriptor> edge_iterator;
@@ -620,20 +602,6 @@ namespace detail {
         return std::pair< in_edge_iterator, in_edge_iterator >(&(get_stored_vertex(v).in_edge), 
                                                                &(get_stored_vertex(v).in_edge) + 1);
     };
-    
-    // NOTE: This WORKS for ALL vertex container types.
-    typedef typename mpl::if_< is_same< DirectedS, directedS >,
-      void, 
-      adjlistBC_inv_adjacent_viter<vertex_descriptor, in_edge_iterator> >::type inv_adjacency_iterator;
-    
-    std::pair< inv_adjacency_iterator, inv_adjacency_iterator > inv_adjacent_vertices(vertex_descriptor v) const {
-      std::pair< in_edge_iterator, in_edge_iterator > result_ie = in_edges(v);
-      return std::pair< inv_adjacency_iterator, inv_adjacency_iterator >(
-        inv_adjacency_iterator(result_ie.first), 
-        inv_adjacency_iterator(result_ie.second)
-      );
-    };
-    
     
     
     // NOTE: This WORKS for ALL vertex container types.
