@@ -303,13 +303,6 @@ class linked_tree_BC
 
 
 
-#define BGL_LINKED_TREE_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
-#define BGL_LINKED_TREE_BC linked_tree_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
-
-
-
-#if 0
-
 /**
  * This is the tree-storage specifier for a linked-tree of the given edge and vertex storage policies.
  */
@@ -327,7 +320,11 @@ template <typename OutEdgeListS, typename VertexListS, typename DirectedS>
 struct tree_storage_traits< linked_tree_BC_storage<OutEdgeListS, VertexListS, DirectedS> > :
   linked_tree_BC_traits<OutEdgeListS, VertexListS, DirectedS> { };
 
-#endif
+
+
+#define BGL_LINKED_TREE_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
+#define BGL_LINKED_TREE_BC linked_tree_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
+
 
 
 

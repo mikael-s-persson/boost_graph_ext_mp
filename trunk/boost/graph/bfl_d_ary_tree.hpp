@@ -31,6 +31,7 @@
 #include <limits>
 
 #include <boost/graph/tree_concepts.hpp>
+#include <boost/graph/tree_traits.hpp>
 
 #include <boost/graph/detail/bfl_tree_iterators.hpp>
 
@@ -352,9 +353,8 @@ class bfl_d_ary_tree
 };
 
 
-#if 0
 /**
- * This is the tree-storage specifier for a D-ary BF-tree of a given Arity.
+ * This is the tree-storage specifier for a D-Ary Breadth-first Layout tree of a given Arity.
  */
 template <std::size_t Arity = 2>
 struct bfl_d_ary_tree_storage { };
@@ -382,13 +382,11 @@ struct tree_storage_traits< bfl_d_ary_tree_storage<Arity> > {
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   
   typedef std::size_t vertices_size_type;
-  typedef void* vertex_ptr;
-  typedef typename bfl_d_ary_tree<Arity, int>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
-  typedef typename bfl_d_ary_tree<Arity, int>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
+  typedef std::size_t vertex_descriptor;
   typedef std::size_t edges_size_type;
+  typedef graph::detail::bfltree_edge_desc edge_descriptor;
   
 };
-#endif
 
 
 

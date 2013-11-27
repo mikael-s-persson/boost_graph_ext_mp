@@ -28,6 +28,8 @@
 #include <boost/graph/more_property_maps.hpp>
 #include <boost/unordered_map.hpp>
 
+#include <boost/graph/tree_traits.hpp>
+
 #include <utility>
 
 
@@ -228,6 +230,31 @@ class adjacency_list_BC
     };
     
 };
+
+
+// the safest adj-list tree-storage style is <boost::vecBC, boost::listBC, boost::bidirectionalS>
+
+/**
+ * This is the tree-storage specifier for an adjacency-list being used as a tree storage.
+ */
+template <typename OutEdgeListS = vecBC, typename VertexListS = listBC, typename DirectedS = directedS>
+struct adj_list_BC_as_tree_storage { };
+
+template <typename VertexProperty, typename EdgeProperty, typename OutEdgeListS, typename VertexListS, typename DirectedS>
+struct tree_storage< VertexProperty, EdgeProperty, adj_list_BC_as_tree_storage<OutEdgeListS, VertexListS, DirectedS> > {
+  typedef adjacency_list_BC< OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty> type;
+};
+
+template <typename OutEdgeListS, typename VertexListS, typename DirectedS>
+struct tree_storage_traits< adj_list_BC_as_tree_storage<OutEdgeListS, VertexListS, DirectedS> > :
+  adjacency_list_BC_traits<OutEdgeListS, VertexListS, DirectedS> { };
+
+template <typename VertexProperty, typename EdgeProperty, typename OutEdgeListS, typename VertexListS, typename DirectedS>
+struct tree_traits< adjacency_list_BC< OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty > > {
+  typedef typename adjacency_list_BC< OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty>::adjacency_iterator child_vertex_iterator;
+};
+
+
 
 
 

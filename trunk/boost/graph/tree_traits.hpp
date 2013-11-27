@@ -20,7 +20,9 @@
 #include <boost/config.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/concept_check.hpp>
+
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/bool.hpp>
 
 namespace boost {
 
@@ -50,6 +52,42 @@ struct tree_traits {
   /** This type describes iterators to iterate through child vertices of a vertex. */
   typedef typename detail::tree_traits_get_child_iter<TreeType>::type child_vertex_iterator;
 };
+
+
+/**
+ * 
+ */
+template <typename VertexDescriptor, typename EdgeDescriptor, typename StorageTag>
+struct tree_storage {
+  typedef typename StorageTag::template bind<VertexDescriptor,EdgeDescriptor>::type type;
+};
+
+
+/**
+ * 
+ */
+template <typename StorageTag>
+struct tree_storage_traits {
+  typedef boost::mpl::false_ is_rand_access;
+  typedef boost::mpl::true_ is_bidir;
+  typedef boost::mpl::true_ is_directed;
+  
+  typedef typename boost::mpl::if_< is_bidir,
+    boost::bidirectional_tag,
+    typename boost::mpl::if_< is_directed,
+      boost::directed_tag, boost::undirected_tag
+    >::type
+  >::type directed_category;
+  
+  typedef boost::disallow_parallel_edge_tag edge_parallel_category;
+  
+  typedef std::size_t vertices_size_type;
+  typedef typename StorageTag::vertex_descriptor vertex_descriptor;
+  typedef std::size_t edges_size_type;
+  typedef typename StorageTag::edge_descriptor edge_descriptor;
+  
+};
+
 
 
 

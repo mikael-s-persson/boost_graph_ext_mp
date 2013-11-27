@@ -31,6 +31,7 @@
 
 #include <boost/graph/more_property_maps.hpp>
 #include <boost/graph/tree_concepts.hpp>
+#include <boost/graph/tree_traits.hpp>
 #include <boost/graph/detail/vebl_tree_iterators.hpp>
 
 namespace boost {
@@ -403,24 +404,23 @@ class vebl_d_ary_tree
 
 
 
-#if 0
+
+
 /**
- * This is the tree-storage specifier for a D-ary COB-tree of a given Arity and CuttingDepth.
+ * This is the tree-storage specifier for a D-Ary von Emde Boas Layout tree of a given Arity.
  */
-template <std::size_t Arity = 2, std::size_t CuttingDepth = 8>
-struct d_ary_cob_tree_storage { };
+template <std::size_t Arity = 2>
+struct vebl_d_ary_tree_storage { };
 
 
-template <typename VertexDescriptor, typename EdgeDescriptor, std::size_t Arity, std::size_t CuttingDepth>
-struct tree_storage<VertexDescriptor, EdgeDescriptor, d_ary_cob_tree_storage<Arity, CuttingDepth> > {
-  typedef d_ary_cob_tree<VertexDescriptor, Arity, EdgeDescriptor, CuttingDepth> type;
+template <typename VertexDescriptor, typename EdgeDescriptor, std::size_t Arity>
+struct tree_storage<VertexDescriptor, EdgeDescriptor, vebl_d_ary_tree_storage<Arity> > {
+  typedef vebl_d_ary_tree<Arity, VertexDescriptor, EdgeDescriptor> type;
 };
 
 
-
-
-template <std::size_t Arity, std::size_t CuttingDepth>
-struct tree_storage_traits< d_ary_cob_tree_storage<Arity, CuttingDepth> > {
+template <std::size_t Arity>
+struct tree_storage_traits< vebl_d_ary_tree_storage<Arity> > {
   typedef boost::mpl::true_ is_rand_access;
   typedef boost::mpl::true_ is_bidir;
   typedef boost::mpl::true_ is_directed;
@@ -435,14 +435,12 @@ struct tree_storage_traits< d_ary_cob_tree_storage<Arity, CuttingDepth> > {
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   
   typedef std::size_t vertices_size_type;
-  typedef void* vertex_ptr;
-  typedef typename d_ary_cob_tree<int,Arity,boost::no_property,CuttingDepth>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
-  typedef typename d_ary_cob_tree<int,Arity,boost::no_property,CuttingDepth>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
+  typedef std::size_t vertex_descriptor;
   typedef std::size_t edges_size_type;
+  typedef graph::detail::bfltree_edge_desc edge_descriptor;
   
 };
 
-#endif 
 
 
 
