@@ -87,7 +87,7 @@ struct bfltree_vertex_validity {
   const Container* p_cont;
   explicit bfltree_vertex_validity(const Container* aPCont = NULL) : p_cont(aPCont) { };
   bool operator()(std::size_t d) {
-    return bfltree_is_vertex_valid((*p_cont)[d]);
+    return ((d < p_cont->size()) && (bfltree_is_vertex_valid((*p_cont)[d])));
   };
 };
 
@@ -96,8 +96,9 @@ struct bfltree_edge_validity {
   const Container* p_cont;
   explicit bfltree_edge_validity(const Container* aPCont = NULL) : p_cont(aPCont) { };
   bool operator()(bfltree_edge_desc d) {
-    return bfltree_is_vertex_valid((*p_cont)[d.source_vertex]) &&
-           bfltree_is_vertex_valid((*p_cont)[Arity * d.source_vertex + 1 + d.edge_index]);
+    std::size_t d_child = Arity * d.source_vertex + 1 + d.edge_index;
+    return ((d.source_vertex < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d.source_vertex])) &&
+           ((d_child < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d_child]));
   };
 };
 
