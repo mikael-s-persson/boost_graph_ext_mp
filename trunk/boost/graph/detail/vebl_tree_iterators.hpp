@@ -233,7 +233,8 @@ struct vebltree_vertex_validity {
                                     const vebl_depth_records* aPDRec = NULL) : 
                                     p_cont(aPCont), p_drec(aPDRec) { };
   bool operator()(std::size_t d) {
-    return bfltree_is_vertex_valid((*p_cont)[convert_bfl_to_vebl<Arity>(d, *p_drec)]);
+    std::size_t d_vebl = convert_bfl_to_vebl<Arity>(d, *p_drec);
+    return ((d_vebl < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d_vebl]));
   };
 };
 
@@ -245,8 +246,10 @@ struct vebltree_edge_validity {
                                   const vebl_depth_records* aPDRec = NULL) : 
                                   p_cont(aPCont), p_drec(aPDRec) { };
   bool operator()(bfltree_edge_desc d) {
-    return bfltree_is_vertex_valid((*p_cont)[convert_bfl_to_vebl<Arity>(d.source_vertex, *p_drec)]) &&
-           bfltree_is_vertex_valid((*p_cont)[convert_bfl_to_vebl<Arity>(Arity * d.source_vertex + 1 + d.edge_index, *p_drec)]);
+    std::size_t d_vebl = convert_bfl_to_vebl<Arity>(d.source_vertex, *p_drec);
+    std::size_t d_vebl_child = convert_bfl_to_vebl<Arity>(Arity * d.source_vertex + 1 + d.edge_index, *p_drec);
+    return ((d_vebl < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d_vebl])) &&
+           ((d_vebl_child < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d_vebl_child]));
   };
 };
 
