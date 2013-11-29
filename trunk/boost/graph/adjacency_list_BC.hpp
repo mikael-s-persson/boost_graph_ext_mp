@@ -197,6 +197,13 @@ class adjacency_list_BC
 #endif
     
     /**
+     * Clears the tree of all vertices and edges.
+     */
+    void clear() { 
+      m_pack.clear();
+    };
+    
+    /**
      * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
      * \param v The vertex descriptor of the sought-after vertex-property.
      * \return The vertex-property, by reference, associated to the given vertex descriptor.

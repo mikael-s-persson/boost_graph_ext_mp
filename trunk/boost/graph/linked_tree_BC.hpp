@@ -26,6 +26,8 @@
 #include <boost/graph/detail/ltreeBC_containers.hpp>
 #include <boost/graph/more_property_maps.hpp>
 
+#include <boost/graph/tree_traits.hpp>
+
 #include <utility>
 
 

@@ -43,31 +43,31 @@ struct bfltree_edge_desc {
   
 };
 
-bool operator==( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
+inline bool operator==( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
   return ((lhs.source_vertex == rhs.source_vertex) && (lhs.edge_index == rhs.edge_index)); 
 };
-bool operator!=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
+inline bool operator!=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
   return ((lhs.source_vertex != rhs.source_vertex) || (lhs.edge_index != rhs.edge_index)); 
 };
-bool operator <( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
+inline bool operator <( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
   if( lhs.source_vertex == rhs.source_vertex )
     return ( lhs.edge_index < rhs.edge_index );
   else 
     return ( lhs.source_vertex < rhs.source_vertex );
 };
-bool operator<=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
+inline bool operator<=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
   if( lhs.source_vertex == rhs.source_vertex )
     return ( lhs.edge_index <= rhs.edge_index );
   else 
     return ( lhs.source_vertex < rhs.source_vertex );
 };
-bool operator >( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
+inline bool operator >( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
   if( lhs.source_vertex == rhs.source_vertex )
     return ( lhs.edge_index > rhs.edge_index );
   else 
     return ( lhs.source_vertex > rhs.source_vertex );
 };
-bool operator>=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
+inline bool operator>=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
   if( lhs.source_vertex == rhs.source_vertex )
     return ( lhs.edge_index >= rhs.edge_index );
   else 
