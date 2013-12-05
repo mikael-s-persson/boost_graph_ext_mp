@@ -1,0 +1,509 @@
+<HTML>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<Head>
+<Title>Using the Boost Graph Library</Title>
+<BODY BGCOLOR="#ffffff" LINK="#0000ee" TEXT="#000000" VLINK="#551a8b" 
+        ALINK="#ff0000"> 
+<IMG SRC="../../../boost.png" 
+     ALT="C++ Boost" width="277" height="86"> 
+
+<BR Clear>
+
+<H1><A NAME="SECTION00830000000000000000"></A>
+<A NAME="sec:using-adjacency-list-BC"></A>
+<BR>
+Using <TT>adjacency_list_BC</TT>
+</H1>
+
+This section describes the details of how use the
+<tt>adjacency_list_BC</tt> class. The presentation is divided into the
+following topics:
+
+<OL>
+<li><A href="#sec:choosing-graph-type">Choosing the <TT>Edgelist</TT> and <TT>VertexList</TT></A>
+<li><a href="#sec:directed-and-undirected">Directed and Undirected Adjacency Lists</a>
+<li><A href="#sec:adjacency-list-properties">Internal Properties</A>
+<li><A href="#sec:custom-storage">Customizing the Adjacency List Storage</A>
+</ol>
+
+<P>
+
+<H2><A NAME="SECTION00831000000000000000"></A>
+<A NAME="sec:choosing-graph-type"></A>
+<BR>
+Choosing the <TT>Edgelist</TT> and <TT>VertexList</TT>
+</H2>
+
+<P>
+This section focuses on how to decide which version of the 
+<a href="./adjacency_list_BC.html"><TT>adjacency_list_BC</TT></a> class 
+to use in different situations. The <TT>adjacency_list_BC</TT> is like a
+swiss-army knife in that it can be configured in many ways. The
+parameters that we will focus on in this section are <TT>OutEdgeList</TT>
+and <TT>VertexList</TT>, which control the underlying data structures
+that will be used to represent the graph.  The choice of
+<TT>OutEdgeList</TT> and <TT>VertexList</TT> affects the time complexity
+of many of the graph operations and the space complexity of the graph
+object.
+
+<P>
+The <TT>adjacency_list_BC</TT> class uses containers from the 
+<a href="http://www.boost.org/doc/libs/1_55_0/doc/html/container.html">Boost.Container</a> 
+such as <TT>boost::container::vector</TT>, <TT>boost::container::list</TT>,
+<TT>boost::unordered_set</TT>, and <TT>boost::container::set</TT>
+to represent the set of vertices and the adjacency structure
+(out-edges) of the graph.  There are several selector
+types that are used to specify the choice of container for
+<TT>OutEdgeList</TT> and <TT>VertexList</TT>.
+
+<P>
+
+<UL>
+<LI><TT>vecBC</TT> selects <TT>boost::container::vector</TT>.</LI>
+<LI><TT>poolBC</TT> selects <TT>boost::container::vector</TT> that allows "holes" in a 
+similar way to <a href="http://www.boost.org/doc/libs/release/libs/pool/‎">Boost.Pool</a>.</LI>
+<LI><TT>listBC</TT> selects <TT>boost::container::list</TT>.</LI>
+<LI><TT>setBC</TT> selects <TT>boost::container::set</TT>.</LI>
+<LI><TT>multisetBC</TT> selects <TT>boost::container::multiset</TT>.</LI>
+<LI><TT>unordered_setBC</TT> selects <TT>boost::unordered_set</TT>.</LI>
+</UL>
+
+<P>
+
+<H3>Choosing the <TT>VertexList</TT> type</A></H3>
+
+<P>
+The <TT>VertexList</TT> parameter determines what kind of container
+will be used to represent the vertex set, or two-dimensional structure
+of the graph.  The container must model <a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a> or
+<a href="http://www.sgi.com/tech/stl/RandomAccessContainer.html">RandomAccessContainer</a>. 
+In general, <TT>listBC</TT> or <TT>poolBC</TT> is a good choice if you need to add and remove
+vertices quickly. The price for this is extra space overhead and highly reduced locality of 
+reference as compared to choosing <TT>vecBC</TT>.
+
+<p>
+
+<H4>Space Complexity</H4>
+
+<p>
+The choice of <tt>VertexList</tt> affects the space complexity in the following ways:
+
+<ul>
+
+
+<li>
+<pre>
+vecBC
+</pre>
+The <tt>vecBC</tt> is the most compact storage and only has <i>O(1)</i> overhead
+for the internal pointers of the <tt>boost::container::vector</tt> object 
+itself, but it has no per-vertex space overhead (stores only vertex properties
+and the out-edge lists).
+<p></p>
+
+<li>
+<pre>
+listBC
+</pre>
+The <tt>listBC</tt> has a higher per-vertex space overhead than the
+<tt>vecBC</tt>, storing two extra pointers (front/back) per vertex.
+<p></p>
+
+<li>
+<pre>
+poolBC
+</pre>
+The <tt>poolBC</tt> container has a per-vertex space overhead of about the 
+<tt>sizeof(int)</tt> (depending on alignment) compared to <tt>vecBC</tt> 
+because it stores vertices in discriminated unions, through the use of 
+<a href="http://www.boost.org/doc/libs/release/libs/variant/‎">Boost.Variant</a>,
+to discriminate valid from invalid vertices ("holes").
+<p></p>
+
+<li>
+<pre>
+setBC, multisetBC, unordered_setBC, unordered_multisetBC
+</pre>
+The containers <tt>setBC</tt>, <tt>multisetBC</tt>, <tt>unordered_setBC</tt>, 
+and <tt>unordered_multisetBC</tt> are <b>not allowed</b> for <tt>VertexList</tt> because 
+there is no useful ordering or hashing possible here. If you want some indexing
+of the vertices, you must do so externally (e.g., an associative container of 
+vertex descriptor).
+
+</ul>
+
+<p>
+
+<H4>Time Complexity</H4>
+
+<p>
+The choice of <tt>VertexList</tt> affects the time complexity of the
+following operations.
+
+<ul>
+
+<li>
+<pre>
+add_vertex(g)
+</pre>
+For <tt>vecBC</tt>, this operation is amortized constant time, as it uses 
+<tt>push_back()</tt> on a vector container. 
+For <tt>poolBC</tt>, this operation is also amortized constant time overall, 
+as it could use <tt>push_back()</tt> on a vector container, but when there are 
+holes to be re-used, its complexity is constant time.
+For <tt>listBC</tt>, this operations is constant time in the sense that it
+uses <tt>push_back()</tt> on a list container, but it causes a dynamic allocation
+of a new node, and such heap invocations are amortized constant time.
+With either <tt>vecBC</tt> or <tt>poolBC</tt>, this operation will occasionally 
+cause reallocated and the copying (or, moving in C++11) of all the vertices.
+<p></p>
+
+<li>
+<pre>
+remove_vertex(u,g)
+</pre>
+This operation is constant time for both <tt>listBC</tt> and <tt>poolBC</tt>.
+For <tt>vecBC</tt>, things are a bit more complicated. Since it relies on 
+the <tt>erase()</tt> function on a vector container, it causes <i>O(V)</i> 
+copies of the vertices (to "re-pack" the vertices) (note: copying of out-edge lists
+is avoided). But then, because the vertex indices must be adjusted in all edges
+of the graph that might refer to vertices that were shifted, there is an additional
+time complexity of <i>O(E)</i> for that operation. And thus, <tt>vecBC</tt> incurs 
+<i>O(V) (copy) + O(E) (adjust desc.)</i> time complexity.
+
+<li>
+<pre>
+vertex_iterator::operator++()
+</pre>
+This operation is constant time in all cases.
+However, there is a significant constant factor time difference
+between the various <tt>VertexList</tt> types, which is important since 
+this operation is the work-horse of many graph algorithms. The speed of
+this operation in order of fastest to slowest is
+<tt>vecBC</tt>, <tt>poolBC</tt>, <tt>listBC</tt>, <tt>setBC</tt>,
+<tt>unordered_setBC</tt>.
+Note that if traversals are frequent and a significant part of the operations
+done with the graph, locality of reference can be a significant performance 
+factor and it is recommended to use compact / contiguous containers like <tt>vecBC</tt> or <tt>poolBC</tt>.
+<p></p>
+
+
+</ul>
+
+ 
+<P>
+
+<H3><A NAME="SECTION00831200000000000000">
+Choosing the <tt>OutEdgeList</tt> type</A>
+</H3>
+
+<p>
+The <tt>OutEdgeList</tt> parameter determines what kind of container will
+be used to store the out-edges for each vertex in the graph. The containers used for edge lists must either satisfy
+the requirements for <a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a> or for
+<a href="http://www.sgi.com/tech/stl/AssociativeContainer.html">AssociativeContainer</a>.
+
+<p>
+One of the first things to consider when choosing the
+<tt>OutEdgeList</tt> is whether you want <tt>adjacency_list_BC</tt> to
+enforce the absence of parallel edges in the graph (that is, enforce
+that the graph not become a multi-graph). If you want this enforced
+then use the <tt>setBC</tt> or <tt>unordered_setBC</tt> selectors.  If you
+want to represent a multi-graph, or know that you will not be
+inserting parallel edges into the graph, then choose one of the <a
+href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a>
+types: <tt>vecBC</tt>, <tt>listBC</tt>, or <tt>poolBC</tt>.
+
+<p>
+Additionally, if the order of out-edges is important, then note that using the 
+sequence containers <tt>vecBC</tt> and <tt>listBC</tt> guarantees that the 
+order of addition (push-back) of out-edges will be preserved. Using the 
+ordered containers <tt>multisetBC</tt> and <tt>setBC</tt> guarantees that out-edges
+are ordered according to their target vertex descriptor, if that descriptor is an 
+index (i.e., if <tt>VertexList</tt> is either <tt>vecBC</tt> or <tt>poolBC</tt>). 
+In all other cases, the ordering of the out-edges is undefined.
+
+<p>
+You will also want to take into account the differences in time and space
+complexity for the various graph operations. Below we use <i>V</i> for
+the total number of vertices in the graph and <i>E</i> for the total
+number of edges.  Operations not discussed here are constant time.
+
+<p>
+
+<H4>Space Complexity</H4>
+
+<p>
+The selection of the <tt>OutEdgeList</tt> affects the amount of space
+overhead per edge in the graph object. In the order of least space to
+most space, the selectors are <tt>vecBC</tt>, <tt>poolBC</tt>,
+<tt>listBC</tt>, and <tt>setBC</tt>. The same arguments as in 
+the section on <tt>VertexList</tt> apply here. The use of associative 
+containers like <tt>setBC</tt> or <tt>unordered_setBC</tt> (and their 
+"multi" counterparts) cause additional space overhead inherent to their
+implementations, which is not strictly defined, but it is safe to assume 
+it's more than any of the sequence containers (e.g., <tt>setBC</tt> would 
+probably incur three pointers per element).
+
+<p>
+
+<H4>Time Complexity</H4>
+
+<p>
+In the following description of the time complexity for various
+operations, we use <i>E/V</i> inside of the ``big-O'' notation to
+express the average number of out-edges per vertex. The worst-case number 
+of out-edges for a vertex is <i>V</i> (unless it is a multi-graph), or 
+simply <i>E</i> (if all edges come out of one vertex). 
+For typical sparse graphs <i>E/V</i> is much smaller than <i>V</i> 
+and can be considered a constant or negligible.
+
+<p>
+ 
+<p> <p>
+<ul>
+
+<li>
+<pre>
+add_edge(u,v,g)
+</pre>
+When the <tt>OutEdgeList</tt> is a 
+<a href="http://www.sgi.com/tech/stl/SortedAssociativeContainer.html">SortedAssociativeContainer</a>
+like <tt>std::set</tt>, the insertion of an edge involes a lookup and 
+results in a time complexity of <i>O(log(E/V))</i>. 
+When the <tt>OutEdgeList</tt> is a 
+<a href="http://www.sgi.com/tech/stl/HashedAssociativeContainer.html">HashedAssociativeContainer</a>
+like <tt>std::unordered_set</tt>, the insertion of an edge involes a 
+constant-time "hashed" lookup and results in a time complexity of <i>O(1)</i>. 
+When the <tt>OutEdgeList</tt> types that model 
+<a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a>, 
+the insertion is amortized constant time. 
+The main reason to use associative containers is to disallow parallel edges,
+and so, if that requirement is not necessary, then it is better to use the 
+sequence-based <tt>OutEdgeList</tt>.
+For <tt>vecBC</tt>, this operation is amortized constant time, as it uses 
+<tt>push_back()</tt> on a vector container. 
+For <tt>poolBC</tt>, this operation is also amortized constant time overall, 
+as it could use <tt>push_back()</tt> on a vector container, but when there are 
+holes to be re-used, its complexity is constant time.
+For <tt>listBC</tt>, this operations is constant time in the sense that it
+uses <tt>push_back()</tt> on a list container, but it causes a dynamic allocation
+of a new node, and such heap invocations are amortized constant time.
+With either <tt>vecBC</tt> or <tt>poolBC</tt>, this operation will occasionally 
+cause reallocated and the copying (or, moving in C++11) of all the out-edges.
+<p></p>
+
+<li>
+<pre>
+remove_edge(e,g)
+</pre>
+This operation is constant time for <tt>OutEdgeList</tt> being 
+either <tt>listBC</tt> or <tt>poolBC</tt>, or for the unordered 
+containers <tt>unordered_setBC</tt> and <tt>unordered_multisetBC</tt>.
+For <tt>vecBC</tt>, this operation is <i>O(E/V)</i> copies of the 
+edges (to "re-pack" the edges).
+For ordered containers <tt>setBC</tt> and <tt>multisetBC</tt>, 
+this operation is <i>O(log(E/V))</i>.
+Additionally, it is important to note that bidirectional and 
+undirected graphs always incur an additional time complexity of 
+<i>O(E/V)</i> for the removal of the in-edge reference to the removed edge, 
+however, in-edge lists are vectors of pointers, meaning that 
+this <i>O(E/V)</i> operation has a very low constant factor in practice.
+<p></p>
+
+<li>
+<pre>
+edge(u,v,g)
+</pre>
+The time complexity for this operation is <i>O(E/V)</i> when the <tt>OutEdgeList</tt> type is a 
+<a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a> (<tt>vecBC</tt>, <tt>listBC</tt>, or <tt>poolBC</tt>), 
+it is <i>O(log(E/V))</i> when the <tt>OutEdgeList</tt> type is a 
+<a href="http://www.sgi.com/tech/stl/SortedAssociativeContainer.html">SortedAssociativeContainer</a> (<tt>setBC</tt> or <tt>multisetBC</tt>),
+and it is <i>O(1)</i> when the <tt>OutEdgeList</tt> type is a 
+<a href="http://www.sgi.com/tech/stl/HashedAssociativeContainer.html">HashedAssociativeContainer</a> (<tt>unordered_setBC</tt> or <tt>unordered_multisetBC</tt>).
+<p></p>
+
+<li>
+<pre>
+remove_edge(u,v,g)
+</pre>
+The time complexity for this operation is the same as <tt>remove_edge(edge(u,v,g),g)</tt>.
+If there are parallel edges, the removal operation is done for each parallel edge.
+<p></p>
+
+<li>
+<pre>
+clear_vertex(u,g)
+</pre>
+For bidirectional or undirected graphs, this operation has a time complexity
+of <i>O((E/V)<sup>2</sup>)</i> for the removal of all in-edge references in adjacent 
+vertices, however, in-edge lists are compact and light-weight lists and thus, 
+this operation has a very low constant factor in practice.
+For directed graphs with sequence-based <tt>OutEdgeList</tt> types the time
+complexity is <i>O(E)</i>, while for associative container based
+<tt>OutEdgeList</tt> types the operation is faster, with time complexity
+<i>O(V log(E/V))</i> (for sorted containers) and <i>O(V)</i> (for 
+hashed/unsorted containers). This additional complexity in the case of 
+directed graphs is due to having to delete all edges incident to <tt>u</tt>
+without having in-edge references available, requiring a traversal of 
+all vertices and finding out-edges to <tt>u</tt>.
+<p></p>
+
+<li>
+<pre>
+remove_vertex(u,g)
+</pre>
+This operation will first clear the vertex, incurring the time complexity 
+specified for that operation, if needed (if not cleared already).
+The time complexity for this operation is mostly a consequence of the choice
+of the <tt>VertexList</tt> parameter (see section above). The choice of 
+the <tt>OutEdgeList</tt> parameter has virtually no impact at all in terms 
+of theoretical time complexity, but it can affect the practical speed of the 
+traversals required to adjust edge references, as per locality of reference issues.
+<p></p>
+
+<li>
+<pre>
+out_edge_iterator::operator++()
+</pre>
+This operation is constant time in all cases.
+However, there is a significant constant factor time difference
+between the various types, which is important since this operation is
+the work-horse of many graph algorithms. The speed of
+this operation in order of fastest to slowest is
+<tt>vecBC</tt>, <tt>poolBC</tt>, <tt>listBC</tt>, <tt>setBC</tt>,
+<tt>unordered_setBC</tt>.
+<p></p>
+
+<li>
+<pre>
+in_edge_iterator::operator++()
+</pre>
+This operation is constant time and exhibits the same speed
+for any <tt>OutEdgeList</tt> selection.
+<p></p>
+
+<li>
+<pre>
+vertex_iterator::operator++()
+</pre>
+This operation is constant time. The selection of <tt>OutEdgeList</tt> does not 
+affect the speed of this operation.
+<p></p>
+
+<li>
+<pre>
+edge_iterator::operator++()
+</pre>
+This operation is constant time and exhibits similar speeds 
+as the <tt>out_edge_iterator</tt> with respect to the <tt>OutEdgeList</tt>
+selection, but is also affected by <tt>VertexList</tt> as it relies on an iteration
+over vertices (i.e., edge iterators are actually iterators over all out-edges of all 
+vertices). Traversing through the whole edge set is <i>O(V + E)</i>.
+<p></p>
+
+<li>
+<pre>
+adjacency_iterator::operator++()
+</pre>
+This operation is constant time and exhibits a similar speed
+ordering as the <tt>out_edge_iterator</tt> with respect to
+the <tt>OutEdgeList</tt> selection.
+<p></p>
+
+</ul>
+
+<p>
+ 
+<p>
+
+<H2><a name="sec:directed-and-undirected">Directed and Undirected Adjacency Lists</H2>
+
+<p>
+The <tt>adjacency_list_BC</tt> class can be used to represent both
+directed and undirected graphs, depending on the argument passed to
+the <tt>Directed</tt> template argument. Selecting <tt>directedS</tt>
+or <tt>bidirectionalS</tt> choose a directed graph, whereas
+<tt>undirectedS</tt> selects the representation for an undirected
+graph.  See Section <a href="graph_concepts.html#sec:undirected-graphs">Undirected Graphs</a>
+for a description of the difference between directed and undirected
+graphs in BGL.  The <tt>bidirectionalS</tt> selector specifies that the
+graph will provide the <tt>in_edges()</tt> function as well as the
+<tt>out_edges()</tt> function. This imposes an additional space
+overhead per edge (i.e., a "back pointer"), which is why <tt>in_edges()</tt> 
+is optional.
+
+<p>
+
+<H2><A NAME="sec:adjacency-list-properties"></A>
+Internal Properties
+</H2>
+
+<P>
+Properties can be attached to the vertices or edges of an
+<tt>adjacency_list_BC</tt> graph via the property interface.  The template
+arguments <tt>VertexProperty</tt> and <tt>EdgeProperty</tt> of the
+<tt>adjacency_list_BC</tt> class are meant to be filled by these interior 
+properties.
+
+<p><b>NOTE</b>: The Boost Graph Library supports two interchangeable methods for 
+specifying interior properties: <a href="bundles.html">bundled properties</a> 
+and property lists. The former is easier to use and requires less effort, 
+whereas the latter is backward-compatible with Boost versions prior to 1.32.0. 
+If you absolutely require these compatibility features, read on to learn about property lists. 
+Otherwise, we strongly suggest that you read about the <a href="bundles.html">bundled
+properties</a> mechanism. The implementation of <tt>adjacency_list_BC</tt> is primarily
+geared towards the use of bundled properties, much more so than the older <tt>adjacency_list</tt>
+implementations, and so, this is an additional incentive to choose bundled properties.
+
+<p>
+For this point on, the use of property lists in either <tt>adjacency_list</tt> or <tt>adjacency_list_BC</tt>
+are identical, and so, please see the section on <A
+HREF="./using_adjacency_list.html#sec:adjacency-list-properties">Internal
+Properties</A> from the <tt>adjacency_list</tt> page.
+
+<p>
+
+<H2><A NAME="sec:custom-storage"></A>
+Customizing the Adjacency List Storage
+</H2>
+
+<p>
+The <TT>adjacency_list</TT> class template provides mechanism to 
+extend the choices for containers for <tt>VertexList</tt> and 
+<tt>OutEdgeList</tt>, however, the <TT>adjacency_list_BC</TT> class 
+template cannot safely provide such mechanisms. The library maintainers 
+can be contacted through the mailing list if there are any suggestions 
+of additional container options. But given the fact that any alternative
+container that one might wish to use would most likely involve 
+some special feature in terms of complexity of operations or in terms 
+of descriptor / iterator invalidation, it seems obvious that such 
+a new container would have to be fully integrated into the implementation
+of <TT>adjacency_list_BC</TT> to take advantage of those additional 
+benefits (as is already the case for each of the options available) 
+whenever possible.
+
+<p>
+
+
+<br>
+<HR>
+<TABLE>
+<TR valign=top>
+<TD nowrap>Copyright &copy; 2013</TD><TD>
+<A HREF="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</A>, McGill University (<A HREF="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</A>)
+</TD></TR>
+<TR valign=top>
+<TD nowrap>Copyright &copy; 2000-2001</TD><TD>
+<A href="/people/jeremy_siek.htm">Jeremy Siek</A>, Indiana University (<A HREF="mailto:jsiek@osl.iu.edu">jsiek@osl.iu.edu</A>)
+</TD></TR>
+</TABLE>
+
+</BODY>
+</HTML> 

@@ -112,6 +112,10 @@ class adjacency_list_BC
     
     typedef adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties> self;
     
+    typedef OutEdgeListS out_edge_list_selector;
+    typedef VertexListS vertex_list_selector;
+    typedef DirectedS directed_selector;
+    
     typedef VertexProperties vertex_property_type;
     typedef EdgeProperties edge_property_type;
     
@@ -177,7 +181,7 @@ class adjacency_list_BC
     
     
     /**
-     * Constructs an empty linked-tree.
+     * Constructs an empty adjacency-list.
      */
     adjacency_list_BC() : m_pack() { };
     
@@ -197,7 +201,14 @@ class adjacency_list_BC
 #endif
     
     /**
-     * Clears the tree of all vertices and edges.
+     * Swaps the adjacency-list with another.
+     */
+    void swap(self& rhs) { 
+      m_pack.swap(rhs.m_pack);
+    };
+    
+    /**
+     * Clears the adjacency-list of all vertices and edges.
      */
     void clear() { 
       m_pack.clear();
@@ -239,6 +250,8 @@ class adjacency_list_BC
 };
 
 
+
+
 // the safest adj-list tree-storage style is <boost::vecBC, boost::listBC, boost::bidirectionalS>
 
 /**
@@ -268,6 +281,11 @@ struct tree_traits< adjacency_list_BC< OutEdgeListS, VertexListS, DirectedS, Ver
 #define BGL_ADJACENCY_LIST_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
 #define BGL_ADJACENCY_LIST_BC adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
 
+
+template < BGL_ADJACENCY_LIST_BC_ARGS >
+void swap(BGL_ADJACENCY_LIST_BC & lhs, BGL_ADJACENCY_LIST_BC & rhs) { 
+  lhs.swap(rhs);
+};
 
 
 
