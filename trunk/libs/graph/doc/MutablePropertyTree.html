@@ -1,0 +1,263 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>MutablePropertyTree</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
+
+<br Clear>
+
+
+<h2><a name="sec:MutablePropertyTree"></a>MutablePropertyTree</h2>
+
+A MutablePropertyTree can be changed via the addition of children to a vertex or the 
+removal of branches of the tree. The main difference compared to the <a href="./MutableTree.html">MutableTree</a> concept
+is that the vertex or edge properties are set or retrieved as part of the mutation 
+operations on the tree.
+
+<h3>Refinement of</h3>
+
+<a href="./Tree.html">Tree</a>
+
+<h3>Notation</h3>
+
+<table>
+
+<tr>
+<td><tt>T</tt></td>
+<td>A type that is a model of MutablePropertyTree.</td>
+</tr>
+
+<tr>
+<td><tt>t</tt></td>
+<td>An object of type <tt>T</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>e</tt></td>
+<td>An object of type <tt>boost::graph_traits&lt;T&gt;::edge_descriptor</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>u</tt></td>
+<td>are objects of type <tt>boost::graph_traits&lt;T&gt;::vertex_descriptor</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>up</tt></td>
+<td>are objects of type <tt>T::vertex_property_type</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>ep</tt></td>
+<td>are objects of type <tt>T::edge_property_type</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>up_oiter</tt></td>
+<td>is an output-iterator object that can be filled with (assigned to the dereference) values of type <tt>T::vertex_property_type</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>ep_oiter</tt></td>
+<td>is an output-iterator object that can be filled with (assigned to the dereference) values of type <tt>T::edge_property_type</tt>.</td>
+</tr>
+
+</table>
+
+<h3>Valid Expressions</h3>
+
+<table border>
+
+
+<tr>
+<td>
+<a name="sec:create-root">
+<tt>create_root(up,&nbsp;t)</tt><br>
+<tt>create_root(std::move(up),&nbsp;t)</tt>
+</a>
+</td>
+<td>
+Creates a root vertex in the tree and initializes its property to <i>up</i>. 
+If there are already vertices in the tree, then those are all destroyed and 
+a new root vertex is created, i.e., as if there was a call 
+to <tt>remove_branch(&nbsp;get_root_vertex(t),&nbsp;t)</tt>.
+<br>
+<b>Return type</b>: <tt>vertex_descriptor</tt><br>
+<b>Postcondition</b>: The tree contains a single vertex, the root, denoted by the 
+vertex descriptor returned.
+</td>
+</tr>
+
+
+<tr>
+<td>
+<a name="sec:add-child-vertex">
+<tt>add_child_vertex(u,&nbsp;up,&nbsp;t)</tt><br>
+<tt>add_child_vertex(u,&nbsp;up,&nbsp;ep,&nbsp;t)</tt><br>
+<tt>add_child_vertex(u,&nbsp;std::move(up),&nbsp;t)</tt><br>
+<tt>add_child_vertex(u,&nbsp;std::move(up),&nbsp;std::move(ep),&nbsp;t)</tt>
+</a>
+</td>
+<td>
+Inserts a vertex-edge pair into the tree such that the added vertex is a 
+child to the vertex <i>u</i> and the added edge connects vertex <i>u</i>
+to the added vertex. The created vertex and edge are initialized with the 
+properties <i>up</i> and <i>ep</i>, respectively. Returns a vertex descriptor 
+and an edge descriptor pointing to the new vertex-edge pair.<br>
+<b>Return type</b>: <tt>std::pair&lt;vertex_descriptor, edge_descriptor&gt;</tt>
+</td>
+</tr>
+
+<tr> 
+<td><a name="sec:clear-children">
+<tt>clear_children(u,&nbsp;up_oiter,&nbsp;g)</tt>
+</a>
+</td>
+<td>
+Remove all children of vertex <i>u</i> from the tree, i.e., removes the 
+branch rooted at <i>u</i> but leaves <i>u</i> in the tree. This function 
+collects all the properties of the removed vertices into an output range 
+starting at <tt>up_oiter</tt>. Returns the end of the output range.<br>
+<b>Return type</b>: <tt>decltype(up_oiter)</tt><br>
+<b>Precondition</b>: <tt>u</tt> is a valid vertex descriptor of <tt>t</tt>.<br>
+<b>Postcondition</b>: <tt>u</tt> is still in the tree, but all its children no longer 
+appear in the tree, i.e., <tt>out_degree(u,&nbsp;t)&nbsp;==&nbsp;0</tt>.
+</td>
+</tr>
+
+<tr> 
+<td><a name="sec:clear-children">
+<tt>clear_children(u,&nbsp;up_oiter,&nbsp;ep_oiter,&nbsp;g)</tt>
+</a>
+</td>
+<td>
+Remove all children of vertex <i>u</i> from the tree, i.e., removes the 
+branch rooted at <i>u</i> but leaves <i>u</i> in the tree. This function 
+collects all the properties of the removed vertices and edges into output 
+ranges starting at <tt>up_oiter</tt> and <tt>ep_oiter</tt>, respectively. 
+Returns the end of the output ranges. The vertices and edges are outputted 
+in the exact same order, i.e., each edge-property being that of the in-edge 
+of the vertex whose property was put at the same position in the 
+vertex-property output-range.<br>
+<b>Return type</b>: <tt>std::pair&lt;decltype(up_oiter),&nbsp;decltype(ep_oiter)&gt;</tt><br>
+<b>Precondition</b>: <tt>u</tt> is a valid vertex descriptor of <tt>t</tt>.<br>
+<b>Postcondition</b>: <tt>u</tt> is still in the tree, but all its children no longer 
+appear in the tree, i.e., <tt>out_degree(u,&nbsp;t)&nbsp;==&nbsp;0</tt>.
+</td>
+</tr>
+
+<tr>
+<td><a name="sec:remove-branch">
+<tt>remove_branch(u,&nbsp;up_oiter,&nbsp;t)</tt>
+</a>
+</td>
+<td>
+Remove <i>u</i> from the tree as well as all its children (i.e., 
+removes the branch rooted at <i>u</i>). This function collects all the properties
+of the removed vertices into an output range starting at <tt>up_oiter</tt>.
+Returns the end of the output range.<br>
+<b>Return type</b>: <tt>decltype(up_oiter)</tt><br>
+<b>Precondition</b>: <tt>u</tt> is a valid vertex descriptor of <tt>t</tt>.<br>
+<b>Postcondition</b>: <tt>u</tt> and all its children no longer appear in the tree and it
+is no longer a valid vertex descriptor.
+</td>
+</tr>
+
+<tr>
+<td><a name="sec:remove-branch-2">
+<tt>remove_branch(u,&nbsp;up_oiter,&nbsp;ep_oiter,&nbsp;t)</tt>
+</a>
+</td>
+<td>
+Remove <i>u</i> from the tree as well as all its children (i.e., 
+removes the branch rooted at <i>u</i>). This function collects all the properties
+of the removed vertices and edges into output ranges starting at <tt>up_oiter</tt>
+and <tt>ep_oiter</tt>, respectively. Returns the end of the output ranges. The 
+vertices and edges are outputted in the exact same order, i.e., each edge-property 
+being that of the in-edge of the vertex whose property was put at the same position 
+in the vertex-property output-range.<br>
+<b>Return type</b>: <tt>std::pair&lt;decltype(up_oiter),&nbsp;decltype(ep_oiter)&gt;</tt><br>
+<b>Precondition</b>: <tt>u</tt> is a valid vertex descriptor of <tt>t</tt>.<br>
+<b>Postcondition</b>: <tt>u</tt> and all its children no longer appear in the tree and it
+is no longer a valid vertex descriptor.
+</td>
+</tr>
+
+</table>
+
+<h3>Complexity Guarantees</h3>
+
+<p>
+
+<!--<ul>
+<li>Edge insertion must be either amortized constant time or it
+ can be <i>O(log(E/V))</i> if the insertion also checks to
+  prevent the addition of parallel edges (which is a ``feature'' of
+  some graph types).
+</li>
+<li>Edge removal is guaranteed to be <i>O(E)</i>.</li>
+<li>Vertex insertion is guaranteed to be amortized constant time.</li>
+<li>Clearing a vertex is <i>O(E + V)</i>.</li>
+<li>Vertex removal is <i>O(E + V)</i>.</li>
+</ul>-->
+
+<h3>Models</h3>
+
+<ul>
+<li><tt>linked_tree</tt></li>
+<li><tt>bfl_d_ary_tree</tt></li>
+<li><tt>vebl_d_ary_tree</tt></li>
+</ul>
+
+
+<h3>Concept Checking Class</h3>
+
+<pre>
+  
+  template &lt;typename T&gt;
+  struct MutablePropertyTreeConcept {
+    typename graph_traits&lt;T&gt;::vertex_descriptor u;
+    typename graph_traits&lt;T&gt;::edge_descriptor e;
+    typename T::vertex_property_type up;
+    typename T::edge_property_type ep;
+    T t;
+    
+    BOOST_CONCEPT_ASSERT((TreeConcept&lt;T&gt;));
+    
+    BOOST_CONCEPT_USAGE(MutablePropertyTreeConcept) 
+    {
+      u = create_root(up, t);
+      tie(u,e) = add_child_vertex(u, up, t);
+      tie(u,e) = add_child_vertex(u, up, ep, t);
+      std::vector&lt;typename T::vertex_property_type&gt; up_vect;
+      remove_branch(u, back_inserter(up_vect), t);
+      
+  #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      u = create_root(std::move(up), t);
+      tie(u,e) = add_child_vertex(u, std::move(up), t);
+      tie(u,e) = add_child_vertex(u, std::move(up), std::move(ep), t);
+  #endif
+    };
+    
+  };
+  
+</pre>
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html> 

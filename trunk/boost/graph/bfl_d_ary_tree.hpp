@@ -65,21 +65,16 @@ class bfl_d_ary_tree
     typedef VertexProperties vertex_property_type;
     typedef EdgeProperties edge_property_type;
     
-    typedef VertexProperties vertex_bundled;
-    typedef EdgeProperties edge_bundled;
+    typedef vertex_property_type vertex_bundled;
+    typedef edge_property_type edge_bundled;
     typedef void graph_bundled;
     
-    struct value_type {
-      std::size_t out_degree;
-      vertex_property_type v;
-      edge_property_type e[Arity];
-      
-      value_type() : out_degree(std::numeric_limits<std::size_t>::max()), v() { };
-    };
+    typedef graph::detail::bfltree_value_type<vertex_property_type, edge_property_type> value_type;
     
     typedef std::vector< value_type > container_type;
     
     typedef std::size_t vertex_descriptor;
+    typedef graph::detail::bfltree_edge_desc edge_descriptor;
     
     typedef std::size_t vertices_size_type;
     typedef vertices_size_type edges_size_type;
@@ -93,18 +88,16 @@ class bfl_d_ary_tree
       return std::numeric_limits<std::size_t>::max();
     };
     
-    
-    typedef graph::detail::bfltree_edge_desc edge_descriptor;
-    
-    typedef graph::detail::bfltree_edge_validity<container_type, Arity> edge_validity;
-    typedef filter_iterator< edge_validity, graph::detail::bfltree_oeiter > out_edge_iterator;
-    typedef graph::detail::bfltree_ieiter in_edge_iterator;
-    typedef filter_iterator< edge_validity, graph::detail::bfltree_eiter<Arity> > edge_iterator;
+    typedef graph::detail::bfltree_edge_validity<container_type> edge_validity;
+    typedef filter_iterator< edge_validity, graph::detail::bfltree_eiter > edge_iterator;
+    typedef edge_iterator out_edge_iterator;
+    typedef graph::detail::bfltree_eiter in_edge_iterator;
     
     typedef graph::detail::bfltree_vertex_validity<container_type> vertex_validity;
     typedef filter_iterator< vertex_validity, graph::detail::bfltree_viter > vertex_iterator;
     typedef vertex_iterator adjacency_iterator;
     typedef vertex_iterator child_vertex_iterator;
+    typedef graph::detail::bfltree_viter inv_adjacency_iterator;
     
     typedef boost::directed_tag directed_category;
     typedef boost::disallow_parallel_edge_tag edge_parallel_category;
@@ -196,97 +189,217 @@ class bfl_d_ary_tree
      * \param v_i The vertex descriptor of the sought-after vertex-property.
      * \return The vertex-property, by reference, associated to the given vertex descriptor.
      */
-    vertex_property_type& operator[]( const vertex_descriptor& v_i) {
-      return m_vertices[v_i].v;
+    vertex_property_type& operator[](vertex_descriptor v) {
+      return m_vertices[v].vertex();
     };
     /**
      * Indexing operator. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
      * \param v_i The vertex descriptor of the sought-after vertex-property.
      * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
      */
-    const vertex_property_type& operator[]( const vertex_descriptor& v_i) const {
-      return m_vertices[v_i].v;
+    const vertex_property_type& operator[](vertex_descriptor v) const {
+      return m_vertices[v].vertex();
     };
     /**
      * Indexing operator. Returns a reference to the edge-property associated to the given edge descriptor.
      * \param e_i The edge descriptor of the sought-after edge-property.
      * \return The edge-property, by reference, associated to the given edge descriptor.
      */
-    edge_property_type& operator[]( const edge_descriptor& e_i) {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+    edge_property_type& operator[](edge_descriptor e) {
+      return m_vertices[e.target_vertex].edge();
     };
     /**
      * Indexing operator. Returns a const-reference to the edge-property associated to the given edge descriptor.
      * \param e_i The edge descriptor of the sought-after edge-property.
      * \return The edge-property, by const-reference, associated to the given edge descriptor.
      */
-    const edge_property_type& operator[]( const edge_descriptor& e_i) const {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+    const edge_property_type& operator[](edge_descriptor e) const {
+      return m_vertices[e.target_vertex].edge();
     };
+    
     
     /**
      * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
      * vertex and edge to the given property values.
      * \param v The parent vertex to which a child will be added.
-     * \param vp The property value for the newly created vertex.
-     * \param ep The property value for the newly created edge.
+     * \param vp The property value to be forwarded into the newly created vertex.
+     * \param ep The property value to be forwarded into the newly created edge.
      * \return A pair consisting of the newly created vertex and edge (descriptors).
      */
-    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
-							     const vertex_property_type& vp = vertex_property_type(), 
-							     const edge_property_type& ep = edge_property_type()) {
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+    std::pair< vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, const vertex_property_type& vp, const edge_property_type& ep) {
+#else
+    template <typename VP, typename EP>
+    std::pair< vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, VP&& vp, EP&& ep) {
+#endif
       if( (v >= m_vertices.size()) || 
           !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) ) 
-        throw std::range_error("Cannot add child-node to an invalid node!");
-      std::size_t new_edge = 0;
+        return std::pair<vertex_descriptor, edge_descriptor>(null_vertex(), edge_descriptor(null_vertex()));
       std::size_t result = Arity * v + 1;
-      for(; new_edge < Arity; ++new_edge, ++result)
+      for(; result < Arity * (v + 1) + 1; ++result)
         if( (result >= m_vertices.size()) || !graph::detail::bfltree_is_vertex_valid(m_vertices[result]) )
           break;
-      if( new_edge == Arity ) 
-        throw std::range_error("Cannot add child-node to a full node!");
+      if( result == Arity * (v + 1) + 1 ) 
+        return std::pair<vertex_descriptor, edge_descriptor>(null_vertex(), edge_descriptor(null_vertex()));
       if( result >= m_vertices.size() )
         m_vertices.resize(result + 1);
       m_vertices[result].out_degree = 0;
-      m_vertices[result].v = vp;
-      m_vertices[v].e[new_edge] = ep;
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+      m_vertices[result].vertex() = vp;
+      m_vertices[result].edge()   = ep;
+#else
+      m_vertices[result].vertex() = std::forward<VP>(vp);
+      m_vertices[result].edge()   = std::forward<EP>(ep);
+#endif
       ++(m_vertices[v].out_degree);
       ++m_vertex_count;
-      return std::make_pair(result, edge_descriptor(v, new_edge));
+      return std::make_pair(result, edge_descriptor(result));
     };
     
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    /**
-     * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
-     * vertex and edge to the given property values, by move-semantics (C++11).
-     * \param v The parent vertex to which a child will be added.
-     * \param vp The property value to be moved into the newly created vertex.
-     * \param ep The property value to be moved into the newly created edge.
-     * \return A pair consisting of the newly created vertex and edge (descriptors).
-     */
-    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
-							     vertex_property_type&& vp, 
-							     edge_property_type&& ep = edge_property_type()) {
-      if( (v >= m_vertices.size()) || 
-          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) ) 
-        throw std::range_error("Cannot add child-node to an invalid node!");
-      std::size_t new_edge = 0;
-      std::size_t result = Arity * v + 1;
-      for(; new_edge < Arity; ++new_edge, ++result)
-        if( (result >= m_vertices.size()) || !graph::detail::bfltree_is_vertex_valid(m_vertices[result]) )
+    
+    
+    template <typename VertexOIter, typename EdgeOIter>
+    void clear_children_impl(vertex_descriptor v, VertexOIter& vit_out, EdgeOIter& eit_out) {
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      for(std::size_t i = 0; i < Arity; ++i) {
+        vertex_descriptor next_v = Arity * v + 1 + i;
+        if( next_v >= m_vertices.size() )
           break;
-      if( new_edge == Arity ) 
-        throw std::range_error("Cannot add child-node to a full node!");
-      if( result >= m_vertices.size() )
-        m_vertices.resize(result + 1);
-      m_vertices[result].out_degree = 0;
-      m_vertices[result].v = std::move(vp);
-      m_vertices[v].e[new_edge] = std::move(ep);
-      ++(m_vertices[v].out_degree);
-      ++m_vertex_count;
-      return std::make_pair(result, edge_descriptor(v, new_edge));
-    };
+        if( !graph::detail::bfltree_is_vertex_valid(m_vertices[next_v]) )
+          continue;
+        --m_vertex_count;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        *(vit_out++) = std::move(m_vertices[next_v].vertex());
+        *(eit_out++) = std::move(m_vertices[next_v].edge());
+#else
+        *(vit_out++) = m_vertices[next_v].vertex();
+        *(eit_out++) = m_vertices[next_v].edge();
 #endif
+        clear_children_impl(next_v, vit_out, eit_out);
+      };
+      m_vertices[v].out_degree = std::numeric_limits<std::size_t>::max();
+      // remove empty vertices from the end of the container:
+      if( v == m_vertices.size() - 1 ) {
+        while( (v > 0) && !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+          --v;
+        ++v;
+        m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
+      };
+    };
+    
+    
+    
+    /**
+     * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+     * recording the vertex and edge properties of all the removed vertices and edges into output-ranges.
+     * \param v The root of the sub-tree to be removed.
+     * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+     * \return The output-iterator after the collection of all the removed vertices.
+     */
+    template <typename VertexOIter, typename EdgeOIter>
+    std::pair<VertexOIter, EdgeOIter> clear_children(vertex_descriptor v, VertexOIter vit_out, EdgeOIter eit_out) {
+      if( (v >= m_vertices.size()) || 
+          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+        return std::pair<VertexOIter, EdgeOIter>(vit_out, eit_out);  // vertex is already deleted.
+      clear_children_impl(v, vit_out, eit_out);
+      return std::pair<VertexOIter, EdgeOIter>(vit_out, eit_out);
+    };
+    
+    /**
+     * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+     * recording the vertex-properties of all the removed vertices into an output-iterator.
+     * \param v The root of the sub-tree to be removed.
+     * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \return The output-iterator after the collection of all the removed vertices.
+     */
+    template <typename VertexOIter>
+    VertexOIter clear_children(vertex_descriptor v, VertexOIter vit_out) {
+      if( (v >= m_vertices.size()) || 
+          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+        return vit_out;  // vertex is already deleted.
+      graph::detail::ignore_output_iter eit_out;
+      clear_children_impl(v, vit_out, eit_out);
+      return vit_out;
+    };
+    
+    /**
+     * Removes a branch (sub-tree) starting from but excluding the given vertex.
+     * \param v The root of the sub-tree to be removed.
+     */
+    void clear_children(vertex_descriptor v) {
+      if( (v >= m_vertices.size()) || 
+          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+        return;  // vertex is already deleted.
+      graph::detail::ignore_output_iter vit_out, eit_out;
+      clear_children_impl(v, vit_out, eit_out);
+    };
+    
+    
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex, while 
+     * recording the vertex and edge properties of all the removed vertices and edges into output-ranges.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+     * \return The output-iterator after the collection of all the removed vertices.
+     * \note The first vertex-property to figure in the output range is that of the vertex v.
+     */
+    template <typename VertexOIter, typename EdgeOIter>
+    std::pair<VertexOIter, EdgeOIter> remove_branch(vertex_descriptor v, VertexOIter vit_out, EdgeOIter eit_out) {
+      if( (v >= m_vertices.size()) || 
+          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+        return std::pair<VertexOIter, EdgeOIter>(vit_out, eit_out);  // vertex is already deleted.
+      if( v == 0 ) {
+        *(eit_out++) = edge_property_type();
+      } else {
+        // in-edge:  u = (v - 1) / Arity;  e_id = (v - 1) % Arity;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        *(eit_out++) = std::move(m_vertices[v].edge());
+#else
+        *(eit_out++) = m_vertices[v].edge();
+#endif
+        // if the node is not the root one, then update the out-degree of the parent node:
+        m_vertices[(v - 1) / Arity].out_degree -= 1;
+      };
+      --m_vertex_count;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      *(vit_out++) = std::move(m_vertices[v].vertex());
+#else
+      *(vit_out++) = m_vertices[v].vertex();
+#endif
+      clear_children_impl(v, vit_out, eit_out);
+      return std::pair<VertexOIter, EdgeOIter>(vit_out, eit_out);
+    };
+    
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex, while 
+     * recording the vertex-properties of all the removed vertices into an output-iterator.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \return The output-iterator after the collection of all the removed vertices.
+     * \note The first vertex-property to figure in the output range is that of the vertex v.
+     */
+    template <typename VertexOIter>
+    VertexOIter remove_branch(vertex_descriptor v, VertexOIter vit_out) {
+      if( (v >= m_vertices.size()) || 
+          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
+        return vit_out;  // vertex is already deleted.
+      if( v != 0 ) {
+        // if the node is not the root one, then update the out-degree of the parent node:
+        m_vertices[(v - 1) / Arity].out_degree -= 1;
+      };
+      --m_vertex_count;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      *(vit_out++) = std::move(m_vertices[v].vertex());
+#else
+      *(vit_out++) = m_vertices[v].vertex();
+#endif
+      graph::detail::ignore_output_iter eit_out;
+      clear_children_impl(v, vit_out, eit_out);
+      return vit_out;
+    };
     
     /**
      * Removes a branch (sub-tree) starting from and including the given vertex.
@@ -296,59 +409,14 @@ class bfl_d_ary_tree
       if( (v >= m_vertices.size()) || 
           !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
         return;  // vertex is already deleted.
-      --m_vertex_count;
-      // this traversal order is intentional (traverse pre-order depth-first, and 
-      // delay removal of empty tail elements as much as possible, such that it is only required once).
-      for(std::size_t i = 0; i < Arity; ++i)
-        remove_branch(Arity * v + 1 + i);
-      m_vertices[v].out_degree = std::numeric_limits<std::size_t>::max();
-      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
+      if( v != 0 ) {
+        // if the node is not the root one, then update the out-degree of the parent node:
         m_vertices[(v - 1) / Arity].out_degree -= 1;
-      // remove empty vertices from the end of the container:
-      if( v == m_vertices.size() - 1 ) {
-        while( (v > 0) && !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
-          --v;
-        ++v;
-        m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
       };
-    };
-    
-    /**
-     * Removes a branch (sub-tree) starting from and including the given vertex, while 
-     * recording the vertex-properties of all the removed vertices into an output-iterator.
-     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
-     * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
-     * \return The output-iterator after the collection of all the removed vertices.
-     * \note The first vertex-property to figure in the output range is that of the vertex v.
-     */
-    template <typename OutputIter>
-    OutputIter remove_branch(vertex_descriptor v, OutputIter it_out) {
-      if( (v >= m_vertices.size()) || 
-          !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
-        return it_out;  // vertex is already deleted.
       --m_vertex_count;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      *(it_out++) = std::move(m_vertices[v].v);
-#else
-      *(it_out++) = m_vertices[v].v;
-#endif
-      // this traversal order is intentional (traverse pre-order depth-first, and 
-      // delay removal of empty tail elements as much as possible, such that it is only required once).
-      for(std::size_t i = 0; i < Arity; ++i)
-        it_out = remove_branch(Arity * v + 1 + i, it_out);
-      m_vertices[v].out_degree = std::numeric_limits<std::size_t>::max();
-      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
-        m_vertices[(v - 1) / Arity].out_degree -= 1;
-      // remove empty vertices from the end of the container:
-      if( v == m_vertices.size() - 1 ) {
-        while( (v > 0) && !graph::detail::bfltree_is_vertex_valid(m_vertices[v]) )
-          --v;
-        ++v;
-        m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
-      };
-      return it_out;
+      graph::detail::ignore_output_iter vit_out, eit_out;
+      clear_children_impl(v, vit_out, eit_out);
     };
-    
     
 };
 
@@ -397,6 +465,11 @@ struct tree_storage_traits< bfl_d_ary_tree_storage<Arity> > {
 
 
 
+/**
+ * Standard swap function. Swaps the contents of two objects.
+ * \param lhs The left-hand-side of the swap.
+ * \param rhs The right-hand-side of the swap.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 void swap(BGL_BFL_D_ARY_TREE& lhs, BGL_BFL_D_ARY_TREE& rhs) { lhs.swap(rhs); };
 
@@ -405,36 +478,60 @@ void swap(BGL_BFL_D_ARY_TREE& lhs, BGL_BFL_D_ARY_TREE& rhs) { lhs.swap(rhs); };
  *                             IncidenceGraphConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the source vertex of a given edge descriptor in the tree.
+ * \param e The edge descriptor.
+ * \param g The graph.
+ * \return The source vertex of the given edge descriptor.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
-  source( const typename BGL_BFL_D_ARY_TREE::edge_descriptor& e, const BGL_BFL_D_ARY_TREE&) {
-  return e.source_vertex;
+  source( typename BGL_BFL_D_ARY_TREE::edge_descriptor e, const BGL_BFL_D_ARY_TREE&) {
+  return (e.target_vertex - 1) / Arity;
 };
 
+/**
+ * Returns the target vertex of a given edge descriptor in the tree.
+ * \param e The edge descriptor.
+ * \param g The graph.
+ * \return The target vertex of the given edge descriptor.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
-  target( const typename BGL_BFL_D_ARY_TREE::edge_descriptor& e, const BGL_BFL_D_ARY_TREE&) {
-  return Arity * e.source_vertex + 1 + e.edge_index;
+  target( typename BGL_BFL_D_ARY_TREE::edge_descriptor e, const BGL_BFL_D_ARY_TREE&) {
+  return e.target_vertex;
 };
 
+/**
+ * Returns the edge iterator range for the out-edges of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The edge iterator range for the out-edges of a given vertex descriptor.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair<
  typename BGL_BFL_D_ARY_TREE::out_edge_iterator,
  typename BGL_BFL_D_ARY_TREE::out_edge_iterator >
-  out_edges( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  out_edges( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   typedef typename BGL_BFL_D_ARY_TREE::out_edge_iterator OutIter;
   typedef typename BGL_BFL_D_ARY_TREE::container_type RawContainer;
-  
-  graph::detail::bfltree_oeiter v_beg(graph::detail::bfltree_edge_desc(v, 0));
-  graph::detail::bfltree_oeiter v_end(graph::detail::bfltree_edge_desc(v, Arity));
+  // Arity * v + 1 + edge_index;
+  graph::detail::bfltree_eiter v_beg(graph::detail::bfltree_edge_desc(Arity * v + 1));
+  graph::detail::bfltree_eiter v_end(graph::detail::bfltree_edge_desc(Arity * (v + 1) + 1));
   return std::pair< OutIter, OutIter >(
-    OutIter( graph::detail::bfltree_edge_validity<RawContainer,Arity>(&g.m_vertices), v_beg, v_end ), 
-    OutIter( graph::detail::bfltree_edge_validity<RawContainer,Arity>(&g.m_vertices), v_end, v_end ));
+    OutIter( graph::detail::bfltree_edge_validity<RawContainer>(&g.m_vertices), v_beg, v_end ), 
+    OutIter( graph::detail::bfltree_edge_validity<RawContainer>(&g.m_vertices), v_end, v_end ));
 };
 
+/**
+ * Returns the out-degree of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The out-degree of the given vertex descriptor.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::size_t
-  out_degree( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  out_degree( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   return g.m_vertices[v].out_degree;
 };
 
@@ -442,36 +539,48 @@ std::size_t
  *                             BidirectionalGraphConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the edge iterator range for the in-edges of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The edge iterator range for the in-edges of a given vertex descriptor.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair<
  typename BGL_BFL_D_ARY_TREE::in_edge_iterator,
  typename BGL_BFL_D_ARY_TREE::in_edge_iterator >
-  in_edges( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  in_edges( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   typedef typename BGL_BFL_D_ARY_TREE::in_edge_iterator InIter;
-  
   if(v == 0)
-    return std::make_pair(InIter(graph::detail::bfltree_edge_desc(0,0)),
-                          InIter(graph::detail::bfltree_edge_desc(0,0)));
-  else {
-    std::size_t u = (v - 1) / Arity;
-    std::size_t e_id = (v - 1) % Arity;
-    return std::make_pair(InIter(graph::detail::bfltree_edge_desc(u, e_id)),
-                          InIter(graph::detail::bfltree_edge_desc(u, e_id+1)));
-  };
+    return std::make_pair(InIter(graph::detail::bfltree_edge_desc(0)), InIter(graph::detail::bfltree_edge_desc(0)));
+  else
+    return std::make_pair(InIter(graph::detail::bfltree_edge_desc(v)), InIter(graph::detail::bfltree_edge_desc(v+1)));
 };
 
+/**
+ * Returns the in-degree of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The in-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::size_t
-  in_degree( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  in_degree( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   if(v == 0)
     return 0;
   else
     return 1;
 };
 
+/**
+ * Returns the in-degree plus out-degree of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The in-degree plus out-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::size_t
-  degree( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  degree( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   return in_degree(v, g) + out_degree(v, g);
 };
 
@@ -481,6 +590,11 @@ std::size_t
  *                             VertexListGraphConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the vertex iterator range for all the vertices of the tree.
+ * \param g The graph.
+ * \return The vertex iterator range for all the vertices of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair<
  typename BGL_BFL_D_ARY_TREE::vertex_iterator,
@@ -495,6 +609,11 @@ std::pair<
     VIter( graph::detail::bfltree_vertex_validity<RawContainer>(&g.m_vertices), v_end, v_end ));
 };
 
+/**
+ * Returns the size of the tree (the number of vertices it contains).
+ * \param g The graph.
+ * \return The size of the tree (the number of vertices it contains).
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertices_size_type
   num_vertices( const BGL_BFL_D_ARY_TREE& g) {
@@ -506,6 +625,11 @@ typename BGL_BFL_D_ARY_TREE::vertices_size_type
  *                             EdgeListGraphConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the edge iterator range for all the edges of the tree.
+ * \param g The graph.
+ * \return The edge iterator range for all the edges of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair<
  typename BGL_BFL_D_ARY_TREE::edge_iterator,
@@ -514,13 +638,18 @@ std::pair<
   typedef typename BGL_BFL_D_ARY_TREE::edge_iterator EIter;
   typedef typename BGL_BFL_D_ARY_TREE::container_type RawContainer;
   
-  graph::detail::bfltree_eiter<Arity> v_beg(graph::detail::bfltree_edge_desc(0, 0));
-  graph::detail::bfltree_eiter<Arity> v_end(graph::detail::bfltree_edge_desc(g.m_vertices.size(), Arity));
+  graph::detail::bfltree_eiter v_beg(graph::detail::bfltree_edge_desc(1));
+  graph::detail::bfltree_eiter v_end(graph::detail::bfltree_edge_desc(g.m_vertices.size()));
   return std::pair< EIter, EIter >(
-    EIter( graph::detail::bfltree_edge_validity<RawContainer,Arity>(&g.m_vertices), v_beg, v_end ), 
-    EIter( graph::detail::bfltree_edge_validity<RawContainer,Arity>(&g.m_vertices), v_end, v_end ));
+    EIter( graph::detail::bfltree_edge_validity<RawContainer>(&g.m_vertices), v_beg, v_end ), 
+    EIter( graph::detail::bfltree_edge_validity<RawContainer>(&g.m_vertices), v_end, v_end ));
 };
 
+/**
+ * Returns the number of edges in the tree.
+ * \param g The graph.
+ * \return The number of edges in the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertices_size_type
   num_edges( const BGL_BFL_D_ARY_TREE& g) {
@@ -532,15 +661,23 @@ typename BGL_BFL_D_ARY_TREE::vertices_size_type
  *                             AdjacencyMatrixConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the edge descriptor for the edge between two given vertex descriptors.
+ * \param u The vertex descriptor of the source vertex.
+ * \param v The vertex descriptor of the target vertex.
+ * \param g The graph.
+ * \return The edge descriptor for the given vertex descriptor pair.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
-std::pair<
-  typename BGL_BFL_D_ARY_TREE::edge_descriptor,
-  bool >
-  edge( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor&,
-        const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
+std::pair< typename BGL_BFL_D_ARY_TREE::edge_descriptor, bool >
+  edge( typename BGL_BFL_D_ARY_TREE::vertex_descriptor u,
+        typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
         const BGL_BFL_D_ARY_TREE&) {
   typedef typename BGL_BFL_D_ARY_TREE::edge_descriptor Edge;
-  return std::make_pair(Edge((v - 1) / Arity, (v - 1) % Arity),true);
+  if( u == (v - 1) / Arity )
+    return std::make_pair(Edge(v), true);
+  else
+    return std::make_pair(Edge(0), false);
 };
 
 
@@ -549,17 +686,28 @@ std::pair<
  * ********************************************************************************************/
 
 
+/**
+ * Returns the vertex-descriptor of the root of the tree.
+ * \param g The graph.
+ * \return The vertex-descriptor of the root of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
   get_root_vertex( const BGL_BFL_D_ARY_TREE& g) {
   return 0;
 };
 
+/**
+ * Returns the vertex iterator range for all the child-vertices of a given vertex of the tree.
+ * \param v The vertex descriptor whose children are sought.
+ * \param g The graph.
+ * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_iterator,
 typename BGL_BFL_D_ARY_TREE::vertex_iterator >
-  child_vertices( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  child_vertices( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   typedef typename BGL_BFL_D_ARY_TREE::vertex_iterator VIter;
   typedef typename BGL_BFL_D_ARY_TREE::container_type RawContainer;
   graph::detail::bfltree_viter v_beg(Arity * v + 1);
@@ -575,12 +723,63 @@ typename BGL_BFL_D_ARY_TREE::vertex_iterator >
  *                             AdjacencyGraphConcept
  * ********************************************************************************************/
 
+/**
+ * Returns the vertex iterator range for all the child-vertices of a given vertex of the tree.
+ * \param v The vertex descriptor whose children are sought.
+ * \param g The graph.
+ * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair<
  typename BGL_BFL_D_ARY_TREE::adjacency_iterator,
  typename BGL_BFL_D_ARY_TREE::adjacency_iterator >
-  adjacent_vertices( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, const BGL_BFL_D_ARY_TREE& g) {
+  adjacent_vertices( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
   return child_vertices(v, g);
+};
+
+
+
+/***********************************************************************************************
+ *                             InvAdjacencyGraphConcept
+ * ********************************************************************************************/
+
+/**
+ * Returns the vertex iterator range for the parent-vertex of a given vertex of the tree.
+ * \param v The vertex descriptor whose parent is sought.
+ * \param g The graph.
+ * \return The vertex iterator range for the parent-vertex of a given vertex of the tree.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS >
+std::pair<
+ typename BGL_BFL_D_ARY_TREE::inv_adjacency_iterator,
+ typename BGL_BFL_D_ARY_TREE::inv_adjacency_iterator >
+  inv_adjacent_vertices( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE& g) {
+  typedef typename BGL_BFL_D_ARY_TREE::inv_adjacency_iterator InvAdjIter;
+  if( v == 0 )
+    return std::pair<InvAdjIter, InvAdjIter>(graph::detail::bfltree_viter(0), graph::detail::bfltree_viter(0));
+  else
+    return std::pair<InvAdjIter, InvAdjIter>(graph::detail::bfltree_viter((v - 1) / Arity), graph::detail::bfltree_viter((v - 1) / Arity + 1));
+};
+
+
+
+/***********************************************************************************************
+ *                             BidirectionalTreeConcept
+ * ********************************************************************************************/
+
+/**
+ * Returns the parent vertex of a given vertex descriptor in the tree.
+ * \param v The vertex descriptor.
+ * \param g The graph.
+ * \return The parent vertex of the given vertex descriptor (will be null_vertex() if it is the root (no parent)).
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS >
+typename BGL_BFL_D_ARY_TREE::vertex_descriptor
+  parent_vertex(typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, const BGL_BFL_D_ARY_TREE&) {
+  if( v == 0 )
+    return BGL_BFL_D_ARY_TREE::null_vertex();
+  else
+    return (v - 1) / Arity;
 };
 
 
@@ -590,11 +789,31 @@ std::pair<
  * ********************************************************************************************/
 
 
+/**
+ * Removes a branch (sub-tree) starting from and including the given vertex.
+ * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+ * \param g The graph.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
-void remove_branch( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, BGL_BFL_D_ARY_TREE& g) {
+void remove_branch( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, BGL_BFL_D_ARY_TREE& g) {
   return g.remove_branch(v);
 };
 
+/**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex.
+ * \param v The root of the sub-tree to be removed.
+ * \param g The graph.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS >
+void clear_children( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, BGL_BFL_D_ARY_TREE& g) {
+  return g.clear_children(v);
+};
+
+/**
+ * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
+ * \param g The graph.
+ * \return The vertex-descriptor of the root of the tree.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
   create_root( BGL_BFL_D_ARY_TREE& g) {
@@ -605,12 +824,21 @@ typename BGL_BFL_D_ARY_TREE::vertex_descriptor
   return 0;
 };
 
+/**
+ * Adds a child vertex to the given parent vertex, and default-initializes the properties of 
+ * the newly created vertex and edge.
+ * \param v The parent vertex to which a child will be added.
+ * \param g The graph.
+ * \return A pair consisting of the newly created vertex and edge (descriptors).
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor,
 typename BGL_BFL_D_ARY_TREE::edge_descriptor >
-  add_child_vertex( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v, BGL_BFL_D_ARY_TREE& g) {
-  return g.add_child(v);
+  add_child_vertex( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v, BGL_BFL_D_ARY_TREE& g) {
+  typedef typename BGL_BFL_D_ARY_TREE::vertex_property_type VProp;
+  typedef typename BGL_BFL_D_ARY_TREE::edge_property_type EProp;
+  return g.add_child(v, VProp(), EProp());
 };
 
 
@@ -619,83 +847,187 @@ typename BGL_BFL_D_ARY_TREE::edge_descriptor >
  *                             MutablePropertyTreeConcept
  * ********************************************************************************************/
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+/**
+ * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
+ * \param vp The vertex-property to assign to the newly created root vertex.
+ * \param g The graph.
+ * \return The vertex-descriptor of the root of the tree.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
-  create_root( const typename BGL_BFL_D_ARY_TREE::vertex_property_type& vp, BGL_BFL_D_ARY_TREE& g) {
+  create_root( const VProp& vp, BGL_BFL_D_ARY_TREE& g) {
   if(graph::detail::bfltree_is_vertex_valid(g.m_vertices[0]))
     remove_branch(0, g);
   g.m_vertices[0].out_degree = 0;
-  g.m_vertices[0].v = vp;
+  g.m_vertices[0].vertex() = vp;
   ++g.m_vertex_count;
   return 0;
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+#else
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+/**
+ * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
+ * \param vp The vertex-property to assign to the newly created root vertex.
+ * \param g The graph.
+ * \return The vertex-descriptor of the root of the tree.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp >
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor
-  create_root( typename BGL_BFL_D_ARY_TREE::vertex_property_type&& vp, BGL_BFL_D_ARY_TREE& g) {
+  create_root( VProp&& vp, BGL_BFL_D_ARY_TREE& g) {
   if(graph::detail::bfltree_is_vertex_valid(g.m_vertices[0]))
     remove_branch(0, g);
   g.m_vertices[0].out_degree = 0;
-  g.m_vertices[0].v = std::move(vp);
+  g.m_vertices[0].vertex() = std::forward<VProp>(vp);
   ++g.m_vertex_count;
   return 0;
 };
 
 #endif
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
+
+/**
+ * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+ * vertex to the given property value.
+ * \param v The parent vertex to which a child will be added.
+ * \param vp The property value to be moved into the newly created vertex.
+ * \param g The graph.
+ * \return A pair consisting of the newly created vertex and edge (descriptors).
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor,
 typename BGL_BFL_D_ARY_TREE::edge_descriptor >
-  add_child_vertex( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
-                    const typename BGL_BFL_D_ARY_TREE::vertex_property_type& vp,
-                    BGL_BFL_D_ARY_TREE& g) {
-  return g.add_child(v,vp);
+  add_child_vertex( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                    const VProp& vp, BGL_BFL_D_ARY_TREE& g) {
+  typedef typename BGL_BFL_D_ARY_TREE::edge_property_type EProp;
+  return g.add_child(v, vp, EProp());
 };
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+/**
+ * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+ * vertex and edge to the given property values.
+ * \param v The parent vertex to which a child will be added.
+ * \param vp The property value to be moved into the newly created vertex.
+ * \param ep The property value to be moved into the newly created edge.
+ * \param g The graph.
+ * \return A pair consisting of the newly created vertex and edge (descriptors).
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp, typename EProp >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor,
 typename BGL_BFL_D_ARY_TREE::edge_descriptor >
-  add_child_vertex( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
-                    const typename BGL_BFL_D_ARY_TREE::vertex_property_type& vp,
-                    const typename BGL_BFL_D_ARY_TREE::edge_property_type& ep,
-                    BGL_BFL_D_ARY_TREE& g) {
-  return g.add_child(v,vp,ep);
+  add_child_vertex( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                    const VProp& vp, const EProp& ep, BGL_BFL_D_ARY_TREE& g) {
+  return g.add_child(v, vp, ep);
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+#else
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+/**
+ * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+ * vertex to the given property value.
+ * \param v The parent vertex to which a child will be added.
+ * \param vp The property value to be moved into the newly created vertex.
+ * \param g The graph.
+ * \return A pair consisting of the newly created vertex and edge (descriptors).
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor,
 typename BGL_BFL_D_ARY_TREE::edge_descriptor >
-  add_child_vertex( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
-                    typename BGL_BFL_D_ARY_TREE::vertex_property_type&& vp,
+  add_child_vertex( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                    VProp&& vp,
                     BGL_BFL_D_ARY_TREE& g) {
-  return g.add_child(v,std::move(vp));
+  typedef typename BGL_BFL_D_ARY_TREE::edge_property_type EProp;
+  return g.add_child(v, std::forward<VProp>(vp), EProp());
 };
 
-template < BGL_BFL_D_ARY_TREE_ARGS >
+/**
+ * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+ * vertex and edge to the given property values.
+ * \param v The parent vertex to which a child will be added.
+ * \param vp The property value to be moved into the newly created vertex.
+ * \param ep The property value to be moved into the newly created edge.
+ * \param g The graph.
+ * \return A pair consisting of the newly created vertex and edge (descriptors).
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VProp, typename EProp >
 std::pair< 
 typename BGL_BFL_D_ARY_TREE::vertex_descriptor,
 typename BGL_BFL_D_ARY_TREE::edge_descriptor >
-  add_child_vertex( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
-                    typename BGL_BFL_D_ARY_TREE::vertex_property_type&& vp,
-                    typename BGL_BFL_D_ARY_TREE::edge_property_type&& ep,
+  add_child_vertex( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                    VProp&& vp, EProp&& ep,
                     BGL_BFL_D_ARY_TREE& g) {
-  return g.add_child(v,std::move(vp),std::move(ep));
+  return g.add_child(v, std::forward<VProp>(vp), std::forward<EProp>(ep));
 };
 
 #endif
 
+
+/**
+ * Removes a branch (sub-tree) starting from and including the given vertex, while 
+ * recording the vertex-properties of all the removed vertices into an output-iterator.
+ * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+ * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ * \note The first vertex-property to figure in the output range is that of the vertex v.
+ */
 template < BGL_BFL_D_ARY_TREE_ARGS, typename OutputIter >
-OutputIter remove_branch( const typename BGL_BFL_D_ARY_TREE::vertex_descriptor& v,
+OutputIter remove_branch( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
                           OutputIter it_out, BGL_BFL_D_ARY_TREE& g) {
-  return g.remove_branch(v,it_out);
+  return g.remove_branch(v, it_out);
+};
+
+/**
+ * Removes a branch (sub-tree) starting from and including the given vertex, while 
+ * recording the vertex and edge properties of all the removed vertices and edges into output-ranges.
+ * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+ * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ * \note The first vertex-property to figure in the output range is that of the vertex v.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VertexOIter, typename EdgeOIter >
+std::pair<VertexOIter, EdgeOIter> remove_branch( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                                                 VertexOIter vit_out, EdgeOIter eit_out, BGL_BFL_D_ARY_TREE& g) {
+  return g.remove_branch(v, vit_out, eit_out);
+};
+
+
+/**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+ * recording the vertex-properties of all the removed vertices into an output-iterator.
+ * \param v The root of the sub-tree to be removed.
+ * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename OutputIter >
+OutputIter clear_children( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                           OutputIter it_out, BGL_BFL_D_ARY_TREE& g) {
+  return g.clear_children(v, it_out);
+};
+
+/**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+ * recording the vertex-properties of all the removed vertices into an output-iterator.
+ * \param v The root of the sub-tree to be removed.
+ * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ */
+template < BGL_BFL_D_ARY_TREE_ARGS, typename VertexOIter, typename EdgeOIter >
+std::pair<VertexOIter, EdgeOIter> clear_children( typename BGL_BFL_D_ARY_TREE::vertex_descriptor v,
+                                                  VertexOIter vit_out, EdgeOIter eit_out, BGL_BFL_D_ARY_TREE& g) {
+  return g.clear_children(v, vit_out, eit_out);
 };
 
 

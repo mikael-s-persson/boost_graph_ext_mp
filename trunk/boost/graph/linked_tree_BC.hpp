@@ -228,6 +228,13 @@ class linked_tree_BC
     };
 #endif
     
+    /**
+     * Standard swap function.
+     */
+    void swap(self& rhs) {
+      m_pack.swap(rhs.m_pack);
+    };
+    
     
     /**
      * Returns the size of the tree (the number of vertices it contains).
@@ -327,7 +334,13 @@ struct tree_storage_traits< linked_tree_BC_storage<OutEdgeListS, VertexListS, Di
 #define BGL_LINKED_TREE_BC_ARGS typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperties, typename EdgeProperties
 #define BGL_LINKED_TREE_BC linked_tree_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties, EdgeProperties>
 
-
+/**
+ * Standard swap function. Swaps the contents of two objects.
+ * \param lhs The left-hand-side of the swap.
+ * \param rhs The right-hand-side of the swap.
+ */
+template < BGL_LINKED_TREE_BC_ARGS >
+void swap(BGL_LINKED_TREE_BC& lhs, BGL_LINKED_TREE_BC& rhs) { lhs.swap(rhs); };
 
 
 /***********************************************************************************************
@@ -629,6 +642,16 @@ typename BGL_LINKED_TREE_BC::edge_descriptor >
 };
 
 /**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex.
+ * \param v The root of the sub-tree to be removed.
+ * \param g The graph.
+ */
+template < BGL_LINKED_TREE_BC_ARGS >
+void clear_children( typename BGL_LINKED_TREE_BC::vertex_descriptor v, BGL_LINKED_TREE_BC & g) {
+  g.m_pack.clear_children_impl(v);
+};
+
+/**
  * Removes a branch (sub-tree) starting from and including the given vertex.
  * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
  * \param g The graph.
@@ -645,37 +668,38 @@ void remove_branch( typename BGL_LINKED_TREE_BC::vertex_descriptor v, BGL_LINKED
  * ********************************************************************************************/
 
 
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 /**
  * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
  * \param vp The vertex-property to assign to the newly created root vertex.
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_TREE_BC_ARGS >
-typename BGL_LINKED_TREE_BC::vertex_descriptor
-  create_root( const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,  BGL_LINKED_TREE_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp >
+typename BGL_LINKED_TREE_BC::vertex_descriptor create_root( const VProp& vp,  BGL_LINKED_TREE_BC & g) {
   if(g.m_pack.size())
     g.m_pack.clear();
   g.m_pack.add_root_vertex(vp);
   return g.m_pack.m_root;
 };
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+#else
 /**
  * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
  * \param vp The vertex-property to assign to the newly created root vertex.
  * \param g The graph.
  * \return The vertex-descriptor of the root of the tree.
  */
-template < BGL_LINKED_TREE_BC_ARGS >
-typename BGL_LINKED_TREE_BC::vertex_descriptor
-  create_root( typename BGL_LINKED_TREE_BC::vertex_property_type&& vp, BGL_LINKED_TREE_BC & g) {
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp >
+typename BGL_LINKED_TREE_BC::vertex_descriptor create_root( VProp&& vp, BGL_LINKED_TREE_BC & g) {
   if(g.m_pack.size())
     g.m_pack.clear();
-  g.m_pack.add_root_vertex(std::move(vp));
+  g.m_pack.add_root_vertex(std::forward<VProp>(vp));
   return g.m_pack.m_root;
 };
 #endif
+
+
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 /**
  * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
@@ -685,13 +709,12 @@ typename BGL_LINKED_TREE_BC::vertex_descriptor
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_TREE_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp >
 std::pair< 
 typename BGL_LINKED_TREE_BC::vertex_descriptor,
 typename BGL_LINKED_TREE_BC::edge_descriptor >
   add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
-                    BGL_LINKED_TREE_BC & g) {
+                    const VProp& vp, BGL_LINKED_TREE_BC & g) {
   typedef typename BGL_LINKED_TREE_BC::edge_property_type EProp;
   return g.m_pack.add_child(v, vp, EProp());
 };
@@ -705,18 +728,16 @@ typename BGL_LINKED_TREE_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_TREE_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp, typename EProp >
 std::pair< 
 typename BGL_LINKED_TREE_BC::vertex_descriptor,
 typename BGL_LINKED_TREE_BC::edge_descriptor >
   add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
-                    const typename BGL_LINKED_TREE_BC::edge_property_type& ep,
-                    BGL_LINKED_TREE_BC & g) {
+                    const VProp& vp, const EProp& ep, BGL_LINKED_TREE_BC & g) {
   return g.m_pack.add_child(v, vp, ep);
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+#else
 
 /**
  * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
@@ -726,15 +747,14 @@ typename BGL_LINKED_TREE_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_TREE_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp >
 std::pair< 
 typename BGL_LINKED_TREE_BC::vertex_descriptor,
 typename BGL_LINKED_TREE_BC::edge_descriptor >
   add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
-                    BGL_LINKED_TREE_BC & g) {
+                    VProp&& vp, BGL_LINKED_TREE_BC & g) {
   typedef typename BGL_LINKED_TREE_BC::edge_property_type EProp;
-  return g.m_pack.add_child(v, std::move(vp), EProp());
+  return g.m_pack.add_child(v, std::forward<VProp>(vp), EProp());
 };
 
 /**
@@ -746,57 +766,44 @@ typename BGL_LINKED_TREE_BC::edge_descriptor >
  * \param g The graph.
  * \return A pair consisting of the newly created vertex and edge (descriptors).
  */
-template < BGL_LINKED_TREE_BC_ARGS >
+template < BGL_LINKED_TREE_BC_ARGS, typename VProp, typename EProp >
 std::pair< 
 typename BGL_LINKED_TREE_BC::vertex_descriptor,
 typename BGL_LINKED_TREE_BC::edge_descriptor >
   add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    const typename BGL_LINKED_TREE_BC::vertex_property_type& vp,
-                    typename BGL_LINKED_TREE_BC::edge_property_type&& ep,
-                    BGL_LINKED_TREE_BC & g) {
-  return g.m_pack.add_child(v, vp, std::move(ep));
-};
-
-/**
- * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
- * vertex and edge to the given property values.
- * \param v The parent vertex to which a child will be added.
- * \param vp The property value to be moved into the newly created vertex.
- * \param ep The property value to be moved into the newly created edge.
- * \param g The graph.
- * \return A pair consisting of the newly created vertex and edge (descriptors).
- */
-template < BGL_LINKED_TREE_BC_ARGS >
-std::pair< 
-typename BGL_LINKED_TREE_BC::vertex_descriptor,
-typename BGL_LINKED_TREE_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
-                    const typename BGL_LINKED_TREE_BC::edge_property_type& ep,
-                    BGL_LINKED_TREE_BC & g) {
-  return g.m_pack.add_child(v, std::move(vp), ep);
-};
-
-/**
- * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
- * vertex and edge to the given property values.
- * \param v The parent vertex to which a child will be added.
- * \param vp The property value to be moved into the newly created vertex.
- * \param ep The property value to be moved into the newly created edge.
- * \param g The graph.
- * \return A pair consisting of the newly created vertex and edge (descriptors).
- */
-template < BGL_LINKED_TREE_BC_ARGS >
-std::pair< 
-typename BGL_LINKED_TREE_BC::vertex_descriptor,
-typename BGL_LINKED_TREE_BC::edge_descriptor >
-  add_child_vertex( typename BGL_LINKED_TREE_BC::vertex_descriptor v,
-                    typename BGL_LINKED_TREE_BC::vertex_property_type&& vp,
-                    typename BGL_LINKED_TREE_BC::edge_property_type&& ep,
-                    BGL_LINKED_TREE_BC & g) {
-  return g.m_pack.add_child(v, std::move(vp), std::move(ep));
+                    VProp&& vp, EProp&& ep, BGL_LINKED_TREE_BC & g) {
+  return g.m_pack.add_child(v, std::forward<VProp>(vp), std::forward<EProp>(ep));
 };
 #endif
+
+
+/**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+ * recording the vertex-properties of all the removed vertices into an output-iterator.
+ * \param v The root of the sub-tree to be removed.
+ * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ */
+template < BGL_LINKED_TREE_BC_ARGS , typename OutputIter>
+OutputIter clear_children( typename BGL_LINKED_TREE_BC::vertex_descriptor v, OutputIter it_out, BGL_LINKED_TREE_BC & g) {
+  return g.m_pack.clear_children_impl(v, it_out);
+};
+
+/**
+ * Removes a branch (sub-tree) starting from but excluding the given vertex, while 
+ * recording the vertex-properties of all the removed vertices into an output-iterator.
+ * \param v The root of the sub-tree to be removed.
+ * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ */
+template < BGL_LINKED_TREE_BC_ARGS , typename VertexOIter, typename EdgeOIter>
+std::pair<VertexOIter, EdgeOIter> clear_children( typename BGL_LINKED_TREE_BC::vertex_descriptor v, VertexOIter vit_out, EdgeOIter eit_out, BGL_LINKED_TREE_BC & g) {
+  return g.m_pack.clear_children_impl(v, vit_out, eit_out);
+};
+
 
 /**
  * Removes a branch (sub-tree) starting from and including the given vertex, while 
@@ -812,6 +819,20 @@ OutputIter remove_branch( typename BGL_LINKED_TREE_BC::vertex_descriptor v, Outp
   return g.m_pack.remove_branch_impl(v, it_out);
 };
 
+/**
+ * Removes a branch (sub-tree) starting from and including the given vertex, while 
+ * recording the vertex and edge properties of all the removed vertices and edges into output-ranges.
+ * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+ * \param vit_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+ * \param eit_out An output iterator (with edge-properties as value-type) that can store the removed edges.
+ * \param g The graph.
+ * \return The output-iterator after the collection of all the removed vertices.
+ * \note The first vertex-property to figure in the output range is that of the vertex v.
+ */
+template < BGL_LINKED_TREE_BC_ARGS , typename VertexOIter, typename EdgeOIter>
+std::pair<VertexOIter, EdgeOIter> remove_branch( typename BGL_LINKED_TREE_BC::vertex_descriptor v, VertexOIter vit_out, EdgeOIter eit_out, BGL_LINKED_TREE_BC & g) {
+  return g.m_pack.remove_branch_impl(v, vit_out, eit_out);
+};
 
 
 

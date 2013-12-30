@@ -420,59 +420,30 @@ namespace detail {
   // O(E)
   template <typename DirectedS, typename Container, typename VertexValue, typename Vertex>
   typename enable_if< is_same< DirectedS, directedS >,
-  Vertex >::type ltreeBC_get_parent_node(Container& vcont, VertexValue& vp, Vertex v) {
+  VertexValue >::type::edge_descriptor ltreeBC_get_in_edge(Container& vcont, VertexValue& vp, Vertex v) {
     typedef typename Container::iterator VIter;
     typedef typename VertexValue::edge_container EdgeCont;
     typedef typename EdgeCont::iterator OEIter;
+    typedef typename VertexValue::edge_descriptor EdgeDesc;
     
     for(VIter it = vcont.begin(); it != vcont.end(); ++it) {
       if(BC_is_elem_valid(*it)) {
         VertexValue& up = BC_get_value(*it);
         for(OEIter ei = BC_get_begin_iter(up.out_edges); ei != BC_get_end_iter(up.out_edges); ++ei) 
           if(BC_is_elem_valid(*ei) && (BC_get_value(*ei).target == v)) 
-            return BC_iterator_to_desc(vcont, it);
+            return EdgeDesc(BC_iterator_to_desc(vcont, it), BC_iterator_to_desc(up.out_edges, ei));
       };
     };
     
-    return BC_null_desc<Vertex>::value();
+    return EdgeDesc::null_value();
   };
   
   // O(1)
   template <typename DirectedS, typename Container, typename VertexValue, typename Vertex>
   typename disable_if< is_same< DirectedS, directedS >,
-  Vertex >::type ltreeBC_get_parent_node(Container& vcont, VertexValue& vp, Vertex v) {
-    return vp.in_edge.source;
+  VertexValue >::type::edge_descriptor ltreeBC_get_in_edge(Container& vcont, VertexValue& vp, Vertex v) {
+    return vp.in_edge;
   };
-  
-  
-  
-  
-  
-  
-  /* Dummy "ignore" output iterator that is used in remove-branch functions. */
-  struct ignore_output_iter {
-    struct value_type {
-      template <typename T>
-      value_type& operator=(const T&) { return *this; };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      template <typename T>
-      value_type& operator=(T&&) { return *this; };
-#endif
-    };
-    typedef std::ptrdiff_t difference_type;
-    typedef value_type* pointer;
-    typedef value_type& reference;
-    typedef std::random_access_iterator_tag iterator_category;
-    
-    ignore_output_iter& operator++() { return *this; };
-    ignore_output_iter& operator++(int) { return *this; };
-    ignore_output_iter& operator--() { return *this; };
-    ignore_output_iter& operator--(int) { return *this; };
-    
-    value_type operator*() const { return value_type(); };
-  };
-  
-  
   
   
   
@@ -606,7 +577,7 @@ namespace detail {
     
     // NOTE: This WORKS for ALL vertex container types.
     vertex_descriptor get_parent(vertex_descriptor v) const {
-      return ltreeBC_get_parent_node<DirectedS>(m_vertices, get_stored_vertex(v), v);
+      return ltreeBC_get_in_edge<DirectedS>(m_vertices, get_stored_vertex(v), v).source;
     };
     
     
@@ -650,79 +621,126 @@ namespace detail {
     
     // NOTE: This WORKS for ALL vertex container types.
     // NOTE: This WORKS for ALL edge container types.
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_descriptor add_new_vertex(const VertexProperties& vp) {
       return adjlistBC_add_vertex(m_vertices, vp);
     };
     void add_root_vertex(const VertexProperties& vp) { m_root = add_new_vertex(vp); };
-    
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    vertex_descriptor add_new_vertex(VertexProperties&& vp) {
-      return adjlistBC_add_vertex(m_vertices, std::move(vp));
+#else
+    template <typename VP>
+    vertex_descriptor add_new_vertex(VP&& vp) {
+      return adjlistBC_add_vertex(m_vertices, std::forward<VP>(vp));
     };
-    void add_root_vertex(VertexProperties&& vp) { m_root = add_new_vertex(std::move(vp)); };
+    template <typename VP>
+    void add_root_vertex(VP&& vp) { m_root = add_new_vertex(std::forward<VP>(vp)); };
 #endif
     
     
     // NOTE: this operation does not invalidate anything.
     // NOTE: This WORKS for ALL vertex container types.
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< edge_descriptor, bool > add_new_edge(vertex_descriptor u, vertex_descriptor v, const EdgeProperties& ep) {
       typedef typename edge_descriptor::edge_id_type RawEDesc;
-      
       std::pair< RawEDesc, bool > raw_result = adjlistBC_add_edge(get_stored_vertex(u).out_edges, ep, v);
-      
-      if( raw_result.second ) {
-        ltreeBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
-        return std::pair< edge_descriptor, bool >(edge_descriptor(u, raw_result.first), true);
-      } else 
-        return std::pair< edge_descriptor, bool >(edge_descriptor(), false);
-    };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    std::pair< edge_descriptor, bool > add_new_edge(vertex_descriptor u, vertex_descriptor v, EdgeProperties&& ep) {
+#else
+    template <typename EP>
+    std::pair< edge_descriptor, bool > add_new_edge(vertex_descriptor u, vertex_descriptor v, EP&& ep) {
       typedef typename edge_descriptor::edge_id_type RawEDesc;
-      
-      std::pair< RawEDesc, bool > raw_result = adjlistBC_add_edge(get_stored_vertex(u).out_edges, std::move(ep), v);
-      
+      std::pair< RawEDesc, bool > raw_result = adjlistBC_add_edge(get_stored_vertex(u).out_edges, std::forward<EP>(ep), v);
+#endif
       if( raw_result.second ) {
         ltreeBC_add_in_edge(get_stored_vertex(v), edge_descriptor(u, raw_result.first));
         return std::pair< edge_descriptor, bool >(edge_descriptor(u, raw_result.first), true);
       } else 
         return std::pair< edge_descriptor, bool >(edge_descriptor(), false);
     };
-#endif
     
     
     // NOTE: this operation does not invalidate anything.
     // NOTE: This WORKS for ALL vertex container types.
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, const VertexProperties& vp, const EdgeProperties& ep) {
       vertex_descriptor new_node = add_new_vertex(vp);
       std::pair< edge_descriptor, bool > new_edge = add_new_edge(v, new_node, ep);
       return std::make_pair(new_node, new_edge.first);
     };
-    
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    std::pair<vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, VertexProperties&& vp, const EdgeProperties& ep) {
-      vertex_descriptor new_node = add_new_vertex(std::move(vp));
-      std::pair< edge_descriptor, bool > new_edge = add_new_edge(v, new_node, ep);
-      return std::make_pair(new_node, new_edge.first);
-    };
-    std::pair<vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, const VertexProperties& vp, EdgeProperties&& ep) {
-      vertex_descriptor new_node = add_new_vertex(vp);
-      std::pair< edge_descriptor, bool > new_edge = add_new_edge(v, new_node, std::move(ep));
-      return std::make_pair(new_node, new_edge.first);
-    };
-    std::pair<vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, VertexProperties&& vp, EdgeProperties&& ep) {
-      vertex_descriptor new_node = add_new_vertex(std::move(vp));
-      std::pair< edge_descriptor, bool > new_edge = add_new_edge(v, new_node, std::move(ep));
+#else
+    template <typename VP, typename EP>
+    std::pair<vertex_descriptor, edge_descriptor> add_child(vertex_descriptor v, VP&& vp, EP&& ep) {
+      vertex_descriptor new_node = add_new_vertex(std::forward<VP>(vp));
+      std::pair< edge_descriptor, bool > new_edge = add_new_edge(v, new_node, std::forward<EP>(ep));
       return std::make_pair(new_node, new_edge.first);
     };
 #endif
     
     
-    template <typename OutputIter>
-    OutputIter remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
+    
+    
+    template <typename Vertex_OIter, typename Edge_OIter>
+    std::pair<Vertex_OIter, Edge_OIter> clear_children_impl(vertex_descriptor v, Vertex_OIter vit_out, Edge_OIter eit_out) {
       typedef typename edge_container::iterator OEIter;
       
-      vertex_descriptor parent = ltreeBC_get_parent_node<DirectedS>(m_vertices, get_stored_vertex(v), v);
+      std::vector< vertex_descriptor > death_row;
+      std::queue< vertex_descriptor > bft_queue;
+      bft_queue.push(v);
+      // Put all children on death-row:
+      while( ! bft_queue.empty() ) {
+        vertex_stored_type& v_value = get_stored_vertex(bft_queue.front());
+        bft_queue.pop(); 
+        for(OEIter ei = BC_get_begin_iter(v_value.out_edges); ei != BC_get_end_iter(v_value.out_edges); ++ei) {
+          if(!BC_is_elem_valid(*ei))
+            continue;
+          death_row.push_back(BC_get_value(*ei).target);
+          bft_queue.push(BC_get_value(*ei).target);
+          vertex_stored_type& u_value = get_stored_vertex(BC_get_value(*ei).target);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+          *(vit_out++) = std::move(u_value.data);
+          *(eit_out++) = std::move(BC_get_value(*ei).data);
+#else
+          *(vit_out++) = u_value.data;
+          *(eit_out++) = BC_get_value(*ei).data;
+#endif
+        };
+      };
+      
+      // Check if we removed the root:
+      if(v == m_root) { // v is the root vertex.
+        clear();
+      } else {
+        // remove the out-edges.
+        BC_clear_all(get_stored_vertex(v).out_edges);
+        // Execute the death-row vertices!
+        ltreeBC_erase_vertices(m_vertices, death_row);
+      };
+      
+      return std::pair<Vertex_OIter, Edge_OIter>(vit_out, eit_out);
+    };
+    
+    template <typename OutputIter>
+    OutputIter clear_children_impl(vertex_descriptor v, OutputIter it_out) {
+      return clear_children_impl(v, it_out, ignore_output_iter()).first;
+    };
+    
+    void clear_children_impl(vertex_descriptor v) { clear_children_impl(v, ignore_output_iter(), ignore_output_iter()); };
+    
+    
+    
+    
+    template <typename Vertex_OIter, typename Edge_OIter>
+    std::pair<Vertex_OIter, Edge_OIter> remove_branch_impl(vertex_descriptor v, Vertex_OIter vit_out, Edge_OIter eit_out) {
+      typedef typename edge_container::iterator OEIter;
+      
+      edge_descriptor p_edge = ltreeBC_get_in_edge<DirectedS>(m_vertices, get_stored_vertex(v), v);
+      
+      if(p_edge.source == VConfig::null_vertex()) {
+        *(eit_out++) = edge_value_type();
+      } else {
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        *(eit_out++) = std::move(get_stored_edge(p_edge).data);
+#else
+        *(eit_out++) = get_stored_edge(p_edge).data;
+#endif
+      };
       
       std::vector< vertex_descriptor > death_row;
       death_row.push_back(v);
@@ -732,34 +750,47 @@ namespace detail {
       while( ! bft_queue.empty() ) {
         vertex_stored_type& v_value = get_stored_vertex(bft_queue.front());
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        *(it_out++) = std::move(v_value.data);
+        *(vit_out++) = std::move(v_value.data);
 #else
-        *(it_out++) = v_value.data;
+        *(vit_out++) = v_value.data;
 #endif
         bft_queue.pop(); 
         for(OEIter ei = BC_get_begin_iter(v_value.out_edges); ei != BC_get_end_iter(v_value.out_edges); ++ei) {
+          if(!BC_is_elem_valid(*ei))
+            continue;
           death_row.push_back(BC_get_value(*ei).target);
           bft_queue.push(BC_get_value(*ei).target);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+          *(eit_out++) = std::move(BC_get_value(*ei).data);
+#else
+          *(eit_out++) = BC_get_value(*ei).data;
+#endif
         };
       };
       
-      // Check if we removed the (or a) root:
-      if(parent == VConfig::null_vertex()) {
+      // Check if we removed the root:
+      if(p_edge.source == VConfig::null_vertex()) {
         // v must be the root vertex.
         clear();
-        return it_out;
+        return std::pair<Vertex_OIter, Edge_OIter>(vit_out, eit_out);
       } else {
         // remove the edge.
-        ltreeBC_erase_edge(get_stored_vertex(parent).out_edges, get_edge(parent, v).first, m_vertices, parent);
+        ltreeBC_erase_edge(get_stored_vertex(p_edge.source).out_edges, p_edge, m_vertices, p_edge.source);
         
         // Execute the death-row vertices!
         ltreeBC_erase_vertices(m_vertices, death_row);
         
-        return it_out;
+        return std::pair<Vertex_OIter, Edge_OIter>(vit_out, eit_out);
       };
       
     };
-    void remove_branch_impl(vertex_descriptor v) { remove_branch_impl(v, ignore_output_iter()); };
+    
+    template <typename OutputIter>
+    OutputIter remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
+      return remove_branch_impl(v, it_out, ignore_output_iter()).first;
+    };
+    
+    void remove_branch_impl(vertex_descriptor v) { remove_branch_impl(v, ignore_output_iter(), ignore_output_iter()); };
     
     
   };

@@ -1,0 +1,137 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>Tree</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
+
+<br Clear>
+
+
+<h2><a name="sec:Tree"></a>Tree</h2>
+
+The Tree concept contains a few requirements that are common to all tree concepts. 
+These include the ability to obtain the root vertex and to iterate through child
+vertices of any given vertex.
+
+<h3>Refinement of</h3>
+
+<a href="./IncidenceGraph.html">IncidenceGraph</a>
+
+<h3>Notation</h3>
+
+<table>
+<tr>
+<td><tt>T</tt></td>
+<td>A type that is a model of Tree.</td>
+</tr>
+
+<tr>
+<td><tt>t</tt></td>
+<td>An object of type <tt>T</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>u</tt></td>
+<td>are objects of type <tt>boost::graph_traits&lt;T&gt;::vertex_descriptor</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>cv_iter</tt></td>
+<td>is an object of type <tt>boost::tree_traits&lt;T&gt;::child_vertex_iterator</tt>.</td>
+</tr>
+
+</table>
+<h3>Associated Types</h3>
+
+<table border>
+<tr>
+<td><pre>boost::tree_traits&lt;T&gt;::child_vertex_iterator</pre>
+A child-vertex iterator pointing to a unique vertex in an abstract
+tree instance. A child-vertex iterator must be
+<a href="http://www.sgi.com/tech/stl/ForwardIterator.html">Forward Iterator</a>, and
+<a href="http://www.sgi.com/tech/stl/InputIterator.html">Input Iterator</a>.
+</td>
+</tr>
+
+</table>
+
+<h3>Valid Expressions</h3>
+
+<table border>
+
+<tr>
+<td><a name="sec:get-root-vertex"><tt>get_root_vertex(t)</tt></a></td>
+<td>
+Gets the root vertex from the tree.
+<br>
+<b>Return type</b>: <tt>vertex_descriptor</tt>
+</td>
+</tr>
+
+<tr>
+<td><a name="sec:child-vertices"><tt>child_vertices(u,&nbsp;t)</tt></a></td>
+<td>
+Gets the range of iterators to the children of <i>u</i> from the tree.<br>
+<b>Return type</b>: <tt>std::pair&lt;child_vertex_iterator,&nbsp;child_vertex_iterator&gt;</tt><br>
+<b>Precondition</b>: <i>u</i> is a vertex in the tree.<br>
+</td>
+</tr>
+
+</table>
+
+
+<h3>Complexity Guarantees</h3>
+
+<ul>
+<li>All operations are <i>O(1)</i>.</li>
+</ul>
+
+<h3>Models</h3>
+
+<ul>
+<li><tt>linked_tree</tt></li>
+<li><tt>bfl_d_ary_tree</tt></li>
+<li><tt>vebl_d_ary_tree</tt></li>
+</ul>
+
+
+<h3>Concept Checking Class</h3>
+
+<pre>
+  
+  template &lt;typename T&gt;
+  struct TreeConcept {
+    typename graph_traits&lt;T&gt;::vertex_descriptor u;
+    typename tree_traits&lt;T&gt;::child_vertex_iterator cv_it, cv_it_end;
+    T t;
+    
+    BOOST_CONCEPT_ASSERT((IncidenceGraphConcept&lt;T&gt;));
+    
+    BOOST_CONCEPT_USAGE(TreeConcept) 
+    {
+      u = get_root_vertex(t);
+      tie(cv_it, cv_it_end) = child_vertices(u,t);
+    };
+    
+  };
+  
+</pre>
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html> 

@@ -542,6 +542,34 @@ namespace detail {
   
   
   
+  
+  /* Dummy "ignore" output iterator that is used in remove-branch functions. */
+  struct ignore_output_iter {
+    struct value_type {
+      template <typename T>
+      value_type& operator=(const T&) { return *this; };
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      template <typename T>
+      value_type& operator=(T&&) { return *this; };
+#endif
+    };
+    typedef std::ptrdiff_t difference_type;
+    typedef value_type* pointer;
+    typedef value_type& reference;
+    typedef std::bidirectional_iterator_tag iterator_category;
+    
+    ignore_output_iter& operator++() { return *this; };
+    ignore_output_iter& operator++(int) { return *this; };
+    ignore_output_iter& operator--() { return *this; };
+    ignore_output_iter& operator--(int) { return *this; };
+    
+    value_type operator*() const { return value_type(); };
+  };
+  
+  
+  
+  
+  
 }; // namespace detail
 
 }; // namespace graph

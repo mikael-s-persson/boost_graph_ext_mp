@@ -15,7 +15,7 @@
 
 <BR Clear>
 
-<H1><A NAME="sec:adjacency-list-BC-class"></A>
+<H1><A NAME="sec:linked-tree-BC-class"></A>
 <pre>
 linked_tree_BC&lt;OutEdgeList, VertexList, Directed,
                VertexProperties, EdgeProperties&gt;
@@ -385,6 +385,7 @@ Otherwise the <tt>out_edge_iterator</tt> models
 <br><br>
 The type for the iterators returned by <tt>adjacent_vertices()</tt>.
 The <tt>adjacency_iterator</tt> models the same iterator concept as <tt>out_edge_iterator</tt>.
+
 <hr>
 
 <tt>linked_tree_BC::inv_adjacency_iterator</tt>
@@ -392,6 +393,14 @@ The <tt>adjacency_iterator</tt> models the same iterator concept as <tt>out_edge
 The type for the iterators returned by <tt>inv_adjacent_vertices()</tt>.
 The <tt>inv_adjacency_iterator</tt> models the same iterator concept
 as <tt>out_edge_iterator</tt>.
+
+<hr>
+
+<tt>tree_traits&lt;linked_tree_BC&gt;::child_vertex_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>child_vertices()</tt>.
+The <tt>child_vertex_iterator</tt> models the same iterator concept as <tt>out_edge_iterator</tt>.
+
 <hr>
 
 <tt>graph_traits&lt;linked_tree_BC&gt;::directed_category</tt><br>
@@ -766,6 +775,58 @@ Returns a pair consisting of the newly created vertex and edge (descriptors).
 
 
 <pre>
+void clear_children(vertex_descriptor v, linked_tree_BC&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+If <tt>VertexList</tt> was selected as <tt>vecBC</tt>, then 
+all vertex descriptors/iterators and edge descriptors/iterators are 
+invalidated.
+
+<hr>
+
+<pre>
+template &lt;typename OutputIter&gt;
+OutputIter clear_children(vertex_descriptor v, OutputIter it_out, linked_tree_BC&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+If <tt>VertexList</tt> was selected as <tt>vecBC</tt>, then 
+all vertex descriptors/iterators and edge descriptors/iterators are 
+invalidated.
+
+<hr>
+
+<pre>
+template &lt;typename VertexOutputIter, typename EdgeOutputIter&gt;
+std::pair&lt;VertexOutputIter, EdgeOutputIter&gt; clear_children(vertex_descriptor v, OutputIter vit_out, OutputIter eit_out, linked_tree_BC&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function collects all the properties
+of the removed vertices and edges into output ranges starting at <tt>vit_out</tt>
+and <tt>eit_out</tt>, respectively. Returns the end of the output ranges. The 
+vertices and edges are outputted in the exact same order, i.e., each edge-property 
+being that of the in-edge of the vertex whose property was put at the same position 
+in the vertex-property output-range. The first vertex-property 
+to figure in the output range is that of the vertex <tt>v</tt>, but all other 
+properties will appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+If <tt>VertexList</tt> was selected as <tt>vecBC</tt>, then 
+all vertex descriptors/iterators and edge descriptors/iterators are 
+invalidated.
+
+<hr>
+
+<pre>
 void remove_branch(vertex_descriptor v, linked_tree_BC&amp;&nbsp;g)
 </pre>
 Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
@@ -785,6 +846,29 @@ OutputIter remove_branch(vertex_descriptor v, OutputIter it_out, linked_tree_BC&
 Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
 including the given vertex <tt>v</tt>, while recording the vertex-properties 
 of all the removed vertices into an output-iterator. The first vertex-property 
+to figure in the output range is that of the vertex <tt>v</tt>, but all other 
+properties will appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+If <tt>VertexList</tt> was selected as <tt>vecBC</tt>, then 
+all vertex descriptors/iterators and edge descriptors/iterators are 
+invalidated.
+
+<hr>
+
+<pre>
+template &lt;typename VertexOutputIter, typename EdgeOutputIter&gt;
+std::pair&lt;VertexOutputIter, EdgeOutputIter&gt; remove_branch(vertex_descriptor v, OutputIter vit_out, OutputIter eit_out, linked_tree_BC&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
+including the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function collects all the properties
+of the removed vertices and edges into output ranges starting at <tt>vit_out</tt>
+and <tt>eit_out</tt>, respectively. Returns the end of the output ranges. The 
+vertices and edges are outputted in the exact same order, i.e., each edge-property 
+being that of the in-edge of the vertex whose property was put at the same position 
+in the vertex-property output-range. The first vertex-property 
 to figure in the output range is that of the vertex <tt>v</tt>, but all other 
 properties will appear in the output range in an undefined order. This function invalidates 
 all vertex or edge descriptors or iterators referring to vertices or 

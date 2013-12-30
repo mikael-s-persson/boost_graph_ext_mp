@@ -1,0 +1,109 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>BidirectionalTree</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
+
+<br Clear>
+
+
+<h2><a name="sec:BidirectionalTree"></a>BidirectionalTree</h2>
+
+The BidirectionalTree concept contains a few requirements that are common to trees
+that have a "parent pointer", i.e., that can be traversed in a child-to-parent direction. 
+
+<h3>Refinement of</h3>
+
+<a href="./Tree.html">Tree</a>
+
+<h3>Notation</h3>
+
+<table>
+<tr>
+<td><tt>T</tt></td>
+<td>A type that is a model of BidirectionalTree.</td>
+</tr>
+
+<tr>
+<td><tt>t</tt></td>
+<td>An object of type <tt>T</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>u</tt></td>
+<td>are objects of type <tt>boost::graph_traits&lt;T&gt;::vertex_descriptor</tt>.</td>
+</tr>
+
+</table>
+
+<h3>Valid Expressions</h3>
+
+<table border>
+
+<tr>
+<td><a name="sec:parent-vertex"><tt>parent_vertex(u,&nbsp;t)</tt></a></td>
+<td>
+Gets the parent of the vertex <i>u</i> from the tree <i>t</i>. If the vertex does 
+not have a parent (i.e., the root), then the return value is equal 
+to <tt>graph_traits&lt;T&gt;::null_vertex()</tt>.
+<br>
+<b>Return type</b>: <tt>vertex_descriptor</tt>
+</td>
+</tr>
+
+</table>
+
+
+<h3>Complexity Guarantees</h3>
+
+<ul>
+<li>All operations are <i>O(1)</i>.</li>
+</ul>
+
+<h3>Models</h3>
+
+<ul>
+<li><tt>linked_tree</tt> (if <tt>DirectedS</tt> is <tt>bidirectionalS</tt>)</li>
+<li><tt>bfl_d_ary_tree</tt></li>
+<li><tt>vebl_d_ary_tree</tt></li>
+</ul>
+
+
+<h3>Concept Checking Class</h3>
+
+<pre>
+
+  template &lt;typename T&gt;
+  struct BidirectionalTreeConcept {
+    typename graph_traits&lt;T&gt;::vertex_descriptor u;
+    T t;
+    
+    BOOST_CONCEPT_ASSERT((TreeConcept&lt;T&gt;));
+    
+    BOOST_CONCEPT_USAGE(BidirectionalTreeConcept) 
+    {
+      u = parent_vertex(u, t);
+    };
+    
+  };
+  
+</pre>
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html> 

@@ -23,6 +23,7 @@
 #include <boost/variant.hpp>
 
 #include <boost/graph/detail/boost_container_generators.hpp>
+#include <boost/type_traits/is_empty.hpp>
 
 #include <iterator>
 
@@ -32,54 +33,72 @@ namespace graph {
 
 namespace detail {
 
+template <typename VertexProperties, bool isEmpty>
+struct bfltree_vertex_value_base : VertexProperties {
+  const VertexProperties& vertex() const { return *this; };
+  VertexProperties& vertex() { return *this; };
+};
+
+template <typename VertexProperties>
+struct bfltree_vertex_value_base<VertexProperties, false> {
+  VertexProperties v_data;
+  const VertexProperties& vertex() const { return this->v_data; };
+  VertexProperties& vertex() { return this->v_data; };
+};
 
 
+template <typename EdgeProperties, bool isEmpty>
+struct bfltree_edge_value_base : EdgeProperties {
+  const EdgeProperties& edge() const { return *this; };
+  EdgeProperties& edge() { return *this; };
+};
+
+template <typename EdgeProperties>
+struct bfltree_edge_value_base<EdgeProperties, false> {
+  EdgeProperties e_data;
+  const EdgeProperties& edge() const { return this->e_data; };
+  EdgeProperties& edge() { return this->e_data; };
+};
+
+
+// uses the empty base-class optimization, if possible:
+template <typename VertexProperties, typename EdgeProperties>
+struct bfltree_value_type : bfltree_vertex_value_base<VertexProperties, is_empty<VertexProperties>::value>, 
+                            bfltree_edge_value_base<EdgeProperties, is_empty<EdgeProperties>::value> {
+  std::size_t out_degree;
+  
+  bfltree_value_type() : bfltree_vertex_value_base<VertexProperties, is_empty<VertexProperties>::value>(), 
+                         bfltree_edge_value_base<EdgeProperties, is_empty<EdgeProperties>::value>(), 
+                         out_degree((std::numeric_limits<std::size_t>::max)()) { };
+};
 
 struct bfltree_edge_desc {
-  std::size_t source_vertex;
-  std::size_t edge_index;
-  bfltree_edge_desc(std::size_t aSrc = 0, std::size_t aEdgeId = 0) : 
-                    source_vertex(aSrc), edge_index(aEdgeId) { };
-  
+  std::size_t target_vertex;
+  explicit bfltree_edge_desc(std::size_t aTarget = (std::numeric_limits<std::size_t>::max)()) : target_vertex(aTarget) { };
 };
-
 inline bool operator==( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
-  return ((lhs.source_vertex == rhs.source_vertex) && (lhs.edge_index == rhs.edge_index)); 
+  return (lhs.target_vertex == rhs.target_vertex); 
 };
 inline bool operator!=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) { 
-  return ((lhs.source_vertex != rhs.source_vertex) || (lhs.edge_index != rhs.edge_index)); 
+  return (lhs.target_vertex != rhs.target_vertex); 
 };
 inline bool operator <( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
-  if( lhs.source_vertex == rhs.source_vertex )
-    return ( lhs.edge_index < rhs.edge_index );
-  else 
-    return ( lhs.source_vertex < rhs.source_vertex );
+  return (lhs.target_vertex < rhs.target_vertex);
 };
 inline bool operator<=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
-  if( lhs.source_vertex == rhs.source_vertex )
-    return ( lhs.edge_index <= rhs.edge_index );
-  else 
-    return ( lhs.source_vertex < rhs.source_vertex );
+  return (lhs.target_vertex <= rhs.target_vertex);
 };
 inline bool operator >( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
-  if( lhs.source_vertex == rhs.source_vertex )
-    return ( lhs.edge_index > rhs.edge_index );
-  else 
-    return ( lhs.source_vertex > rhs.source_vertex );
+  return (lhs.target_vertex > rhs.target_vertex);
 };
 inline bool operator>=( const bfltree_edge_desc& lhs, const bfltree_edge_desc& rhs) {
-  if( lhs.source_vertex == rhs.source_vertex )
-    return ( lhs.edge_index >= rhs.edge_index );
-  else 
-    return ( lhs.source_vertex > rhs.source_vertex );
+  return (lhs.target_vertex >= rhs.target_vertex);
 };
-
-
 
 
 template <typename VProp>
 bool bfltree_is_vertex_valid(const VProp& vp) {
-  return (vp.out_degree != std::numeric_limits<std::size_t>::max());
+  return (vp.out_degree != (std::numeric_limits<std::size_t>::max)());
 };
 
 template <typename Container>
@@ -91,111 +110,39 @@ struct bfltree_vertex_validity {
   };
 };
 
-template <typename Container, std::size_t Arity>
+template <typename Container>
 struct bfltree_edge_validity {
   const Container* p_cont;
   explicit bfltree_edge_validity(const Container* aPCont = NULL) : p_cont(aPCont) { };
   bool operator()(bfltree_edge_desc d) {
-    std::size_t d_child = Arity * d.source_vertex + 1 + d.edge_index;
-    return ((d.source_vertex < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d.source_vertex])) &&
-           ((d_child < p_cont->size()) && bfltree_is_vertex_valid((*p_cont)[d_child]));
+    return ((d.target_vertex < p_cont->size()) && (bfltree_is_vertex_valid((*p_cont)[d.target_vertex])));
   };
 };
 
 
 
-
-
-struct bfltree_oeiter : 
-  public iterator_facade<
-    bfltree_oeiter,
-    const bfltree_edge_desc,
-    std::random_access_iterator_tag
-  > {
-  public:
-    
-    typedef bfltree_oeiter self;
-    
-    explicit bfltree_oeiter(bfltree_edge_desc aE = bfltree_edge_desc()) : e(aE) { };
-    
-  public: // private:
-    friend class iterator_core_access;
-    
-    void increment() { ++e.edge_index; };
-    void decrement() { --e.edge_index; };
-    bool equal(const self& rhs) const { return (this->e == rhs.e); };
-    const bfltree_edge_desc& dereference() const { return e; };
-    
-    void advance(std::ptrdiff_t i) { e.edge_index += i; };
-    std::ptrdiff_t distance_to(const self& rhs) const { return rhs.e.edge_index - this->e.edge_index; }; 
-    
-    bfltree_edge_desc e;
-};
-
-
-struct bfltree_ieiter : 
-  public iterator_facade<
-    bfltree_ieiter,
-    const bfltree_edge_desc,
-    std::random_access_iterator_tag
-  > {
-  public:
-    
-    typedef bfltree_ieiter self;
-    
-    explicit bfltree_ieiter(bfltree_edge_desc aE = bfltree_edge_desc()) : e(aE) { };
-    
-  public: // private:
-    friend class iterator_core_access;
-    
-    void increment() { ++e.edge_index; };
-    void decrement() { --e.edge_index; };
-    bool equal(const self& rhs) const { return (this->e == rhs.e); };
-    const bfltree_edge_desc& dereference() const { return e; };
-    
-    void advance(std::ptrdiff_t i) { e.edge_index += i; };
-    std::ptrdiff_t distance_to(const self& rhs) const { return rhs.e.edge_index - this->e.edge_index; }; 
-    
-    bfltree_edge_desc e;
-};
-
-
-
-
-
-
-template <std::size_t Arity>
 struct bfltree_eiter : 
   public iterator_facade<
-    bfltree_eiter<Arity>,
+    bfltree_eiter,
     const bfltree_edge_desc,
-    std::bidirectional_iterator_tag
+    std::random_access_iterator_tag
   > {
   public:
     
-    typedef bfltree_eiter<Arity> self;
+    typedef bfltree_eiter self;
     
     explicit bfltree_eiter(bfltree_edge_desc aE = bfltree_edge_desc()) : e(aE) { };
     
   public: // private:
     friend class iterator_core_access;
     
-    void increment() { 
-      ++e.edge_index; 
-      if(e.edge_index == Arity) {
-        ++e.source_vertex;
-        e.edge_index = 0;
-      };
-    };
-    void decrement() { 
-      if(e.edge_index == 0) {
-        --e.source_vertex;
-        e.edge_index = Arity;
-      };
-      --e.edge_index; 
-    };
+    void increment() { ++e.target_vertex; };
+    void decrement() { --e.target_vertex; };
     bool equal(const self& rhs) const { return (this->e == rhs.e); };
     const bfltree_edge_desc& dereference() const { return e; };
+    
+    void advance(std::ptrdiff_t i) { e.target_vertex += i; };
+    std::ptrdiff_t distance_to(const self& rhs) const { return rhs.e.target_vertex - this->e.target_vertex; }; 
     
     bfltree_edge_desc e;
 };

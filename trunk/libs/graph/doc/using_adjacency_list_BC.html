@@ -1,95 +1,93 @@
-<HTML>
+<html>
 <!--
      Copyright (c) Sven Mikael Persson 2013
     
      Distributed under the Boost Software License, Version 1.0.
-     (See accompanying file LICENSE_1_0.txt or copy at
-     http://www.boost.org/LICENSE_1_0.txt)
+     (See accompanying file liCENSE_1_0.txt or copy at
+     http://www.boost.org/liCENSE_1_0.txt)
   -->
-<Head>
-<Title>Using the Boost Graph Library</Title>
-<BODY BGCOLOR="#ffffff" LINK="#0000ee" TEXT="#000000" VLINK="#551a8b" 
-        ALINK="#ff0000"> 
-<IMG SRC="../../../boost.png" 
-     ALT="C++ Boost" width="277" height="86"> 
+<head>
+<title>Using the Boost Graph Library</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
 
-<BR Clear>
+<br Clear>
 
-<H1><A NAME="SECTION00830000000000000000"></A>
-<A NAME="sec:using-adjacency-list-BC"></A>
-<BR>
-Using <TT>adjacency_list_BC</TT>
-</H1>
+<h1><a name="SECTION00830000000000000000"></a>
+<a name="sec:using-adjacency-list-BC"></a>
+<br>
+Using <tt>adjacency_list_BC</tt>
+</h1>
 
 This section describes the details of how use the
 <tt>adjacency_list_BC</tt> class. The presentation is divided into the
 following topics:
 
-<OL>
-<li><A href="#sec:choosing-graph-type">Choosing the <TT>Edgelist</TT> and <TT>VertexList</TT></A>
+<ol>
+<li><a href="#sec:choosing-graph-type">Choosing the <tt>Edgelist</tt> and <tt>VertexList</tt></a>
 <li><a href="#sec:directed-and-undirected">Directed and Undirected Adjacency Lists</a>
-<li><A href="#sec:adjacency-list-properties">Internal Properties</A>
-<li><A href="#sec:custom-storage">Customizing the Adjacency List Storage</A>
+<li><a href="#sec:adjacency-list-properties">Internal Properties</a>
+<li><a href="#sec:custom-storage">Customizing the Adjacency List Storage</a>
 </ol>
-
-<P>
-
-<H2><A NAME="SECTION00831000000000000000"></A>
-<A NAME="sec:choosing-graph-type"></A>
-<BR>
-Choosing the <TT>Edgelist</TT> and <TT>VertexList</TT>
-</H2>
-
-<P>
-This section focuses on how to decide which version of the 
-<a href="./adjacency_list_BC.html"><TT>adjacency_list_BC</TT></a> class 
-to use in different situations. The <TT>adjacency_list_BC</TT> is like a
-swiss-army knife in that it can be configured in many ways. The
-parameters that we will focus on in this section are <TT>OutEdgeList</TT>
-and <TT>VertexList</TT>, which control the underlying data structures
-that will be used to represent the graph.  The choice of
-<TT>OutEdgeList</TT> and <TT>VertexList</TT> affects the time complexity
-of many of the graph operations and the space complexity of the graph
-object.
-
-<P>
-The <TT>adjacency_list_BC</TT> class uses containers from the 
-<a href="http://www.boost.org/doc/libs/1_55_0/doc/html/container.html">Boost.Container</a> 
-such as <TT>boost::container::vector</TT>, <TT>boost::container::list</TT>,
-<TT>boost::unordered_set</TT>, and <TT>boost::container::set</TT>
-to represent the set of vertices and the adjacency structure
-(out-edges) of the graph.  There are several selector
-types that are used to specify the choice of container for
-<TT>OutEdgeList</TT> and <TT>VertexList</TT>.
-
-<P>
-
-<UL>
-<LI><TT>vecBC</TT> selects <TT>boost::container::vector</TT>.</LI>
-<LI><TT>poolBC</TT> selects <TT>boost::container::vector</TT> that allows "holes" in a 
-similar way to <a href="http://www.boost.org/doc/libs/release/libs/pool/‎">Boost.Pool</a>.</LI>
-<LI><TT>listBC</TT> selects <TT>boost::container::list</TT>.</LI>
-<LI><TT>setBC</TT> selects <TT>boost::container::set</TT>.</LI>
-<LI><TT>multisetBC</TT> selects <TT>boost::container::multiset</TT>.</LI>
-<LI><TT>unordered_setBC</TT> selects <TT>boost::unordered_set</TT>.</LI>
-</UL>
-
-<P>
-
-<H3>Choosing the <TT>VertexList</TT> type</A></H3>
-
-<P>
-The <TT>VertexList</TT> parameter determines what kind of container
-will be used to represent the vertex set, or two-dimensional structure
-of the graph.  The container must model <a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a> or
-<a href="http://www.sgi.com/tech/stl/RandomAccessContainer.html">RandomAccessContainer</a>. 
-In general, <TT>listBC</TT> or <TT>poolBC</TT> is a good choice if you need to add and remove
-vertices quickly. The price for this is extra space overhead and highly reduced locality of 
-reference as compared to choosing <TT>vecBC</TT>.
 
 <p>
 
-<H4>Space Complexity</H4>
+<h2><a name="SECTION00831000000000000000"></a>
+<a name="sec:choosing-graph-type"></a>
+<br>
+Choosing the <tt>Edgelist</tt> and <tt>VertexList</tt>
+</h2>
+
+<p>
+This section focuses on how to decide which version of the 
+<a href="./adjacency_list_BC.html"><tt>adjacency_list_BC</tt></a> class 
+to use in different situations. The <tt>adjacency_list_BC</tt> is like a
+swiss-army knife in that it can be configured in many ways. The
+parameters that we will focus on in this section are <tt>OutEdgeList</tt>
+and <tt>VertexList</tt>, which control the underlying data structures
+that will be used to represent the graph.  The choice of
+<tt>OutEdgeList</tt> and <tt>VertexList</tt> affects the time complexity
+of many of the graph operations and the space complexity of the graph
+object.
+
+<p>
+The <tt>adjacency_list_BC</tt> class uses containers from the 
+<a href="http://www.boost.org/doc/libs/1_55_0/doc/html/container.html">Boost.Container</a> 
+such as <tt>boost::container::vector</tt>, <tt>boost::container::list</tt>,
+<tt>boost::unordered_set</tt>, and <tt>boost::container::set</tt>
+to represent the set of vertices and the adjacency structure
+(out-edges) of the graph.  There are several selector
+types that are used to specify the choice of container for
+<tt>OutEdgeList</tt> and <tt>VertexList</tt>.
+
+<p>
+
+<ul>
+<li><tt>vecBC</tt> selects <tt>boost::container::vector</tt>.</li>
+<li><tt>poolBC</tt> selects <tt>boost::container::vector</tt> that allows "holes" in a 
+similar way to <a href="http://www.boost.org/doc/libs/release/libs/pool/‎">Boost.Pool</a>.</li>
+<li><tt>listBC</tt> selects <tt>boost::container::list</tt>.</li>
+<li><tt>setBC</tt> selects <tt>boost::container::set</tt>.</li>
+<li><tt>multisetBC</tt> selects <tt>boost::container::multiset</tt>.</li>
+<li><tt>unordered_setBC</tt> selects <tt>boost::unordered_set</tt>.</li>
+</ul>
+
+<p>
+
+<h3>Choosing the <tt>VertexList</tt> type</h3>
+
+<p>
+The <tt>VertexList</tt> parameter determines what kind of container
+will be used to represent the vertex set, or two-dimensional structure
+of the graph.  The container must model <a href="http://www.sgi.com/tech/stl/Sequence.html">Sequence</a> or
+<a href="http://www.sgi.com/tech/stl/RandomAccessContainer.html">RandomAccessContainer</a>. 
+In general, <tt>listBC</tt> or <tt>poolBC</tt> is a good choice if you need to add and remove
+vertices quickly. The price for this is extra space overhead and highly reduced locality of 
+reference as compared to choosing <tt>vecBC</tt>.
+
+<p>
+
+<h4>Space Complexity</h4>
 
 <p>
 The choice of <tt>VertexList</tt> affects the space complexity in the following ways:
@@ -197,11 +195,11 @@ factor and it is recommended to use compact / contiguous containers like <tt>vec
 </ul>
 
  
-<P>
+<p>
 
-<H3><A NAME="SECTION00831200000000000000">
-Choosing the <tt>OutEdgeList</tt> type</A>
-</H3>
+<h3><a name="SECTION00831200000000000000">
+Choosing the <tt>OutEdgeList</tt> type</a>
+</h3>
 
 <p>
 The <tt>OutEdgeList</tt> parameter determines what kind of container will
@@ -237,7 +235,7 @@ number of edges.  Operations not discussed here are constant time.
 
 <p>
 
-<H4>Space Complexity</H4>
+<h4>Space Complexity</h4>
 
 <p>
 The selection of the <tt>OutEdgeList</tt> affects the amount of space
@@ -253,7 +251,7 @@ probably incur three pointers per element).
 
 <p>
 
-<H4>Time Complexity</H4>
+<h4>Time Complexity</h4>
 
 <p>
 In the following description of the time complexity for various
@@ -423,7 +421,7 @@ the <tt>OutEdgeList</tt> selection.
  
 <p>
 
-<H2><a name="sec:directed-and-undirected">Directed and Undirected Adjacency Lists</H2>
+<h2><a name="sec:directed-and-undirected"></a>Directed and Undirected Adjacency Lists</h2>
 
 <p>
 The <tt>adjacency_list_BC</tt> class can be used to represent both
@@ -441,11 +439,11 @@ is optional.
 
 <p>
 
-<H2><A NAME="sec:adjacency-list-properties"></A>
+<h2><a NAME="sec:adjacency-list-properties"></a>
 Internal Properties
-</H2>
+</h2>
 
-<P>
+<p>
 Properties can be attached to the vertices or edges of an
 <tt>adjacency_list_BC</tt> graph via the property interface.  The template
 arguments <tt>VertexProperty</tt> and <tt>EdgeProperty</tt> of the
@@ -464,20 +462,20 @@ implementations, and so, this is an additional incentive to choose bundled prope
 
 <p>
 For this point on, the use of property lists in either <tt>adjacency_list</tt> or <tt>adjacency_list_BC</tt>
-are identical, and so, please see the section on <A
-HREF="./using_adjacency_list.html#sec:adjacency-list-properties">Internal
-Properties</A> from the <tt>adjacency_list</tt> page.
+are identical, and so, please see the section 
+on <a href="./using_adjacency_list.html#sec:adjacency-list-properties">Internal Properties</a> 
+from the <tt>adjacency_list</tt> page.
 
 <p>
 
-<H2><A NAME="sec:custom-storage"></A>
+<h2><a name="sec:custom-storage"></a>
 Customizing the Adjacency List Storage
-</H2>
+</h2>
 
 <p>
-The <TT>adjacency_list</TT> class template provides mechanism to 
+The <tt>adjacency_list</tt> class template provides mechanism to 
 extend the choices for containers for <tt>VertexList</tt> and 
-<tt>OutEdgeList</tt>, however, the <TT>adjacency_list_BC</TT> class 
+<tt>OutEdgeList</tt>, however, the <tt>adjacency_list_BC</tt> class 
 template cannot safely provide such mechanisms. The library maintainers 
 can be contacted through the mailing list if there are any suggestions 
 of additional container options. But given the fact that any alternative
@@ -485,7 +483,7 @@ container that one might wish to use would most likely involve
 some special feature in terms of complexity of operations or in terms 
 of descriptor / iterator invalidation, it seems obvious that such 
 a new container would have to be fully integrated into the implementation
-of <TT>adjacency_list_BC</TT> to take advantage of those additional 
+of <tt>adjacency_list_BC</tt> to take advantage of those additional 
 benefits (as is already the case for each of the options available) 
 whenever possible.
 
@@ -493,17 +491,13 @@ whenever possible.
 
 
 <br>
-<HR>
-<TABLE>
-<TR valign=top>
-<TD nowrap>Copyright &copy; 2013</TD><TD>
-<A HREF="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</A>, McGill University (<A HREF="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</A>)
-</TD></TR>
-<TR valign=top>
-<TD nowrap>Copyright &copy; 2000-2001</TD><TD>
-<A href="/people/jeremy_siek.htm">Jeremy Siek</A>, Indiana University (<A HREF="mailto:jsiek@osl.iu.edu">jsiek@osl.iu.edu</A>)
-</TD></TR>
-</TABLE>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
 
-</BODY>
-</HTML> 
+</body>
+</html> 

@@ -1,0 +1,113 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>Boost Graph Library: Tree Traits</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
+
+<br Clear>
+
+<h1><a name=""></a>
+<pre>
+tree_traits&lt;<a href="./Tree.html">Tree</a>&gt;
+</pre>
+</h1>
+
+Trees being a special kind of graph will have all the <a href="./graph_traits.html">graph-traits</a>,
+along with a few specialized traits. This page describes those additional
+traits that trees have, and which are used in some <a href="./tree_concepts.html">tree concepts</a>.
+Given that graph-traits are already very rich in terms of associated types, 
+there is very little need for more. The only extra associated type that 
+tree-traits provide is the <tt>child_vertex_iterator</tt>, which is conceptually
+equivalent to a graph's <tt>adjacency_iterator</tt>.
+When implementing a tree class that fullfils one or more graph or tree concepts, 
+for associated types that are not required by the concepts, it is ok to 
+use <tt>void</tt> as the type (when using nested typedefs inside the graph/tree class), 
+or to leave the typedef out of the <tt>graph_traits</tt> and <tt>tree_traits</tt> 
+specialization for the graph/tree class.
+Note that because of the use of traits classes rather than member
+types, it is not safe (and often will not work) to define subclasses of BGL
+graph/tree types; those types may be missing important traits and properties that
+were defined externally to the class definition.
+
+<pre>
+  template &lt;typename Tree&gt;
+  struct tree_traits {
+    
+    typedef typename Tree::child_vertex_iterator  child_vertex_iterator;
+    
+    // or, if Tree::child_vertex_iterator does not exist, then this is used:
+    // typedef typename graph_traits&lt;Tree&gt;::adjacency_iterator  child_vertex_iterator;
+  };
+</pre>
+
+<h3>Where Defined</h3>
+
+<a href="../../../boost/graph/tree_traits.hpp"><tt>boost/graph/tree_traits.hpp</tt></a>
+
+<h3>Template Parameters</h3>
+
+<p>
+<table border>
+<tr>
+<th>Parameter</th><th>Description</th>
+</tr>
+
+<tr><td><tt>Tree</tt></td>
+<td>
+The tree type whose associated types are being accessed.
+</td>
+</tr>
+
+</table>
+
+<h3>Model of</h3>
+
+<a
+href="http://www.sgi.com/tech/stl/DefaultConstructible.html">DefaultConstructible</a> and
+<a href="http://www.sgi.com/tech/stl/Assignable.html">Assignable</a>
+
+<h3>Type Requirements</h3>
+
+<ul>
+  <li><tt>Tree</tt> is a model of one of the <a href="./tree_concepts.html">tree concepts</a>.
+</ul>
+
+<H2>Members</H2>
+
+<p>
+
+<table border>
+<tr>
+<th>Member</th><th>Description</th>
+</tr>
+
+<tr>
+<td><tt>
+child_vertex_iterator
+</tt></td>
+<td>
+The type for the iterators that traverse the vertices adjacent
+to a vertex, i.e., it can iterate through its children vertices.
+</td>
+</tr>
+
+</table>
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html>

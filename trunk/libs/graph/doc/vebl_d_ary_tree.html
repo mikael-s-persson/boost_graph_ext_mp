@@ -1,0 +1,879 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>Boost Graph Library: D-ary von-Emde-Boas-Layout Tree</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000">
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86">
+
+<br Clear>
+
+<h1><A NAME="sec:bfl-d-ary-tree-class"></A>
+<pre>
+vebl_d_ary_tree&lt;Arity, VertexProperties, EdgeProperties&gt;
+</pre>
+</h1>
+
+
+<p>
+The <tt>vebl_d_ary_tree</tt> class implements a fixed-arity tree data-structure 
+that lays out the vertices in a contiguous storage (<tt>std::vector</tt>)
+in a von Emde Boas layout. This layout is a recursively dividing (in the 
+"divide-and-conquer" sense) layout of the vertices (and edges) into blocks that 
+are each arranged in breadth-first layout. 
+
+<p>
+The template arguments provide the possibility to specify the arity of the 
+tree (or "fanout", or branch factor) as well as the vertex and edge 
+properties. The arity of the tree is the maximum number of children that
+any vertex of the tree can have, but vertices can always have less children
+than that.
+
+<h3>Performance Characteristics</h3>
+
+<p>
+This type of tree structure is good for both breadth-first traversal and depth-first traversal 
+because of locality of reference issues. Ideally, for the least amount of wasted memory, 
+the tree should be kept balanced, and this implementation is really only recommended when
+that is the case. This storage pattern is a kind of cache-oblivious data-structure in the 
+sense that, for the main traversal algorithms, it is near-optimal in terms of cache-misses 
+regardless of the actual memory architecture (number of levels of cache and their sizes).
+
+<p>
+However, as compared to <tt>bfl_d_ary_tree</tt>, the von Emde Boas layout causes
+some overhead in the computation of the indices of the vertices. Basically, vertices
+and edges are addressed using the same breadth-first layout indices that are used 
+in the <tt>bfl_d_ary_tree</tt> class. However, whenever one wishes to retrieve the 
+properties of a vertex or edge, the breadth-first index of that vertex must be converted
+to the corresponding von Emde Boas layout index. This conversion involves <i>O(log(N))</i>
+simple arithmetic calculations. For that reason, it is preferrable to avoid repeatingly 
+accessing elements of the tree. Grabbing a reference to the bundled property 
+can be a simple method to avoid repeated index conversions, e.g., 
+using <tt>VBundle&amp;&nbsp;vp&nbsp;=&nbsp;g[v];</tt> instead of repeating 
+<tt>g[v]</tt> whenever needed. Although these index conversions are not significant
+in complexity and involve only simple arithmetic operations, they can amount to a 
+significant hit on the overall performance, which could, in practice, out-weight the 
+benefits gained from the optimized memory layout. There are too many things that 
+factor into performance, so, testing is required to determine the better option to use.
+
+<p> 
+The memory overhead associated with this data-structured is very limited. The links between 
+vertices and edges are implicit (or structural) in index arithmetic as opposed to 
+explicit as they would be in a linked structure (like <tt>linked_tree_BC</tt>), which 
+represents an economy of the pointers and dynamic containers required to represent those 
+out-going or in-coming links (edges). Then, there is memory overhead in the excess memory 
+used for "empty" vertices and edges when the tree is not full and balanced, as well as 
+any excess memory pre-allocated by the underlying dynamic array (<tt>std::vector</tt>).
+And finally, there is a required <i>O(log(N))</tt> amount of auxiliary storage 
+to record the recursive divisions of the storage blocks which determine the physical
+locations of the elements in the contiguous storage medium.
+
+<!--<p>
+
+<h3>Example</h3>
+
+<p>
+The example in <a
+href="../example/family-tree-eg.cpp"><tt>examples/family-tree-eg.cpp</tt></a>
+shows how to represent a family tree with a linked-tree.-->
+
+<h3>Template Parameters</h3>
+
+<p>
+
+<table border>
+<tr>
+<th>Parameter</th><th>Description</th><th>Default</th>
+</tr>
+
+<tr>
+<td><tt>Arity</tt></td>
+<td>an integral value specifying the fixed (maximum) number of children per vertex.</td>
+<td><tt>2</tt></td>
+</tr>
+
+<tr>
+<td><tt>VertexProperties</tt></td>
+<td>for specifying internal per vertex property storage.</td>
+<td><tt>no_property</tt></td>
+</tr>
+
+<tr>
+<td><tt>EdgeProperties</tt></td>
+<td>for specifying internal per edge property storage.</td>
+<td><tt>no_property</tt></td>
+</tr>
+
+<!--<tr>
+<td><tt>GraphProperties</tt></td>
+<td>for specifying property storage for the tree object.</td>
+<td><tt>no_property</tt></td>
+</tr>-->
+
+</table>
+
+<p>
+
+<h3>Model of</h3>
+
+<p>
+<a href="./MutableTree.html">MutableTree</a>,
+<a href="./MutablePropertyTree.html">MutablePropertyTree</a>,
+<a href="./BidirectionalTree.html">BidirectionalTree</a>,
+<a href="./VertexAndEdgeListGraph.html">VertexAndEdgeListGraph</a>,
+<a href="./AdjacencyGraph.html">AdjacencyGraph</a>,
+<a href="./BidirectionalGraph.html">BidirectionalGraph</a>,
+<a href="./AdjacencyMatrix.html">AdjacencyMatrix</a>,
+<a href="./PropertyGraph.html">PropertyGraph</a>,
+<a href="../../utility/CopyConstructible.html">CopyConstructible</a>,
+<a href="../../utility/Assignable.html">Assignable</a>,
+and <a href="../../serialization/doc/index.html">Serializable</a>.
+
+
+<p>
+
+<h3>Where Defined</h3>
+
+<p>
+<a href="../../../boost/graph/vebl_d_ary_tree.hpp"><tt>boost/graph/vebl_d_ary_tree.hpp</tt></a><br><br>
+Also, the serialization functionality is in
+<a href="../../../boost/graph/vebl_d_ary_tree_serialize.hpp"><tt>boost/graph/vebl_d_ary_tree_serialize.hpp</tt></a>.
+<p>
+
+
+<h2>Vertex and Edge Properties</h2>
+
+<p>
+Properties such as color, distance, weight, and user-defined
+properties can be attached to the vertices and edges of the tree
+using properties. The property values can be read from and written to
+via the property maps provided by the tree. The property maps are
+obtained via the <tt>get(property, g)</tt> function.  How to use
+properties is described in Section 
+<a href="./using_linked_tree_BC.html#sec:linked-tree-properties">Internal Properties</a>
+of the page on using the <tt>linked_tree_BC</tt> class. 
+The property maps are objects that implement the interface defined in Section 
+<a href="../../property_map/doc/property_map.html">Property Map Concepts</a> 
+or may be <a href="bundles.html">bundled properties</a>,
+which have a more succinct syntax. The types of all property values
+must be Copy Constructible, Assignable, and Default Constructible.
+The property maps obtained from the <tt>vebl_d_ary_tree</tt> class are models of 
+the <a href="../../property_map/doc/LvaluePropertyMap.html">Lvalue Property Map</a> 
+concept. If the <tt>vebl_d_ary_tree</tt> is const, then the property map is constant, 
+otherwise the property map is mutable.
+
+<p>
+The tree has a builtin vertex indices accessed via the property map for
+the <tt>vertex_index_t</tt> property. The indices fall in the range
+between 0 and the <tt>Arity</tt> raised to a power equal to the depth 
+of the deepest leaf-node in the tree. The indices are not contiguous.
+When a branch is removed the indices do not need to be adjusted because 
+vertices that do not belong to the deleted branch are not affected by 
+the removal operation. The property map for vertex index is a model 
+of <a href="../../property_map/doc/ReadablePropertyMap.html">Readable Property Map</a>.
+
+<p>
+
+<h2>Iterator and Descriptor Stability/Invalidation</h2>
+
+<p>
+One of the practical advantages of the <tt>vebl_d_ary_tree</tt> class,
+like the <tt>bfl_d_ary_tree</tt> class, is that it has very little 
+descriptor or iterator invalidation. Invalidation occurs whenever the 
+insertion or removal of elements cause descriptors or iterators to 
+need a shift or point to an old and invalid memory location.
+Because of the fixed-arity and the breadth-first layout, this tree class
+rarely upsets the validity of descriptors or iterators <b>that were not
+involved directly in the operation</b>. Obviously, removing a branch
+causes any descriptor or iterator pointing to an element within it to 
+become invalid. The question of concern is whether other "unrelated" 
+descriptors or iterators are affected. For the <tt>vebl_d_ary_tree</tt>
+class, the answer is always NO. One caveat, however, is that a remove-branch
+operation will affect a lot of vertices and edges (the entire branch below 
+the given vertex), which will all be invalidated, but it remains that any 
+vertex, edge or child-vertex iterator or descriptor to any vertex or 
+edge that did not belong to the removed branch will remain valid.
+
+<p>
+Note, however, that because the storage is contiguous (à la <tt>std::vector</tt>),
+insertions and deletions could cause a reallocation, and thus, a 
+pointer to an element (edge or vertex) of the tree will not remain valid 
+after any such add/remove operation.
+
+<p>
+The following table summarizes which operations cause descriptors and
+iterators to become invalid. The <b>Vertex/Edge Iter</b> category includes
+the <tt>vertex_iterator</tt> and <tt>edge_iterator</tt> which are both 
+tied to the same underlying mechanisms since, in a tree, each non-root
+vertex has one corresponding edge, and thus, vertex or edge iterators 
+are simply different views on the same underlying iterators. The 
+<b>Child Iter</b> category includes the <tt>out_edge_iterator</tt>, 
+<tt>child_vertex_iterator</tt>, and <tt>adjacency_iterator</tt> types. 
+A more detailed description of descriptor and iterator invalidation is 
+given in the documentation for each operation.
+
+<p>
+Note that the root vertex descriptor is never invalidated unless 
+the tree is cleared completely.
+
+<p>
+
+<table border>
+<caption align="bottom"><strong>Table:</strong>
+    Summary of Descriptor and Iterator Invalidation.
+</caption>
+<tr>
+    <th>Function</th>
+    <th>Vertex/Edge Desc</th>
+    <th>Vertex/Edge Iter</th>
+    <th>Child Iter</th>
+</tr>
+<tr>
+    <td><tt>add_child_vertex()</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+</tr>
+<tr>
+    <td><tt>clear_children()</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+</tr>
+<tr>
+    <td><tt>remove_branch()</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+    <td align=center><tt>OK</tt></td>
+</tr>
+</table>
+
+<H2>Associated Types</H2>
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::vertex_descriptor</tt>
+<br><br>
+The type for the vertex descriptors associated with the
+<tt>vebl_d_ary_tree</tt>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::edge_descriptor</tt><br>
+<br><br>
+The type for the edge descriptors associated with the
+<tt>vebl_d_ary_tree</tt>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::vertex_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>vertices()</tt>.
+The <tt>vertex_iterator</tt> models <a
+href="http://www.sgi.com/tech/stl/BidirectionalIterator.html">BidirectionalIterator</a>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::edge_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>edges()</tt>.
+The <tt>edge_iterator</tt> models <a
+href="http://www.sgi.com/tech/stl/BidirectionalIterator.html">BidirectionalIterator</a>.
+
+
+<hr>
+
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::out_edge_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>out_edges()</tt>.
+The <tt>out_edge_iterator</tt> models 
+<a href="http://www.sgi.com/tech/stl/BidirectionalIterator.html">BidirectionalIterator</a>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::adjacency_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>adjacent_vertices()</tt>.
+The <tt>adjacency_iterator</tt> models the same iterator concept as <tt>out_edge_iterator</tt>.
+
+<hr>
+
+<tt>vebl_d_ary_tree::inv_adjacency_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>inv_adjacent_vertices()</tt>.
+The <tt>inv_adjacency_iterator</tt> models the same iterator concept
+as <tt>in_edge_iterator</tt>.
+
+<hr>
+
+<tt>tree_traits&lt;vebl_d_ary_tree&gt;::child_vertex_iterator</tt>
+<br><br>
+The type for the iterators returned by <tt>child_vertices()</tt>.
+The <tt>child_vertex_iterator</tt> models the same iterator concept as <tt>out_edge_iterator</tt>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::directed_category</tt>
+<br><br>
+Provides directionality information about the tree: it is always
+directed (<tt>directed_tag</tt>).
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::edge_parallel_category</tt>
+<br><br>
+This describes whether the tree class allows the insertion of
+parallel edges (edges with the same source and target). For 
+this class, parallel edges are never allowed, i.e., this 
+nested tag-type is always <tt>disallow_parallel_edge_tag</tt>.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::vertices_size_type</tt>
+<br><br>
+The type used for dealing with the number of vertices in the tree.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::edge_size_type</tt>
+<br><br>
+The type used for dealing with the number of edges in the tree.
+
+<hr>
+
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::degree_size_type</tt>
+<br><br>
+The type used for dealing with the number of edges incident to a vertex
+in the tree.
+
+<hr>
+
+<tt>property_map&lt;vebl_d_ary_tree, Property&gt;::type</tt>
+<br>and<br>
+<tt>property_map&lt;vebl_d_ary_tree, Property&gt;::const_type</tt>
+<br><br>
+The property map type for vertex or edge properties in the tree. The
+specific property is specified by the <tt>Property</tt> template argument,
+and must match one of the properties specified in the
+<tt>VertexProperties</tt> or <tt>EdgeProperties</tt> for the tree.
+
+<hr>
+
+<!--<tt>graph_property&lt;vebl_d_ary_tree, Property&gt;::type</tt>
+<br><br>
+The property value type for the tree property specified by the <tt>Property</tt> tag.
+
+<hr>-->
+
+<h2>Member Functions</h2>
+
+<hr>
+
+<pre>
+vebl_d_ary_tree()
+</pre>
+Default constructor. Creates an empty tree object with zero vertices.
+
+<hr>
+
+<pre>
+vebl_d_ary_tree(const&nbsp;vebl_d_ary_tree&amp;&nbsp;x)
+</pre>
+Copy constructor. Creates a new tree that is a copy of tree <tt>x</tt>.
+
+<hr>
+
+<pre>
+vebl_d_ary_tree(vebl_d_ary_tree&amp;&amp;&nbsp;x)
+</pre>
+Move constructor (C++11). Moves the contents of the <tt>x</tt> tree 
+into a new tree.
+
+<hr>
+
+<pre>
+vebl_d_ary_tree&amp; operator=(const&nbsp;vebl_d_ary_tree&amp;&nbsp;x)
+</pre>
+Assignment operator. Makes this tree a copy of tree <tt>x</tt>.
+
+<hr>
+
+<pre>
+vebl_d_ary_tree&amp; operator=(vebl_d_ary_tree&amp;&amp;&nbsp;x)
+</pre>
+Move-assignment operator. Moves the contents of the <tt>x</tt> tree 
+into this tree.
+
+<hr>
+
+<pre>
+void clear()
+</pre>
+Remove all of the edges and vertices from the tree.
+
+<hr>
+
+<pre>
+void swap(vebl_d_ary_tree&amp; x)
+</pre>
+Swap the vertices, edges, and properties of this tree with the
+vertices, edges, and properties of tree <tt>x</tt>.
+
+<hr>
+
+<p>
+
+<H2>Non-Member Functions</H2>
+
+
+<h4>General</h4>
+
+<hr>
+
+<pre>
+void swap(vebl_d_ary_tree&amp; lhs, vebl_d_ary_tree&amp; rhs)
+</pre>
+Swap the vertices, edges, and properties of two trees. This 
+overloads the standard swap function (using ADL).
+
+<hr>
+
+
+<h4>Graph Access</h4>
+
+<hr>
+
+<pre>
+std::pair&lt;vertex_iterator,&nbsp;vertex_iterator&gt;
+  vertices(const vebl_d_ary_tree&amp; g)
+</pre>
+Returns an iterator-range providing access to the vertex set of tree <tt>g</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;edge_iterator,&nbsp;edge_iterator&gt;
+  edges(const vebl_d_ary_tree&amp; g)
+</pre>
+Returns an iterator-range providing access to the edge set of tree <tt>g</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;adjacency_iterator,&nbsp;adjacency_iterator&gt;
+  adjacent_vertices(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns an iterator-range providing access to the vertices adjacent to
+vertex <tt>u</tt> in tree <tt>g</tt>. For example, if <tt>u -> v</tt>
+is an edge in the tree, then <tt>v</tt> will be in this iterator-range.
+
+<hr>
+
+<pre>
+std::pair&lt;inv_adjacency_iterator,&nbsp;inv_adjacency_iterator&gt;
+  inv_adjacent_vertices(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+
+Returns an iterator-range providing access to the vertices in tree
+<tt>g</tt> to which <tt>u</tt> is adjacent. (<tt>inv</tt> is for
+inverse.) For example, if <tt>v -> u</tt> is an edge in the tree,
+then <tt>v</tt> will be in this iterator range.
+
+<hr>
+
+<pre>
+std::pair&lt;out_edge_iterator,&nbsp;out_edge_iterator&gt;
+  out_edges(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns an iterator-range providing access to the out-edges of vertex
+<tt>u</tt> in tree <tt>g</tt>. For an out-edge
+<tt>e</tt>, <tt>source(e, g) == u</tt> and <tt>target(e, g) == v</tt>
+where <tt>v</tt> is a vertex adjacent to <tt>u</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;in_edge_iterator,&nbsp;in_edge_iterator&gt;
+  in_edges(vertex_descriptor&nbsp;v, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns an iterator-range providing access to the in-edges of vertex
+<tt>v</tt> in tree <tt>g</tt>. For an in-edge <tt>e</tt>, <tt>target(e, g) == v</tt>
+and <tt>source(e, g) == u</tt> for some vertex <tt>u</tt> that is
+adjacent to <tt>v</tt>.
+
+<hr>
+
+<pre>
+vertex_descriptor source(edge_descriptor&nbsp;e, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the source vertex of edge <tt>e</tt>.
+
+<hr>
+
+<pre>
+vertex_descriptor target(edge_descriptor&nbsp;e, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the target vertex of edge <tt>e</tt>.
+
+<hr>
+
+<pre>
+degree_size_type out_degree(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the number of edges leaving vertex <tt>u</tt>.
+
+<hr>
+
+<pre>
+degree_size_type in_degree(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the number of edges entering vertex <tt>u</tt>.
+
+<hr>
+
+<pre>
+degree_size_type degree(vertex_descriptor&nbsp;u, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the total number of edges around the vertex <tt>u</tt>.
+
+<hr>
+
+<pre>
+vertices_size_type num_vertices(const vebl_d_ary_tree&amp; g)
+</pre>
+Returns the number of vertices in the tree <tt>g</tt>.
+
+<hr>
+
+<pre>
+edges_size_type num_edges(const vebl_d_ary_tree&amp; g)
+</pre>
+Returns the number of edges in the tree <tt>g</tt>.
+This is always equal to <tt>num_vertices(g)-1</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;edge_descriptor, bool&gt;
+  edge(vertex_descriptor&nbsp;u, vertex_descriptor&nbsp;v, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+If an edge from vertex <tt>u</tt> to vertex <tt>v</tt> exists, return a pair
+containing one such edge and <tt>true</tt>.  If there are no edges between
+<tt>u</tt> and <tt>v</tt>, return a pair with an arbitrary edge descriptor and
+<tt>false</tt>.
+
+<hr>
+
+<h4>Tree Access</h4>
+
+<hr>
+
+<!-- ************************  TreeConcept  *************************** -->
+
+<pre>
+vertex_descriptor get_root_vertex(const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the root vertex of the tree, if one exists. If there is no 
+root (<tt>num_vertices(g) == 0</tt>), then the return value is 
+equal to <tt>graph_traits&lt;vebl_d_ary_tree&gt;::null_vertex()</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;child_vertex_iterator, child_vertex_iterator&gt;
+  child_vertices( vertex_descriptor v, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns an iterator range to the child vertices of the given vertex of 
+the tree <tt>g</tt>.
+
+<hr>
+
+<!-- ************************  BidirectionalTreeConcept  *************************** -->
+
+<pre>
+vertex_descriptor parent_vertex( vertex_descriptor v, const&nbsp;vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Returns the parent vertex to vertex <tt>v</tt> of the tree <tt>g</tt>. If there is 
+no parent vertex (<tt>v</tt> is the root), then the return value is equal to 
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::null_vertex()</tt>.
+
+<hr>
+
+
+<h4>Structure Modification</h4>
+
+<hr>
+
+<!-- ************************  MutableTreeConcept / MutablePropertyTreeConcept  *************************** -->
+
+<pre>
+vertex_descriptor create_root(vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Creates a root for the tree (clears it if not empty), and 
+returns the vertex descriptor to the root of the tree <tt>g</tt>.
+
+<hr>
+
+<pre>
+vertex_descriptor create_root(const&nbsp;VertexProperties&amp;&nbsp;p, vebl_d_ary_tree&amp;&nbsp;g)
+
+vertex_descriptor create_root(VertexProperties&amp;&amp;&nbsp;p, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Creates a root for the tree (clears it if not empty), copies or moves the given vertex-property into it,
+and returns the vertex descriptor to the root of the tree <tt>g</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Adds a child vertex to the given parent vertex <tt>v</tt> in the tree <tt>g</tt>, 
+and default-initializes the properties of the newly created vertex and edge.
+Returns a pair consisting of the newly created vertex and edge (descriptors).
+If the addition failed, the returned vertex-descriptor is equal to 
+<tt>graph_traits&lt;vebl_d_ary_tree&gt;::null_vertex()</tt>.
+
+<hr>
+
+<pre>
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, const&nbsp;VertexProperties&amp;&nbsp;vp, vebl_d_ary_tree&amp;&nbsp;g)
+
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, VertexProperties&amp;&amp;&nbsp;vp, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Adds a child vertex to the given parent vertex <tt>v</tt> in the tree <tt>g</tt>, 
+and initializes the properties of the newly created vertex to the given property value <tt>p</tt>.
+Returns a pair consisting of the newly created vertex and edge (descriptors).
+
+<hr>
+
+<pre>
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, const VertexProperties&amp;&nbsp;vp, 
+                   const EdgeProperties&amp;&nbsp;ep, vebl_d_ary_tree&amp;&nbsp;g)
+
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, VertexProperties&amp;&amp;&nbsp;vp, 
+                   const EdgeProperties&amp;&nbsp;ep, vebl_d_ary_tree&amp;&nbsp;g)
+
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, const VertexProperties&amp;&nbsp;vp, 
+                   EdgeProperties&amp;&amp;&nbsp;ep, vebl_d_ary_tree&amp;&nbsp;g)
+
+std::pair&lt;vertex_descriptor, edge_descriptor&gt;
+  add_child_vertex(vertex_descriptor v, VertexProperties&amp;&amp;&nbsp;vp, 
+                   EdgeProperties&amp;&amp;&nbsp;ep, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Adds a child vertex to the given parent vertex <tt>v</tt> in the tree <tt>g</tt>, 
+and initializes the properties of the newly created vertex to the given property value <tt>vp</tt>
+and the newly created edge to the given property value <tt>ep</tt>.
+Returns a pair consisting of the newly created vertex and edge (descriptors).
+
+<hr>
+
+<pre>
+void clear_children(vertex_descriptor v, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+<pre>
+template &lt;typename OutputIter&gt;
+OutputIter clear_children(vertex_descriptor v, OutputIter it_out, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+<pre>
+template &lt;typename VertexOutputIter, typename EdgeOutputIter&gt;
+std::pair&lt;VertexOutputIter, EdgeOutputIter&gt; clear_children(vertex_descriptor v, OutputIter vit_out, OutputIter eit_out, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from but 
+excluding the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function collects all the properties
+of the removed vertices and edges into output ranges starting at <tt>vit_out</tt>
+and <tt>eit_out</tt>, respectively. Returns the end of the output ranges. The 
+vertices and edges are outputted in the exact same order, i.e., each edge-property 
+being that of the in-edge of the vertex whose property was put at the same position 
+in the vertex-property output-range. The first vertex-property 
+to figure in the output range is that of the vertex <tt>v</tt>, but all other 
+properties will appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+<pre>
+void remove_branch(vertex_descriptor v, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
+including the given vertex <tt>v</tt>. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+<pre>
+template &lt;typename OutputIter&gt;
+OutputIter remove_branch(vertex_descriptor v, OutputIter it_out, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
+including the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The first vertex-property 
+to figure in the output range is that of the vertex <tt>v</tt>, but all other 
+properties will appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+<pre>
+template &lt;typename VertexOutputIter, typename EdgeOutputIter&gt;
+std::pair&lt;VertexOutputIter, EdgeOutputIter&gt; remove_branch(vertex_descriptor v, OutputIter vit_out, OutputIter eit_out, vebl_d_ary_tree&amp;&nbsp;g)
+</pre>
+Removes a branch (sub-tree) from the tree <tt>g</tt> starting from and 
+including the given vertex <tt>v</tt>, while recording the vertex-properties 
+of all the removed vertices into an output-iterator. The properties will 
+appear in the output range in an undefined order. This function collects all the properties
+of the removed vertices and edges into output ranges starting at <tt>vit_out</tt>
+and <tt>eit_out</tt>, respectively. Returns the end of the output ranges. The 
+vertices and edges are outputted in the exact same order, i.e., each edge-property 
+being that of the in-edge of the vertex whose property was put at the same position 
+in the vertex-property output-range. The first vertex-property 
+to figure in the output range is that of the vertex <tt>v</tt>, but all other 
+properties will appear in the output range in an undefined order. This function invalidates 
+all vertex or edge descriptors or iterators referring to vertices or 
+edges that are part of the branch below vertex <tt>v</tt>.
+
+<hr>
+
+
+<h4><a name="property-map-accessors">Property Map Accessors</a></h4>
+
+<hr>
+
+<pre>
+template &lt;class <a href="./PropertyTag.html">PropertyTag</a>&gt;
+property_map&lt;vebl_d_ary_tree, PropertyTag&gt;::type
+  get(PropertyTag, vebl_d_ary_tree&amp; g)
+
+template &lt;class <a href="./PropertyTag.html">PropertyTag</a>&gt;
+property_map&lt;vebl_d_ary_tree, Tag&gt;::const_type
+  get(PropertyTag, const vebl_d_ary_tree&amp; g)
+</pre>
+Returns the property map object for the vertex property specified by
+<tt>PropertyTag</tt>. The <tt>PropertyTag</tt> must match one of the
+properties specified in the tree's <tt>VertexProperty</tt> template
+argument.
+
+<hr>
+
+<pre>
+template &lt;class <a href="./PropertyTag.html">PropertyTag</a>, class X&gt;
+typename property_traits&lt;property_map&lt;vebl_d_ary_tree, PropertyTag&gt;::const_type&gt;::value_type
+  get(PropertyTag, const vebl_d_ary_tree&amp; g, X x)
+</pre>
+This returns the property value for <tt>x</tt>, where <tt>x</tt> is either
+a vertex or edge descriptor.
+<hr>
+
+<pre>
+template &lt;class <a href="./PropertyTag.html">PropertyTag</a>, class X, class Value&gt;
+void put(PropertyTag, const vebl_d_ary_tree&amp; g, X x, const Value&amp; value)
+</pre>
+This sets the property value for <tt>x</tt> to
+<tt>value</tt>. <tt>x</tt> is either a vertex or edge descriptor.
+<tt>Value</tt> must be convertible to
+<tt>typename property_traits&lt;property_map&lt;vebl_d_ary_tree, PropertyTag&gt;::type&gt;::value_type</tt>
+
+<hr>
+
+<!--<pre>
+template &lt;class GraphProperties, class <a href="./PropertyTag.html#GraphPropertyTag">GraphPropertyTag</a>&gt;
+typename graph_property&lt;vebl_d_ary_tree, GraphPropertyTag&gt;::type&amp;
+  get_property(vebl_d_ary_tree&amp; g, GraphPropertyTag);
+</pre>
+Return the property specified by <tt>GraphPropertyTag</tt> that is
+attached to the tree object <tt>g</tt>. The <tt>graph_property</tt>
+traits class is defined in <a
+href="../../../boost/graph/vebl_d_ary_tree.hpp"><tt>boost/graph/vebl_d_ary_tree.hpp</tt></a>.
+
+<hr>
+
+<pre>
+template &lt;class GraphProperties, class <a href="./PropertyTag.html#GraphPropertyTag">GraphPropertyTag</a>&gt;
+const typename graph_property&lt;vebl_d_ary_tree, GraphPropertyTag&gt;::type&amp;
+  get_property(const vebl_d_ary_tree&amp; g, GraphPropertyTag);
+</pre>
+Return the property specified by <tt>GraphPropertyTag</tt> that is
+attached to the tree object <tt>g</tt>.  The <tt>graph_property</tt>
+traits class is defined in <a
+href="../../../boost/graph/vebl_d_ary_tree.hpp"><tt>boost/graph/vebl_d_ary_tree.hpp</tt></a>.
+
+<hr>-->
+
+
+
+<!--<h4><a name="serialization">Serialization</a></h4>
+
+<hr>
+
+<pre>
+template&lt;class <a href="../../serialization/doc/archives.html#saving_interface">SavingArchive</a>&gt;
+SavingArchive&amp; operator&lt;&lt;(SavingArchive&amp; ar, const vebl_d_ary_tree&amp; graph);
+</pre>
+Serializes the tree into the archive. Requires the vertex and edge properties of the
+tree to be <a href="../../serialization/doc/index.html">Serializable</a>.
+<br>
+Include <a href="../../../boost/graph/vebl_d_ary_tree_serialize.hpp"><tt>boost/graph/vebl_d_ary_tree_serialize.hpp</tt></a>.
+<hr>
+
+<pre>
+template&lt;class <a href="../../serialization/doc/archives.html#loading_interface">LoadingArchive</a>&gt;
+LoadingArchive&amp; operator&gt;&gt;(LoadingArchive&amp; ar, const vebl_d_ary_tree&amp; graph);
+</pre>
+Reads the tree from the archive. Requires the vertex and edge properties of the
+tree to be <a href="../../serialization/doc/index.html">Serializable</a>.
+<br>
+Include <a href="../../../boost/graph/vebl_d_ary_tree_serialize.hpp"><tt>boost/graph/vebl_d_ary_tree_serialize.hpp</tt></a>.
+<hr>-->
+
+
+<h3>See Also</h3>
+
+<a href="./vebl_d_ary_tree_traits.html"><tt>vebl_d_ary_tree_traits</tt></a>,
+<a href="./property_map.html"><tt>property_map</tt></a>,
+<a href="./graph_traits.html"><tt>graph_traits</tt></a>
+
+
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html>

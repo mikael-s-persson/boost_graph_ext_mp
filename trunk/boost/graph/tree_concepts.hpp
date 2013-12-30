@@ -171,7 +171,7 @@ struct MutablePropertyTreeConcept {
   typename TreeType::edge_property_type ep;
   TreeType tree;
   
-  BOOST_CONCEPT_ASSERT((MutableTreeConcept<TreeType>));
+  BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
   
   BOOST_CONCEPT_USAGE(MutablePropertyTreeConcept) 
   {

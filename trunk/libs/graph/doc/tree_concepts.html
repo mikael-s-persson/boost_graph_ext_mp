@@ -1,0 +1,219 @@
+<html>
+<!--
+     Copyright (c) Sven Mikael Persson 2013
+    
+     Distributed under the Boost Software License, Version 1.0.
+     (See accompanying file LICENSE_1_0.txt or copy at
+     http://www.boost.org/LICENSE_1_0.txt)
+  -->
+<head>
+<title>Boost Tree Concepts</title>
+<body bgcolor="#ffffff" link="#0000ee" text="#000000" vlink="#551a8b" alink="#ff0000"> 
+<img src="../../../boost.png" alt="C++ Boost" width="277" height="86"> 
+
+<br Clear>
+
+
+<h1><a name="chapter:tree-concepts"></a>
+Tree Concepts
+</h1>
+
+<p>
+At the heart of the Boost Graph Library (BGL) there are a number of 
+<a href="./graph_concepts.html">graph concepts</a> that define the interface
+by which one can examine and manipulate a graph data-structure within 
+generic algorithms. Naturally, to embody the specific nature of trees, as 
+special kinds of graphs, there are a number of additional concepts by which
+to interface with trees. Please note that the BGL interfaces need not even 
+be implemented using data-structures, as for some problems it is more 
+natural to define a graph or tree implicitly based on some functions.
+
+<p>
+In the tradition of the BGL, the tree concepts are split into small
+distinct pieces to encourage a culture of minimum requirements by the 
+generic algorithms and data-structures that employ generic graphs or trees. 
+Moreover, this allows for graph or tree data-structure implementations to
+omit certain functionalities that cannot be implemented in an efficient or 
+economical way (e.g., often because other operations are favored or streamlined).
+
+<h2>Graph Structure Concepts Overview with Tree Concepts</h2>
+
+<p>
+<a href="#fig:graph-tree-concepts">Figure 1</a> shows the refinements
+relations between the graph and tree concepts. The reason for factoring the
+interface into so many concepts is to encourage algorithm
+interfaces to require and use only the minimum interface of a graph,
+thereby increasing the reusability of the algorithm.
+
+<p></p>
+<div align="CENTER"><a name="fig:graph-tree-concepts"></a></a>
+<table>
+<caption align="BOTTOM"><strong>Figure 1:</strong>
+The graph concepts and refinement relationships.
+</caption>
+<tr><td><img src="./figs/graph_tree_concepts.png" width="600"></td></tr>
+</table>
+</div>
+<p></p>
+
+<a href="#tab:tree-concept-reqs">Table&nbsp;1</a>
+gives a summary of the valid expressions and associated types for the
+tree concepts and provides links to the detailed descriptions of
+each of the concepts. The table of requirements for all graph concepts is
+on <a href="./graph_concepts.html#tab:graph-concept-reqs">its own page</a>.
+
+The notation used in the table is as follows.
+
+<h3>Notation</h3>
+
+<table>
+<tr>
+<td><tt>T</tt></td>
+<td>is a type that is a model of Tree.</td>
+</tr>
+
+<tr>
+<td><tt>t</tt></td>
+<td>is an object of type <tt>T</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>e</tt></td>
+<td>is an object of type <tt>boost::graph_traits&lt;T&gt;::edge_descriptor</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>u</tt></td>
+<td>is an object of type <tt>boost::graph_traits&lt;T&gt;::vertex_descriptor</tt>.</td>
+</tr>
+
+<tr>
+<td><tt>ep</tt></td><td>is an object of type <tt>T::edge_property_type</tt></td>
+</tr>
+
+<tr>
+<td><tt>up</tt></td><td>is an object of type <tt>T::vertex_property_type</tt></td>
+</tr>
+
+<tr>
+<td><tt>ep_oiter</tt></td><td>is an output-iterator of value-type <tt>T::edge_property_type</tt></td>
+</tr>
+
+<tr>
+<td><tt>up_oiter</tt></td><td>is an output-iterator of value-type <tt>T::vertex_property_type</tt></td>
+</tr>
+
+</table>
+
+
+
+
+<p>
+<br><p></p>
+<div align="CENTER"><a name="tab:tree-concept-reqs"></a>
+<table>
+<caption align="BOTTOM"><strong>Table 1:</strong>
+    Summary of the tree concepts.
+    </caption>
+<tr><td>  
+<table border>
+<tr><th align="LEFT">
+<b>Expression</b> </th>
+<th align="LEFT" valign="TOP"> <b>Return Type or Description</b> </th>
+</tr>
+<!---------------------------------------------------------------->
+<tr><td align="LEFT" colspan=2>  
+ <a href="./Tree.html">Tree</a> refines IncidenceGraph </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>boost::tree_traits&lt;T&gt;::child_vertex_iterator</tt> </td>
+<td align="LEFT" valign="TOP"> The type for iterating through children of a vertex. </TD>
+</tr>
+<tr><td align="LEFT"> 
+<tt>get_root_vertex(t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>vertex_descriptor</tt> </td>
+</tr>
+<tr><td align="LEFT"> 
+<tt>child_vertices(u,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;child_vertex_iterator,&nbsp;child_vertex_iterator&gt;</tt> </td>
+</tr>
+<!---------------------------------------------------------------->
+<tr><td align="LEFT" colspan=2>  
+ <a href="./BidirectionalTree.html">BidirectionalTree</a> refines Tree </td>
+</tr>
+<tr><td align="LEFT"> 
+<tt>parent_vertex(u,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>vertex_descriptor</tt> </td>
+</tr>
+<!---------------------------------------------------------------->
+<tr><td align="LEFT" colspan=2>  
+<a href="./MutableTree.html">MutableTree</a> refines Tree</td>
+</tr>
+<tr><td align="LEFT">  
+<tt>create_root(t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>vertex_descriptor</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>add_child_vertex(u,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;vertex_descriptor, edge_descriptor&gt;</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>clear_children(u,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>void</tt> </td>
+</tr>
+<tr><td align="LEFT"> 
+<tt>remove_branch(u,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>void</tt> </td>
+</tr>
+<!---------------------------------------------------------------->
+<tr><td ALIGN="LEFT" COLSPAN=2>  
+<a href="./MutablePropertyTree.html">MutablePropertyTree</a> refines
+  Tree</TD>
+</TR>
+<tr><td align="LEFT">  
+<tt>create_root(up,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>vertex_descriptor</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>add_child_vertex(u,&nbsp;up,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;vertex_descriptor, edge_descriptor&gt;</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>add_child_vertex(u,&nbsp;up,&nbsp;ep,&nbsp;t)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;vertex_descriptor, edge_descriptor&gt;</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>clear_children(u,&nbsp;up_oiter,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>decltype(up_oiter)</tt> </td>
+</tr>
+<tr><td align="LEFT">  
+<tt>clear_children(u,&nbsp;up_oiter,&nbsp;ep_oiter,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;decltype(up_oiter),&nbsp;decltype(ep_oiter)&gt;</tt> </td>
+</tr>
+<tr><td align="LEFT"> 
+<tt>remove_branch(u,&nbsp;up_oiter,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>decltype(up_oiter)</tt> </td>
+</tr>
+<tr><td align="LEFT"> 
+<tt>remove_branch(u,&nbsp;up_oiter,&nbsp;ep_oiter,&nbsp;g)</tt> </td>
+<td align="LEFT" valign="TOP"> <tt>std::pair&lt;decltype(up_oiter),&nbsp;decltype(ep_oiter)&gt;</tt> </td>
+</tr>
+
+</table>
+</table>
+</div><p></p>
+<br>
+
+<p>
+
+<br>
+<hr>
+<table>
+<tr valign=top>
+<td nowrap>Copyright &copy; 2013</td><td>
+<a href="http://cim.mcgill.ca/~mpersson/">Sven Mikael Persson</a>, McGill University (<a href="mailto:mikael.s.persson@gmail.com">mikael.s.persson@gmail.com</a>)
+</td></tr>
+</table>
+
+</body>
+</html> 
