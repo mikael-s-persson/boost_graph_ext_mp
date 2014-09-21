@@ -86,7 +86,7 @@ Section <A HREF="./using_adjacency_list_BC.html">Using
 
 <P>
 The example in <a
-href="../example/family-tree-eg.cpp"><tt>examples/family-tree-eg.cpp</tt></a>
+href="../example/family-tree-alBC.cpp"><tt>examples/family-tree-alBC.cpp</tt></a>
 shows how to represent a family tree with a graph.
 
 <H3>Template Parameters</H3>
@@ -152,7 +152,7 @@ and <a href="../../serialization/doc/index.html">Serializable</a>.
 <P>
 <a href="../../../boost/graph/adjacency_list_BC.hpp"><TT>boost/graph/adjacency_list_BC.hpp</TT></a><br><br>
 Also, the serialization functionality is in
-<a href="../../../boost/graph/adj_list_serialize.hpp"><tt>boost/graph/adj_list_serialize.hpp</tt></a>.
+<a href="../../../boost/graph/adj_list_BC_serialize.hpp"><tt>boost/graph/adj_list_BC_serialize.hpp</tt></a>.
 <P>
 
 <H3>Implementation Differences with <TT>adjacency_list</TT></H3>
@@ -180,9 +180,9 @@ minimum, e.g., vertices are stored by value in a vector container when the user 
 by specifying <tt>vecBC</tt> for the <tt>VertexList</tt> argument.
 
 <P>
-Another central difference the two implementations is that <tt>adjacency_list</tt> was 
+Another central difference between the two implementations is that <tt>adjacency_list</tt> was 
 originally written to use the <tt>boost::property</tt> class template to construct 
-internal properties for vertices and edges. Recently, the use of that method is 
+internal properties for vertices and edges. In recent years, the use of that method is 
 discouraged in favor of <a href="bundles.html">bundled properties</a>. However, 
 the internal mechanics of <tt>adjacency_list</tt> are still entirely oriented 
 towards the use <tt>boost::property</tt>, with special mechanisms to allow for 
@@ -206,7 +206,7 @@ there is, in general, less space complexity throughout, but time complexities ar
 sometimes worse and sometimes better, compared to <tt>adjacency_list</tt>.
 
 <P>
-Finally, a significant addition that the <tt>adjacency_list_BC</tt> class provides
+Finally, an additional feature of the <tt>adjacency_list_BC</tt> class 
 is the option to store vertices or edges in a "pooled" container, via the option 
 <tt>boost::poolBC</tt> for either <tt>VertexList</tt> or <tt>OutEdgeList</tt>.
 The <tt>poolBC</tt> container option is implemented in a way that is similar to 
@@ -237,7 +237,8 @@ interface defined in Section <A
 HREF="../../property_map/doc/property_map.html">Property Map
 Concepts</A> or may be <a href="bundles.html">bundled properties</a>,
 which have a more succinct syntax. The types of all property values
-must be Copy Constructible, Assignable, and Default Constructible.
+must be Copy/Move Constructible, Copy/Move Assignable, and Default 
+Constructible.
 The property maps obtained from the
 <TT>adjacency_list_BC</TT> class are models of the <a
 href="../../property_map/doc/LvaluePropertyMap.html">Lvalue Property
@@ -247,7 +248,7 @@ map is mutable.
 
 <P>
 If the <TT>VertexList</TT> of the graph is <TT>vecBC</TT>, then the
-graph has a builtin vertex indices accessed via the property map for
+graph has a builtin vertex indices map accessed via the property map for
 the <TT>vertex_index_t</TT> property.  The indices fall in the range
 <TT>[0, num_vertices(g))</TT> and are contiguous. When a vertex is
 removed the indices are adjusted so that they retain these
@@ -355,7 +356,7 @@ vertex descriptors have become invalid, the result is incorrect.
   std::vector&lt;Vertex&gt; parent(num_vertices(G));
   std::vector&lt;Vertex&gt; distance(num_vertices(G));
 
-  dijkstra_shortest_paths(G, s, distance_map(&amp;distance[0]).
+  dijkstra_shortest_paths(G, s, distance_map(&amp;distance[0]),
     predecessor_map(&amp;parent[0]));
 
   remove_vertex(s, G); <b>// Bad idea! Invalidates vertex descriptors in parent vector.</b>
@@ -367,14 +368,14 @@ vertex descriptors have become invalid, the result is incorrect.
 
 
 <p>
-Note that in this discussion iterator and descriptor invalidation is
+Note that in this discussion, iterator and descriptor invalidation is
 concerned with the invalidation of iterators and descriptors that are
 <b>not directly affected</b> by the operation. For example, performing
 <tt>remove_edge(u, v, g)</tt> will always invalidate any edge
 descriptor for <i>(u,v)</i> or edge iterator pointing to <i>(u,v)</i>,
-regardless of the kind <tt>adjacency_list_BC</tt>.  In this discussion
+regardless of the kind of <tt>adjacency_list_BC</tt> used.  In this discussion
 of iterator and descriptor invalidation, we are only concerned with the
-affect of <tt>remove_edge(u, v, g)</tt> on edge descriptors and
+effect of <tt>remove_edge(u, v, g)</tt> on edge descriptors and
 iterators that point to other edges (not <i>(u,v)</i>).
 
 <p>
@@ -458,7 +459,7 @@ The type for the vertex descriptors associated with the
 
 <hr>
 
-<tt>graph_traits&lt;adjacency_list_BC&gt;::edge_descriptor</tt><br>
+<tt>graph_traits&lt;adjacency_list_BC&gt;::edge_descriptor</tt>
 <br><br>
 The type for the edge descriptors associated with the
 <TT>adjacency_list_BC</TT>.
@@ -513,7 +514,7 @@ as <tt>out_edge_iterator</tt>.
 
 <tt>graph_traits&lt;adjacency_list_BC&gt;::directed_category</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed&gt;::directed_category</tt>
+<tt>adjacency_list_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::directed_category</tt>
 <br><br>
 Provides information about whether the graph is
 directed (<TT>directed_tag</TT>) or undirected (<TT>undirected_tag</TT>).
@@ -522,20 +523,20 @@ directed (<TT>directed_tag</TT>) or undirected (<TT>undirected_tag</TT>).
 
 <tt>graph_traits&lt;adjacency_list_BC&gt;::edge_parallel_category</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_parallel_category</tt>
+<tt>adjacency_list_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_parallel_category</tt>
 <br><br>
 This describes whether the graph class allows the insertion of
 parallel edges (edges with the same source and target). The two tags
-are <TT>allow_parallel_edge-_tag</TT> and
-<TT>disallow_parallel_edge_tag</TT>. The
-<TT>setS</TT> and <TT>hash_setS</TT> variants disallow
+are <tt>allow_parallel_edge-_tag</tt> and
+<tt>disallow_parallel_edge_tag</tt>. The <tt>setBC</tt>, <tt>unordered_setBC</tt>, 
+<tt>mapBC</tt>, and <tt>unordered_mapBC</tt> options for <tt>OutEdgeListS</tt> disallow
 parallel edges while the others allow parallel edges.
 
 <hr>
 
 <tt>graph_traits&lt;adjacency_list_BC&gt;::vertices_size_type</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed_list&gt;::vertices_size_type</tt><br>
+<tt>adjacency_list_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::vertices_size_type</tt>
 <br><br>
 The type used for dealing with the number of vertices in the graph.
 
@@ -543,7 +544,7 @@ The type used for dealing with the number of vertices in the graph.
 
 <tt>graph_traits&lt;adjacency_list_BC&gt;::edge_size_type</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed_list&gt;::edge_size_type</tt><br>
+<tt>adjacency_list_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_size_type</tt>
 <br><br>
 The type used for dealing with the number of edges in the graph.
 
@@ -561,17 +562,17 @@ and<br>
 <tt>property_map&lt;adjacency_list_BC, Property&gt;::const_type</tt>
 <br><br>
 The property map type for vertex or edge properties in the graph. The
-specific property is specified by the <TT>Property</TT> template argument,
+specific property is specified by the <tt>Property</tt> template argument,
 and must match one of the properties specified in the
-<TT>VertexProperties</TT> or <TT>EdgeProperties</TT> for the graph.
+<tt>VertexProperties</tt> or <tt>EdgeProperties</tt> for the graph.
 
-<hr>
+<!--<hr>
 
 <tt>graph_property&lt;adjacency_list_BC, Property&gt;::type</tt>
 <br><br>
 The property value type for the graph property specified by the <tt>Property</tt> tag.
 
-<hr>
+--><hr>
 
 <tt>adjacency_list_BC::out_edge_list_selector</tt>
 <br><br>
@@ -588,6 +589,20 @@ The type <tt>VertexListS</tt>.
 <tt>adjacency_list_BC::directed_selector</tt>
 <br><br>
 The type <tt>DirectedS</tt>.
+
+<hr>
+
+<tt>adjacency_list_BC::vertex_property_type</tt>
+<br><br>
+The type <tt>VertexProperties</tt> or equivalent (proxy). This is the type expected for 
+arguments to functions of the <a href="./MutablePropertyGraph.html">MutablePropertyGraph</a> concept.
+
+<hr>
+
+<tt>adjacency_list_BC::edge_property_type</tt>
+<br><br>
+The type <tt>EdgeProperties</tt> or equivalent (proxy). This is the type expected for 
+arguments to functions of the <a href="./MutablePropertyGraph.html">MutablePropertyGraph</a> concept.
 
 <hr>
 
@@ -635,7 +650,7 @@ into this graph.
 
 <hr>
 
-<pre>
+<!--<pre>
 adjacency_list_BC(vertices_size_type&nbsp;n)
 </pre>
 Creates a graph object with <TT>n</TT> vertices and zero edges.
@@ -647,8 +662,7 @@ Creates a graph object with <TT>n</TT> vertices and zero edges.
 template &lt;class&nbsp;EdgeIterator&gt;
 adjacency_list_BC(EdgeIterator&nbsp;first, EdgeIterator&nbsp;last,
                   vertices_size_type&nbsp;n,
-                  edges_size_type&nbsp;m = 0,
-                  const&nbsp;GraphProperty&amp;&nbsp;p&nbsp;=&nbsp;GraphProperty())
+                  edges_size_type&nbsp;m = 0)
 </pre>
 Creates a graph object with <TT>n</TT> vertices and with the edges
 specified in the edge list given by the range <TT>[first, last)</TT>.
@@ -667,8 +681,7 @@ template &lt;class&nbsp;EdgeIterator, class&nbsp;EdgePropertyIterator&gt;
 adjacency_list_BC(EdgeIterator&nbsp;first, EdgeIterator&nbsp;last,
                   EdgePropertyIterator&nbsp;ep_iter,
                   vertices_size_type&nbsp;n,
-                  edges_size_type&nbsp;m = 0,
-                  const&nbsp;GraphProperty&amp;&nbsp;p&nbsp;=&nbsp;GraphProperty())
+                  edges_size_type&nbsp;m = 0)
 </pre>
 Creates a graph object with <TT>n</TT> vertices and with the edges
 specified in the edge list given by the range <TT>[first, last)</TT>.
@@ -681,7 +694,7 @@ integers will correspond to vertices, and they must all fall in the
 range of <TT>[0, n)</TT>. The <TT>value_type</TT> of the
 <TT>ep_iter</TT> should be <TT>EdgeProperties</TT>.
 
-<hr>
+<hr>-->
 
 <pre>
 void clear()
@@ -1116,7 +1129,7 @@ href="../../../boost/graph/adjacency_list_BC.hpp"><tt>boost/graph/adjacency_list
 
 
 
-<!--<h4><a name="serialization">Serialization</a></h4>
+<h4><a name="serialization">Serialization</a></h4>
 
 <hr>
 
@@ -1127,7 +1140,7 @@ SavingArchive&amp; operator<<(SavingArchive&amp; ar, const adjacency_list_BC&amp
 Serializes the graph into the archive. Requires the vertex and edge properties of the
 graph to be <a href="../../serialization/doc/index.html">Serializable</a>.
 <br>
-Include <a href="../../../boost/graph/adj_list_serialize.hpp"><tt>boost/graph/adj_list_serialize.hpp</tt></a>.
+Include <a href="../../../boost/graph/adj_list_BC_serialize.hpp"><tt>boost/graph/adj_list_BC_serialize.hpp</tt></a>.
 <hr>
 
 <pre>
@@ -1137,8 +1150,8 @@ LoadingArchive&amp; operator>>(LoadingArchive&amp; ar, const adjacency_list_BC&a
 Reads the graph from the archive. Requires the vertex and edge properties of the
 graph to be <a href="../../serialization/doc/index.html">Serializable</a>.
 <br>
-Include <a href="../../../boost/graph/adj_list_serialize.hpp"><tt>boost/graph/adj_list_serialize.hpp</tt></a>.
-<hr>-->
+Include <a href="../../../boost/graph/adj_list_BC_serialize.hpp"><tt>boost/graph/adj_list_BC_serialize.hpp</tt></a>.
+<hr>
 
 
 <h3>See Also</h3>

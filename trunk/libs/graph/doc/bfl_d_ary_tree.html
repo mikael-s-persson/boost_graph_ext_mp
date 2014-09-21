@@ -41,7 +41,7 @@ only recommended when that is the case. The storage pattern is similar to a typi
 heap layout.
 
 <p> 
-The memory overhead associated with this data-structured is minimal. The links between 
+The memory overhead associated with this data-structure is minimal. The links between 
 vertices and edges are implicit (or structural) in index arithmetic as opposed to 
 explicit as they would be in a linked structure (like <tt>linked_tree_BC</tt>), which 
 represents an economy of the pointers or dynamic containers required to represent those 
@@ -49,15 +49,14 @@ out-going or in-coming links (edges). The only real memory overhead is the exces
 used for "empty" vertices and edges when the tree is not full and balanced, as well as 
 any excess memory pre-allocated by the underlying dynamic array (<tt>std::vector</tt>).
 
-
-<!--<p>
+<p>
 
 <h3>Example</h3>
 
 <p>
 The example in <a
-href="../example/family-tree-eg.cpp"><tt>examples/family-tree-eg.cpp</tt></a>
-shows how to represent a family tree with a linked-tree.-->
+href="../example/family-tree-bfl.cpp"><tt>examples/family-tree-bfl.cpp</tt></a>
+shows how to represent a family tree with a <tt>bfl_d_ary_tree</tt>.
 
 <h3>Template Parameters</h3>
 
@@ -809,7 +808,7 @@ href="../../../boost/graph/bfl_d_ary_tree.hpp"><tt>boost/graph/bfl_d_ary_tree.hp
 
 
 
-<!--<h4><a name="serialization">Serialization</a></h4>
+<h4><a name="serialization">Serialization</a></h4>
 
 <hr>
 
@@ -831,12 +830,11 @@ Reads the tree from the archive. Requires the vertex and edge properties of the
 tree to be <a href="../../serialization/doc/index.html">Serializable</a>.
 <br>
 Include <a href="../../../boost/graph/bfl_d_ary_tree_serialize.hpp"><tt>boost/graph/bfl_d_ary_tree_serialize.hpp</tt></a>.
-<hr>-->
+<hr>
 
 
 <h3>See Also</h3>
 
-<a href="./bfl_d_ary_tree_traits.html"><tt>bfl_d_ary_tree_traits</tt></a>,
 <a href="./property_map.html"><tt>property_map</tt></a>,
 <a href="./graph_traits.html"><tt>graph_traits</tt></a>
 

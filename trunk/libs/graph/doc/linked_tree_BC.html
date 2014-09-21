@@ -70,7 +70,7 @@ Section <a href="./using_linked_tree_BC.html">Using <tt>linked_tree_BC</tt></a>.
 
 <p>
 The example in <a
-href="../example/family-tree-eg.cpp"><tt>examples/family-tree-eg.cpp</tt></a>
+href="../example/family-tree-ltBC.cpp"><tt>examples/family-tree-ltBC.cpp</tt></a>
 shows how to represent a family tree with a linked-tree.
 
 <H3>Template Parameters</H3>
@@ -159,7 +159,7 @@ The property maps are objects that implement the interface defined in Section
 <a href="../../property_map/doc/property_map.html">Property Map Concepts</a> 
 or may be <a href="bundles.html">bundled properties</a>,
 which have a more succinct syntax. The types of all property values
-must be Copy Constructible, Assignable, and Default Constructible.
+must be Copy/Move Constructible, Copy/Move Assignable, and Default Constructible.
 The property maps obtained from the <tt>linked_tree_BC</tt> class are models of 
 the <a href="../../property_map/doc/LvaluePropertyMap.html">Lvalue Property Map</a> 
 concept. If the <tt>linked_tree_BC</tt> is const, then the property map is constant, 
@@ -270,7 +270,7 @@ concerned with the invalidation of iterators and descriptors that are
 <tt>remove_branch(u, g)</tt> will always invalidate any edge
 descriptor or iterator referring to an edge coming out of vertex <i>u</i>,
 as well as any vertex or edge within the branch of the tree below vertex <i>u</i>,
-regardless of the kind <tt>linked_tree_BC</tt>.  In this discussion
+regardless of the kind of <tt>linked_tree_BC</tt> used. In this discussion
 of iterator and descriptor invalidation, we are only concerned with the
 effect of <tt>remove_branch(u, g)</tt> on edge or vertex descriptors and
 iterators that point to other edges or vertices (not in the branch below <i>u</i>).
@@ -405,7 +405,7 @@ The <tt>child_vertex_iterator</tt> models the same iterator concept as <tt>out_e
 
 <tt>graph_traits&lt;linked_tree_BC&gt;::directed_category</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed&gt;::directed_category</tt>
+<tt>linked_tree_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::directed_category</tt>
 <br><br>
 Provides information about whether the tree is
 directed (<tt>directed_tag</tt>) or undirected (<tt>undirected_tag</tt>).
@@ -414,7 +414,7 @@ directed (<tt>directed_tag</tt>) or undirected (<tt>undirected_tag</tt>).
 
 <tt>graph_traits&lt;linked_tree_BC&gt;::edge_parallel_category</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_parallel_category</tt>
+<tt>linked_tree_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_parallel_category</tt>
 <br><br>
 This describes whether the tree class allows the insertion of
 parallel edges (edges with the same source and target). The two tags
@@ -427,7 +427,7 @@ parallel edges while the others allow parallel edges.
 
 <tt>graph_traits&lt;linked_tree_BC&gt;::vertices_size_type</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed_list&gt;::vertices_size_type</tt><br>
+<tt>linked_tree_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::vertices_size_type</tt>
 <br><br>
 The type used for dealing with the number of vertices in the tree.
 
@@ -435,7 +435,7 @@ The type used for dealing with the number of vertices in the tree.
 
 <tt>graph_traits&lt;linked_tree_BC&gt;::edge_size_type</tt><br>
 and<br>
-<tt>adjacency_list_traits&lt;OutEdgeList, VertexList, Directed_list&gt;::edge_size_type</tt><br>
+<tt>linked_tree_BC_traits&lt;OutEdgeList, VertexList, Directed&gt;::edge_size_type</tt>
 <br><br>
 The type used for dealing with the number of edges in the tree.
 
@@ -480,6 +480,20 @@ The type <tt>VertexListS</tt>.
 <tt>linked_tree_BC::directed_selector</tt>
 <br><br>
 The type <tt>DirectedS</tt>.
+
+<hr>
+
+<tt>linked_tree_BC::vertex_property_type</tt>
+<br><br>
+The type <tt>VertexProperties</tt> or equivalent (proxy). This is the type expected for 
+arguments to functions of the <a href="./MutablePropertyTree.html">MutablePropertyTree</a> concept.
+
+<hr>
+
+<tt>linked_tree_BC::edge_property_type</tt>
+<br><br>
+The type <tt>EdgeProperties</tt> or equivalent (proxy). This is the type expected for 
+arguments to functions of the <a href="./MutablePropertyTree.html">MutablePropertyTree</a> concept.
 
 <hr>
 
@@ -946,7 +960,7 @@ href="../../../boost/graph/linked_tree_BC.hpp"><tt>boost/graph/linked_tree_BC.hp
 
 
 
-<!--<h4><a name="serialization">Serialization</a></h4>
+<h4><a name="serialization">Serialization</a></h4>
 
 <hr>
 
@@ -968,7 +982,7 @@ Reads the tree from the archive. Requires the vertex and edge properties of the
 tree to be <a href="../../serialization/doc/index.html">Serializable</a>.
 <br>
 Include <a href="../../../boost/graph/linked_tree_BC_serialize.hpp"><tt>boost/graph/linked_tree_BC_serialize.hpp</tt></a>.
-<hr>-->
+<hr>
 
 
 <h3>See Also</h3>
