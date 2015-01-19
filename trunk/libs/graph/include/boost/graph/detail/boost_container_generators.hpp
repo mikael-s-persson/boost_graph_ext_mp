@@ -338,11 +338,17 @@ namespace detail {
   template <typename Vertex, typename EdgeRawDesc>
   bool operator==(const BC_edge_desc<Vertex, EdgeRawDesc>& lhs, 
                   const BC_edge_desc<Vertex, EdgeRawDesc>& rhs) { 
+    if((lhs.source == BC_null_desc<Vertex>::value()) &&
+       (rhs.source == BC_null_desc<Vertex>::value()))
+      return true;
     return (lhs.source == rhs.source) && (lhs.edge_id == rhs.edge_id);
   };
   template <typename Vertex, typename EdgeRawDesc>
   bool operator!=(const BC_edge_desc<Vertex, EdgeRawDesc>& lhs, 
                   const BC_edge_desc<Vertex, EdgeRawDesc>& rhs) { 
+    if((lhs.source == BC_null_desc<Vertex>::value()) &&
+       (rhs.source == BC_null_desc<Vertex>::value()))
+      return false;
     return (lhs.source != rhs.source) || (lhs.edge_id != rhs.edge_id);
   };
   template <typename Vertex, typename EdgeRawDesc>

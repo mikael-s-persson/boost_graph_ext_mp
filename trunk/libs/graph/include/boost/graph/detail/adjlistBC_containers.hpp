@@ -155,6 +155,10 @@ namespace detail {
       swap(out_edges, rhs.out_edges);
       swap(in_edges, rhs.in_edges);
     };
+    self& operator=(self rhs) {
+      this->swap(rhs);
+      return *this;
+    };
   };
   
   template <typename VertexListS, typename OutEdgeListS, 
@@ -180,6 +184,10 @@ namespace detail {
       using std::swap;
       swap(data, rhs.data);
       swap(out_edges, rhs.out_edges);
+    };
+    self& operator=(self rhs) {
+      this->swap(rhs);
+      return *this;
     };
   };
   

@@ -474,6 +474,9 @@ namespace detail {
         e = tmp_e; // we have found a valid descriptor.
       };
       bool equal(const self& rhs) const { 
+        if((adjlistBC_check_desc_validity(*this->p_cont, this->e.source) == 1) &&
+           (adjlistBC_check_desc_validity(*rhs.p_cont, rhs.e.source) == 1))
+          return true;
         return (this->e == rhs.e);
       };
       const EDesc& dereference() const { 
