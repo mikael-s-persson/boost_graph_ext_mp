@@ -16,6 +16,7 @@
 #ifndef BOOST_MORE_PROPERTY_MAPS_HPP
 #define BOOST_MORE_PROPERTY_MAPS_HPP
 
+#include <boost/graph/properties.hpp>
 #include <boost/property_map/property_map.hpp>
 
 namespace boost {

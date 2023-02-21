@@ -55,7 +55,7 @@ endif()
 
 
 
-set(BOOST_GRAPH_CONTRIB_INCLUDE_DIRS "../../../")
+set(BOOST_GRAPH_CONTRIB_INCLUDE_DIRS "../include")
 
 include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(BEFORE ${BOOST_GRAPH_CONTRIB_INCLUDE_DIRS})
