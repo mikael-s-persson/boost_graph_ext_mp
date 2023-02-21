@@ -27,39 +27,35 @@ namespace boost {
 // user methods
 
 /// graph parser for given subsets of internal vertex and edge properties
-template<class EL, class VL, class D, class VP, class EP, class VPS, class EPS>
-GraphParser<adjacency_list_BC<EL,VL,D,VP,EP>,VP,EP,VPS,EPS> 
-read( adjacency_list_BC<EL,VL,D,VP,EP,GP>& g, VPS vps, EPS eps )
-{
-  return GraphParser<adjacency_list_BC<EL,VL,D,VP,EP,GP>,VP,EP,VPS,EPS>(&g);
+template <class EL, class VL, class D, class VP, class EP, class VPS, class EPS>
+GraphParser<adjacency_list_BC<EL, VL, D, VP, EP>, VP, EP, VPS, EPS> read(
+    adjacency_list_BC<EL, VL, D, VP, EP, GP>& g, VPS vps, EPS eps) {
+  return GraphParser<adjacency_list_BC<EL, VL, D, VP, EP, GP>, VP, EP, VPS,
+                     EPS>(&g);
 }
 
 /// graph parser for all internal vertex and edge properties
-template<class EL, class VL, class D, class VP, class EP>
-GraphParser<adjacency_list_BC<EL,VL,D,VP,EP>,VP,EP,VP,EP> 
-read( adjacency_list_BC<EL,VL,D,VP,EP>& g )
-{
-  return GraphParser<adjacency_list_BC<EL,VL,D,VP,EP>,VP,EP,VP,EP>(&g);
+template <class EL, class VL, class D, class VP, class EP>
+GraphParser<adjacency_list_BC<EL, VL, D, VP, EP>, VP, EP, VP, EP> read(
+    adjacency_list_BC<EL, VL, D, VP, EP>& g) {
+  return GraphParser<adjacency_list_BC<EL, VL, D, VP, EP>, VP, EP, VP, EP>(&g);
 }
 
-
 /// write the graph with given property subsets
-template<class EL, class VL, class D, class VP, class EP, class VPS, class EPS>
-GraphPrinter<adjacency_list_BC<EL,VL,D,VP,EP>,VPS,EPS> 
-write( const adjacency_list_BC<EL,VL,D,VP,EP>& g, VPS, EPS )
-{
-  return GraphPrinter<adjacency_list_BC<EL,VL,D,VP,EP>,VPS,EPS>(g);
+template <class EL, class VL, class D, class VP, class EP, class VPS, class EPS>
+GraphPrinter<adjacency_list_BC<EL, VL, D, VP, EP>, VPS, EPS> write(
+    const adjacency_list_BC<EL, VL, D, VP, EP>& g, VPS, EPS) {
+  return GraphPrinter<adjacency_list_BC<EL, VL, D, VP, EP>, VPS, EPS>(g);
 }
 
 /// write the graph with all internal vertex and edge properties
-template<class EL, class VL, class D, class VP, class EP>
-GraphPrinter<adjacency_list_BC<EL,VL,D,VP,EP>,VP,EP> 
-write( const adjacency_list_BC<EL,VL,D,VP,EP>& g )
-{
-  return GraphPrinter<adjacency_list_BC<EL,VL,D,VP,EP>,VP,EP>(g);
+template <class EL, class VL, class D, class VP, class EP>
+GraphPrinter<adjacency_list_BC<EL, VL, D, VP, EP>, VP, EP> write(
+    const adjacency_list_BC<EL, VL, D, VP, EP>& g) {
+  return GraphPrinter<adjacency_list_BC<EL, VL, D, VP, EP>, VP, EP>(g);
 }
 
 // user methods
 //=========================================================================
-}// boost
+}  // namespace boost
 #endif

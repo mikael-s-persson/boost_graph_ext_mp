@@ -10,15 +10,14 @@
 
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
-  
-  typedef mpl::list< 
-    bfl_d_ary_tree< 4, VertexProp, EdgeProp> > types;
-  
+
+  typedef mpl::list<bfl_d_ary_tree<4, VertexProp, EdgeProp>> types;
 };
 
-typedef graphtype_list<VertexPropTest, EdgePropTest>::types propmap_graphtest_types;
-typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types bundlemap_graphtest_types;
-
+typedef graphtype_list<VertexPropTest, EdgePropTest>::types
+    propmap_graphtest_types;
+typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types
+    bundlemap_graphtest_types;
 
 #define PROPMAP_GRAPHTEST_NAME propmap_graphtest
 #define PROPMAP_GRAPHTEST_TYPES propmap_graphtest_types
@@ -30,8 +29,6 @@ typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types bundlemap_grapht
 #undef PROPMAP_GRAPHTEST_TYPES
 #undef PROPMAP_GRAPHTEST_MAPS
 
-
-
 #define PROPMAP_GRAPHTEST_NAME bundlemap_graphtest
 #define PROPMAP_GRAPHTEST_TYPES bundlemap_graphtest_types
 #define PROPMAP_GRAPHTEST_MAPS BundleMaps
@@ -41,14 +38,3 @@ typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types bundlemap_grapht
 #undef PROPMAP_GRAPHTEST_NAME
 #undef PROPMAP_GRAPHTEST_TYPES
 #undef PROPMAP_GRAPHTEST_MAPS
-
-
-
-
-
-
-
-
-
-
-

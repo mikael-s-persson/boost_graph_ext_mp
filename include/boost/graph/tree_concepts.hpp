@@ -18,10 +18,10 @@
 #ifndef BOOST_TREE_CONCEPTS_HPP
 #define BOOST_TREE_CONCEPTS_HPP
 
+#include <boost/concept_check.hpp>
 #include <boost/config.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/concept_check.hpp>
 
 #include <boost/graph/tree_traits.hpp>
 
@@ -50,15 +50,13 @@ struct TreeConcept {
   typename graph_traits<TreeType>::vertex_descriptor v;
   typename tree_traits<TreeType>::child_vertex_iterator cv_it, cv_it_end;
   TreeType tree;
-  
+
   BOOST_CONCEPT_ASSERT((IncidenceGraphConcept<TreeType>));
-  
-  BOOST_CONCEPT_USAGE(TreeConcept) 
-  {
+
+  BOOST_CONCEPT_USAGE(TreeConcept) {
     v = get_root_vertex(tree);
-    tie(cv_it, cv_it_end) = child_vertices(v,tree);
+    tie(cv_it, cv_it_end) = child_vertices(v, tree);
   };
-  
 };
 
 /**
@@ -79,16 +77,11 @@ template <typename TreeType>
 struct BidirectionalTreeConcept {
   typename graph_traits<TreeType>::vertex_descriptor v;
   TreeType tree;
-  
-  BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
-  
-  BOOST_CONCEPT_USAGE(BidirectionalTreeConcept) 
-  {
-    v = parent_vertex(v, tree);
-  };
-  
-};
 
+  BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
+
+  BOOST_CONCEPT_USAGE(BidirectionalTreeConcept) { v = parent_vertex(v, tree); };
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a mutable tree 
@@ -113,18 +106,15 @@ struct MutableTreeConcept {
   typename graph_traits<TreeType>::vertex_descriptor u, v;
   typename graph_traits<TreeType>::edge_descriptor e;
   TreeType tree;
-  
+
   BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
-  
-  BOOST_CONCEPT_USAGE(MutableTreeConcept) 
-  {
+
+  BOOST_CONCEPT_USAGE(MutableTreeConcept) {
     v = create_root(tree);
     tie(v, e) = add_child_vertex(u, tree);
     remove_branch(v, tree);
   };
-  
 };
-
 
 /**
  * This concept defines the requirements to fulfill in order to model a mutable property-tree 
@@ -170,46 +160,24 @@ struct MutablePropertyTreeConcept {
   typename TreeType::vertex_property_type vp;
   typename TreeType::edge_property_type ep;
   TreeType tree;
-  
+
   BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
-  
-  BOOST_CONCEPT_USAGE(MutablePropertyTreeConcept) 
-  {
+
+  BOOST_CONCEPT_USAGE(MutablePropertyTreeConcept) {
     v = create_root(vp, tree);
-    tie(v,e) = add_child_vertex(u, vp, tree);
-    tie(v,e) = add_child_vertex(u, vp, ep, tree);
-    std::vector< typename TreeType::vertex_property_type > vp_vect;
+    tie(v, e) = add_child_vertex(u, vp, tree);
+    tie(v, e) = add_child_vertex(u, vp, ep, tree);
+    std::vector<typename TreeType::vertex_property_type> vp_vect;
     remove_branch(v, back_inserter(vp_vect), tree);
-    
+
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     v = create_root(std::move(vp), tree);
-    tie(v,e) = add_child_vertex(u, std::move(vp), tree);
-    tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), tree);
+    tie(v, e) = add_child_vertex(u, std::move(vp), tree);
+    tie(v, e) = add_child_vertex(u, std::move(vp), std::move(ep), tree);
 #endif
   };
-  
 };
 
-
-};
-
+};  // namespace boost
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
