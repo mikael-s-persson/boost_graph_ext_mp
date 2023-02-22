@@ -28,8 +28,8 @@ namespace serialization {
 // need to do this to enable saving of non-const adjacency lists.
 template <typename OEL, typename VL, typename D, typename VP, typename EP>
 struct tracking_level<boost::adjacency_list_BC<OEL, VL, D, VP, EP>> {
-  typedef mpl::integral_c_tag tag;
-  typedef mpl::int_<track_never> type;
+  using tag = mpl::integral_c_tag;
+  using type = mpl::int_<track_never>;
   BOOST_STATIC_CONSTANT(int, value = tracking_level::type::value);
 };
 
@@ -39,8 +39,8 @@ inline void save(Archive& ar,
                  const boost::adjacency_list_BC<OEL, VL, D, VP, EP>& graph,
                  const unsigned int /* file_version */
 ) {
-  typedef boost::adjacency_list_BC<OEL, VL, D, VP, EP> Graph;
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+  using Graph = boost::adjacency_list_BC<OEL, VL, D, VP, EP>;
+  using Vertex = typename boost::graph_traits<Graph>::vertex_descriptor;
 
   int V = num_vertices(graph);
   int E = num_edges(graph);
@@ -73,10 +73,10 @@ inline void load(Archive& ar,
                  boost::adjacency_list_BC<OEL, VL, D, VP, EP>& graph,
                  const unsigned int /* file_version */
 ) {
-  typedef boost::adjacency_list_BC<OEL, VL, D, VP, EP, GP, EL> Graph;
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_property_type VertexProp;
-  typedef typename Graph::edge_property_type EdgeProp;
+  using Graph = boost::adjacency_list_BC<OEL, VL, D, VP, EP, GP, EL>;
+  using Vertex = typename boost::graph_traits<Graph>::vertex_descriptor;
+  using VertexProp = typename Graph::vertex_property_type;
+  using EdgeProp = typename Graph::edge_property_type;
 
   if (num_vertices(graph))
     graph = Graph();
@@ -91,11 +91,7 @@ inline void load(Archive& ar,
   while (V-- > 0) {
     VertexProp vp;
     ar >> serialization::make_nvp("vertex_property", vp);
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex v = add_vertex(std::move(vp), graph);
-#else
-    Vertex v = add_vertex(vp, graph);
-#endif
     verts[i++] = v;
   }
 
@@ -106,11 +102,7 @@ inline void load(Archive& ar,
     ar >> BOOST_SERIALIZATION_NVP(v);
     EdgeProp ep;
     ar >> serialization::make_nvp("edge_property", ep);
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     add_edge(verts[u], verts[v], std::move(ep), graph);
-#else
-    add_edge(verts[u], verts[v], ep, graph);
-#endif
   }
 
   //   ar >> serialization::make_nvp("graph_property", get_property(graph, graph_all_t()) );

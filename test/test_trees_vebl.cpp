@@ -11,9 +11,9 @@
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
 
-  typedef mpl::list<vebl_d_ary_tree<4, VertexProp, EdgeProp>> types;
+  using types = mpl::list<vebl_d_ary_tree<4, VertexProp, EdgeProp>>;
 };
 
-typedef graphtype_list<int, int>::types intint_treetest_types;
+using intint_treetest_types = graphtype_list<int, int>::types;
 
 #include "test_trees_impl.hpp"

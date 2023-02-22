@@ -41,8 +41,8 @@ VertexType bst_go_down_left(const TreeType& aTree, VertexType aStart) {
 
 template <typename TreeType, typename VertexType>
 VertexType bst_go_down_right(const TreeType& aTree, VertexType aStart) {
-  typedef
-      typename tree_traits<TreeType>::child_vertex_iterator child_vertex_iter;
+  using child_vertex_iter =
+      typename tree_traits<TreeType>::child_vertex_iterator;
   // look down-right until we reach the leaf:
   while (out_degree(aStart, aTree) > 1) {
     std::pair<child_vertex_iter, child_vertex_iter> cur_children =
@@ -56,9 +56,9 @@ VertexType bst_go_down_right(const TreeType& aTree, VertexType aStart) {
 template <typename TreeType, typename VertexType>
 void bst_move_up_to_next(const TreeType& aTree, VertexType& aU,
                          bst_traversal_status& aStatus) {
-  typedef
-      typename tree_traits<TreeType>::child_vertex_iterator child_vertex_iter;
-  typedef typename graph_traits<TreeType>::in_edge_iterator in_edge_iter;
+  using child_vertex_iter =
+      typename tree_traits<TreeType>::child_vertex_iterator;
+  using in_edge_iter = typename graph_traits<TreeType>::in_edge_iterator;
   aStatus = OnRightBranch;
   while (true) {
     in_edge_iter ei, ei_end;
@@ -81,9 +81,9 @@ void bst_move_up_to_next(const TreeType& aTree, VertexType& aU,
 template <typename TreeType, typename VertexType>
 void bst_move_up_to_prev(const TreeType& aTree, VertexType& aU,
                          bst_traversal_status& aStatus) {
-  typedef
-      typename tree_traits<TreeType>::child_vertex_iterator child_vertex_iter;
-  typedef typename graph_traits<TreeType>::in_edge_iterator in_edge_iter;
+  using child_vertex_iter =
+      typename tree_traits<TreeType>::child_vertex_iterator;
+  using in_edge_iter = typename graph_traits<TreeType>::in_edge_iterator;
   child_vertex_iter vil, vi_end;
   aStatus = OnLeftBranch;
   VertexType u = aU;
@@ -113,20 +113,20 @@ void bst_move_up_to_prev(const TreeType& aTree, VertexType& aU,
 template <typename CompleteBinaryTree, typename ValueType>
 class bst_inorder_iterator {
  public:
-  typedef bst_inorder_iterator<CompleteBinaryTree, ValueType> self;
-  typedef CompleteBinaryTree tree_type;
+  using self = bst_inorder_iterator<CompleteBinaryTree, ValueType>;
+  using tree_type = CompleteBinaryTree;
 
-  typedef std::ptrdiff_t difference_type;
-  typedef ValueType value_type;
-  typedef value_type* pointer;
-  typedef value_type& reference;
-  typedef std::bidirectional_iterator_tag iterator_category;
+  using difference_type = std::ptrdiff_t;
+  using value_type = ValueType;
+  using pointer = value_type*;
+  using reference = value_type&;
+  using iterator_category = std::bidirectional_iterator_tag;
 
  private:
-  typedef typename graph_traits<tree_type>::vertex_descriptor vertex_type;
-  typedef
-      typename tree_traits<tree_type>::child_vertex_iterator child_vertex_iter;
-  typedef typename graph_traits<tree_type>::in_edge_iterator in_edge_iter;
+  using vertex_type = typename graph_traits<tree_type>::vertex_descriptor;
+  using child_vertex_iter =
+      typename tree_traits<tree_type>::child_vertex_iterator;
+  using in_edge_iter = typename graph_traits<tree_type>::in_edge_iterator;
 
   tree_type* m_tree;
   vertex_type m_u;

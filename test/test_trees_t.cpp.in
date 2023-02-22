@@ -9,7 +9,7 @@
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
 
-  typedef mpl::list<linked_tree_BC<${EDGE_STORAGE_TYPE}, vecBC, bidirectionalS,
+  using types = mpl::list<linked_tree_BC<${EDGE_STORAGE_TYPE}, vecBC, bidirectionalS,
                                    VertexProp, EdgeProp>,
                     linked_tree_BC<${EDGE_STORAGE_TYPE}, listBC, bidirectionalS,
                                    VertexProp, EdgeProp>,
@@ -20,10 +20,9 @@ struct graphtype_list {
                     linked_tree_BC<${EDGE_STORAGE_TYPE}, listBC, directedS,
                                    VertexProp, EdgeProp>,
                     linked_tree_BC<${EDGE_STORAGE_TYPE}, poolBC, directedS,
-                                   VertexProp, EdgeProp>>
-      types;
+                                   VertexProp, EdgeProp>>;
 };
 
-typedef graphtype_list<int, int>::types intint_treetest_types;
+using intint_treetest_types = graphtype_list<int, int>::types;
 
 #include "test_trees_impl.hpp"

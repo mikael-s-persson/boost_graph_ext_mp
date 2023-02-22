@@ -32,6 +32,6 @@ BOOST_INSTALL_PROPERTY(vertex, key);
 BOOST_INSTALL_PROPERTY(vertex, position);
 BOOST_INSTALL_PROPERTY(vertex, second_bundle);
 
-};  // namespace boost
+}  // namespace boost
 
 #endif

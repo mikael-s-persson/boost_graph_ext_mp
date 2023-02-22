@@ -56,7 +56,7 @@ struct TreeConcept {
   BOOST_CONCEPT_USAGE(TreeConcept) {
     v = get_root_vertex(tree);
     tie(cv_it, cv_it_end) = child_vertices(v, tree);
-  };
+  }
 };
 
 /**
@@ -80,7 +80,7 @@ struct BidirectionalTreeConcept {
 
   BOOST_CONCEPT_ASSERT((TreeConcept<TreeType>));
 
-  BOOST_CONCEPT_USAGE(BidirectionalTreeConcept) { v = parent_vertex(v, tree); };
+  BOOST_CONCEPT_USAGE(BidirectionalTreeConcept) { v = parent_vertex(v, tree); }
 };
 
 /**
@@ -113,7 +113,7 @@ struct MutableTreeConcept {
     v = create_root(tree);
     tie(v, e) = add_child_vertex(u, tree);
     remove_branch(v, tree);
-  };
+  }
 };
 
 /**
@@ -170,14 +170,12 @@ struct MutablePropertyTreeConcept {
     std::vector<typename TreeType::vertex_property_type> vp_vect;
     remove_branch(v, back_inserter(vp_vect), tree);
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     v = create_root(std::move(vp), tree);
     tie(v, e) = add_child_vertex(u, std::move(vp), tree);
     tie(v, e) = add_child_vertex(u, std::move(vp), std::move(ep), tree);
-#endif
-  };
+  }
 };
 
-};  // namespace boost
+}  // namespace boost
 
 #endif

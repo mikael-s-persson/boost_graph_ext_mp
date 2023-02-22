@@ -37,30 +37,29 @@ namespace boost {
 template <class OutEdgeListS = vecBC, class VertexListS = vecBC,
           class DirectedS = directedS>
 struct adjacency_list_BC_traits {
-  typedef
-      typename detail::is_random_access_BC<VertexListS>::type is_rand_access;
-  typedef typename DirectedS::is_bidir_t is_bidir;
-  typedef typename DirectedS::is_directed_t is_directed;
+  using is_rand_access =
+      typename detail::is_random_access_BC<VertexListS>::type;
+  using is_bidir = typename DirectedS::is_bidir_t;
+  using is_directed = typename DirectedS::is_directed_t;
 
-  typedef typename mpl::if_<
+  using directed_category = typename mpl::if_<
       is_bidir, bidirectional_tag,
-      typename mpl::if_<is_directed, directed_tag, undirected_tag>::type>::type
-      directed_category;
+      typename mpl::if_<is_directed, directed_tag, undirected_tag>::type>::type;
 
-  typedef typename detail::parallel_edge_BC_traits<OutEdgeListS>::type
-      edge_parallel_category;
+  using edge_parallel_category =
+      typename detail::parallel_edge_BC_traits<OutEdgeListS>::type;
 
-  typedef graph::detail::adjlistBC_traversal_tag<DirectedS> traversal_category;
+  using traversal_category = graph::detail::adjlistBC_traversal_tag<DirectedS>;
 
-  typedef std::size_t vertices_size_type;
-  typedef std::size_t edges_size_type;
+  using vertices_size_type = std::size_t;
+  using edges_size_type = std::size_t;
 };
 
 struct adj_list_BC_tag {};
 
 template <typename VertexListS>
 struct adjacency_list_BC_disallowed_vertex_list {
-  typedef void type;
+  using type = void;
 };
 
 template <>
@@ -100,58 +99,58 @@ template <typename OutEdgeListS, typename VertexListS, typename DirectedS,
           typename VertexProperties, typename EdgeProperties>
 class adjacency_list_BC {
  public:
-  typedef typename adjacency_list_BC_disallowed_vertex_list<VertexListS>::type
-      check_allowed_vertex_list;
+  using check_allowed_vertex_list =
+      typename adjacency_list_BC_disallowed_vertex_list<VertexListS>::type;
 
-  typedef adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
-                            VertexProperties, EdgeProperties>
-      self;
+  using self = adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperties, EdgeProperties>;
 
-  typedef OutEdgeListS out_edge_list_selector;
-  typedef VertexListS vertex_list_selector;
-  typedef DirectedS directed_selector;
+  using out_edge_list_selector = OutEdgeListS;
+  using vertex_list_selector = VertexListS;
+  using directed_selector = DirectedS;
 
-  typedef VertexProperties vertex_property_type;
-  typedef EdgeProperties edge_property_type;
+  using vertex_property_type = VertexProperties;
+  using edge_property_type = EdgeProperties;
 
-  typedef VertexProperties vertex_bundled;
-  typedef EdgeProperties edge_bundled;
+  using vertex_bundled = VertexProperties;
+  using edge_bundled = EdgeProperties;
 
-  typedef typename graph::detail::adjlistBC_vertex_container<
-      VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>
-      storage_type;
+  using storage_type = typename graph::detail::adjlistBC_vertex_container<
+      VertexListS, OutEdgeListS, DirectedS, VertexProperties, EdgeProperties>;
 
-  typedef typename storage_type::vertex_descriptor vertex_descriptor;
-  typedef typename storage_type::vertices_size_type vertices_size_type;
+  using vertex_descriptor = typename storage_type::vertex_descriptor;
+  using vertices_size_type = typename storage_type::vertices_size_type;
 
-  typedef typename storage_type::edge_descriptor edge_descriptor;
-  typedef typename storage_type::edges_size_type edges_size_type;
-  typedef edges_size_type degree_size_type;
+  using edge_descriptor = typename storage_type::edge_descriptor;
+  using edges_size_type = typename storage_type::edges_size_type;
+  using degree_size_type = edges_size_type;
 
-  typedef typename storage_type::vertex_iterator vertex_iterator;
+  using vertex_iterator = typename storage_type::vertex_iterator;
 
-  typedef typename storage_type::out_edge_iterator out_edge_iterator;
-  typedef typename storage_type::in_edge_iterator in_edge_iterator;
-  typedef typename storage_type::edge_iterator edge_iterator;
+  using out_edge_iterator = typename storage_type::out_edge_iterator;
+  using in_edge_iterator = typename storage_type::in_edge_iterator;
+  using edge_iterator = typename storage_type::edge_iterator;
 
-  typedef typename adjacency_iterator_generator<
-      self, vertex_descriptor, out_edge_iterator>::type adjacency_iterator;
-  typedef typename inv_adjacency_iterator_generator<
-      self, vertex_descriptor, in_edge_iterator>::type inv_adjacency_iterator;
+  using adjacency_iterator =
+      typename adjacency_iterator_generator<self, vertex_descriptor,
+                                            out_edge_iterator>::type;
+  using inv_adjacency_iterator =
+      typename inv_adjacency_iterator_generator<self, vertex_descriptor,
+                                                in_edge_iterator>::type;
 
-  typedef typename storage_type::vertex_stored_type vertex_stored_impl;
-  typedef typename storage_type::vertex_value_type vertex_value_impl;
+  using vertex_stored_impl = typename storage_type::vertex_stored_type;
+  using vertex_value_impl = typename storage_type::vertex_value_type;
 
-  typedef typename storage_type::edge_stored_type edge_stored_impl;
-  typedef typename storage_type::edge_value_type edge_value_impl;
+  using edge_stored_impl = typename storage_type::edge_stored_type;
+  using edge_value_impl = typename storage_type::edge_value_type;
 
-  typedef adjacency_list_BC_traits<OutEdgeListS, VertexListS, DirectedS> Traits;
+  using Traits = adjacency_list_BC_traits<OutEdgeListS, VertexListS, DirectedS>;
 
-  typedef typename Traits::directed_category directed_category;
-  typedef typename Traits::edge_parallel_category edge_parallel_category;
-  typedef typename Traits::traversal_category traversal_category;
+  using directed_category = typename Traits::directed_category;
+  using edge_parallel_category = typename Traits::edge_parallel_category;
+  using traversal_category = typename Traits::traversal_category;
 
-  typedef adj_list_BC_tag graph_tag;
+  using graph_tag = adj_list_BC_tag;
 
   /**
      * This static member function outputs the null-vertex (invalid vertex descriptor).
@@ -159,7 +158,7 @@ class adjacency_list_BC {
      */
   static vertex_descriptor null_vertex() {
     return graph::detail::BC_null_desc<vertex_descriptor>::value();
-  };
+  }
 
   /**
      * This static member function outputs the null-edge (invalid edge descriptor).
@@ -167,46 +166,39 @@ class adjacency_list_BC {
      */
   static edge_descriptor null_edge() {
     return graph::detail::BC_null_desc<edge_descriptor>::value();
-  };
+  }
 
- public:  // private:
+  // private:
   storage_type m_pack;
 
- public:
   /**
      * Constructs an empty adjacency-list.
      */
-  adjacency_list_BC() : m_pack(){};
+  adjacency_list_BC() : m_pack() {}
 
   adjacency_list_BC(const self& rhs) : m_pack() {
     do_graph_deep_copy(*this, rhs);
-  };
+  }
   self& operator=(const self& rhs) {
     do_graph_deep_copy(*this, rhs);
     return *this;
-  };
+  }
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-  adjacency_list_BC(self&& rhs) : m_pack(std::move(rhs.m_pack)){};
-  self& operator=(self&& rhs) {
+  adjacency_list_BC(self&& rhs) noexcept : m_pack(std::move(rhs.m_pack)) {}
+  self& operator=(self&& rhs) noexcept {
     m_pack = std::move(rhs.m_pack);
     return *this;
-  };
-#endif
+  }
 
   /**
      * Swaps the adjacency-list with another.
      */
-  void swap(self& rhs) {
-    m_pack.swap(rhs.m_pack);
-  };
+  void swap(self& rhs) { m_pack.swap(rhs.m_pack); }
 
   /**
      * Clears the adjacency-list of all vertices and edges.
      */
-  void clear() {
-    m_pack.clear();
-  };
+  void clear() { m_pack.clear(); }
 
   /**
      * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
@@ -215,7 +207,7 @@ class adjacency_list_BC {
      */
   vertex_property_type& operator[](vertex_descriptor v) {
     return m_pack.get_stored_vertex(v).data;
-  };
+  }
   /**
      * Indexing operator. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
      * \param v The vertex descriptor of the sought-after vertex-property.
@@ -223,7 +215,7 @@ class adjacency_list_BC {
      */
   const vertex_property_type& operator[](vertex_descriptor v) const {
     return m_pack.get_stored_vertex(v).data;
-  };
+  }
   /**
      * Indexing operator. Returns a reference to the edge-property associated to the given edge descriptor.
      * \param e The edge descriptor of the sought-after edge-property.
@@ -231,7 +223,7 @@ class adjacency_list_BC {
      */
   edge_property_type& operator[](const edge_descriptor& e) {
     return m_pack.get_stored_edge(e).data;
-  };
+  }
   /**
      * Indexing operator. Returns a const-reference to the edge-property associated to the given edge descriptor.
      * \param e The edge descriptor of the sought-after edge-property.
@@ -239,7 +231,7 @@ class adjacency_list_BC {
      */
   const edge_property_type& operator[](const edge_descriptor& e) const {
     return m_pack.get_stored_edge(e).data;
-  };
+  }
 };
 
 // the safest adj-list tree-storage style is <boost::vecBC, boost::listBC, boost::bidirectionalS>
@@ -256,9 +248,8 @@ template <typename VertexProperty, typename EdgeProperty, typename OutEdgeListS,
 struct tree_storage<
     VertexProperty, EdgeProperty,
     adj_list_BC_as_tree_storage<OutEdgeListS, VertexListS, DirectedS>> {
-  typedef adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
-                            VertexProperty, EdgeProperty>
-      type;
+  using type = adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperty, EdgeProperty>;
 };
 
 template <typename OutEdgeListS, typename VertexListS, typename DirectedS>
@@ -270,9 +261,10 @@ template <typename VertexProperty, typename EdgeProperty, typename OutEdgeListS,
           typename VertexListS, typename DirectedS>
 struct tree_traits<adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
                                      VertexProperty, EdgeProperty>> {
-  typedef typename adjacency_list_BC<
-      OutEdgeListS, VertexListS, DirectedS, VertexProperty,
-      EdgeProperty>::adjacency_iterator child_vertex_iterator;
+  using child_vertex_iterator =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperty,
+                                 EdgeProperty>::adjacency_iterator;
 };
 
 #define BGL_ADJACENCY_LIST_BC_ARGS                                 \
@@ -285,7 +277,7 @@ struct tree_traits<adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void swap(BGL_ADJACENCY_LIST_BC& lhs, BGL_ADJACENCY_LIST_BC& rhs) {
   lhs.swap(rhs);
-};
+}
 
 /***********************************************************************************************
  *                             IncidenceGraphConcept
@@ -294,16 +286,16 @@ void swap(BGL_ADJACENCY_LIST_BC& lhs, BGL_ADJACENCY_LIST_BC& rhs) {
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::vertex_descriptor source(
     const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
-    const BGL_ADJACENCY_LIST_BC&) {
+    const BGL_ADJACENCY_LIST_BC& /*unused*/) {
   return e.source;
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::vertex_descriptor target(
     const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
     const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.get_stored_edge(e).target;
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC::out_edge_iterator,
@@ -311,13 +303,13 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::out_edge_iterator,
 out_edges(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
           const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.out_edges(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::size_t out_degree(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                        const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.get_out_degree(v);
-};
+}
 
 /***********************************************************************************************
  *                             BidirectionalGraphConcept
@@ -329,19 +321,19 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::in_edge_iterator,
 in_edges(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
          const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.in_edges(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::size_t in_degree(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                       const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.get_in_degree(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::size_t degree(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                    const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.get_in_degree(v) + g.m_pack.get_out_degree(v);
-};
+}
 
 /***********************************************************************************************
  *                             VertexListGraphConcept
@@ -352,13 +344,13 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::vertex_iterator,
           typename BGL_ADJACENCY_LIST_BC::vertex_iterator>
 vertices(const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.vertices();
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::vertices_size_type num_vertices(
     const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.size();
-};
+}
 
 /***********************************************************************************************
  *                             EdgeListGraphConcept
@@ -369,13 +361,13 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::edge_iterator,
           typename BGL_ADJACENCY_LIST_BC::edge_iterator>
 edges(const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.edges();
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::edges_size_type num_edges(
     const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.num_edges();
-};
+}
 
 /***********************************************************************************************
  *                             AdjacencyGraphConcept
@@ -386,13 +378,18 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::adjacency_iterator,
           typename BGL_ADJACENCY_LIST_BC::adjacency_iterator>
 adjacent_vertices(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                   const BGL_ADJACENCY_LIST_BC& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC::adjacency_iterator AdjIter;
-  typedef typename BGL_ADJACENCY_LIST_BC::out_edge_iterator OEIter;
+  using AdjIter =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::adjacency_iterator;
+  using OEIter = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                            DirectedS, VertexProperties,
+                                            EdgeProperties>::out_edge_iterator;
 
   std::pair<OEIter, OEIter> oe_pair = out_edges(v, g);
   return std::pair<AdjIter, AdjIter>(AdjIter(oe_pair.first, &g),
                                      AdjIter(oe_pair.second, &g));
-};
+}
 
 /***********************************************************************************************
  *                             InvAdjacencyGraphConcept
@@ -403,13 +400,18 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::inv_adjacency_iterator,
           typename BGL_ADJACENCY_LIST_BC::inv_adjacency_iterator>
 inv_adjacent_vertices(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                       const BGL_ADJACENCY_LIST_BC& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC::inv_adjacency_iterator InvAdjIter;
-  typedef typename BGL_ADJACENCY_LIST_BC::in_edge_iterator IEIter;
+  using InvAdjIter =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::inv_adjacency_iterator;
+  using IEIter = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                            DirectedS, VertexProperties,
+                                            EdgeProperties>::in_edge_iterator;
 
   std::pair<IEIter, IEIter> ie_pair = in_edges(v, g);
   return std::pair<InvAdjIter, InvAdjIter>(InvAdjIter(ie_pair.first, &g),
                                            InvAdjIter(ie_pair.second, &g));
-};
+}
 
 /***********************************************************************************************
  *                             AdjacencyMatrixConcept
@@ -421,7 +423,7 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> edge(
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
     const BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.get_edge(u, v);
-};
+}
 
 /*******************************************************************************************
  *                  MutableGraph concept
@@ -430,30 +432,35 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> edge(
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::vertex_descriptor add_vertex(
     BGL_ADJACENCY_LIST_BC& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC::vertex_bundled VertexBundled;
+  using VertexBundled =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::vertex_bundled;
   return g.m_pack.add_vertex(VertexBundled());
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void clear_vertex(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                   BGL_ADJACENCY_LIST_BC& g) {
   g.m_pack.clear_vertex(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_vertex(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                    BGL_ADJACENCY_LIST_BC& g) {
   g.m_pack.remove_vertex(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> add_edge(
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor u,
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
     BGL_ADJACENCY_LIST_BC& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC::edge_bundled EdgeBundled;
+  using EdgeBundled = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                                 DirectedS, VertexProperties,
+                                                 EdgeProperties>::edge_bundled;
   return g.m_pack.add_edge(u, v, EdgeBundled());
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor u,
@@ -461,21 +468,22 @@ void remove_edge(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor u,
                  BGL_ADJACENCY_LIST_BC& g) {
   std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> e_p =
       edge(u, v, g);
-  if (e_p.second)
+  if (e_p.second) {
     g.m_pack.remove_edge(e_p.first);
-};
+  }
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
                  BGL_ADJACENCY_LIST_BC& g) {
   g.m_pack.remove_edge(e);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(typename BGL_ADJACENCY_LIST_BC::edge_iterator e_iter,
                  BGL_ADJACENCY_LIST_BC& g) {
   g.m_pack.remove_edge(*e_iter);
-};
+}
 
 /*******************************************************************************************
  *                  MutablePropertyGraph concept
@@ -486,19 +494,15 @@ typename BGL_ADJACENCY_LIST_BC::vertex_descriptor add_vertex(
     const typename BGL_ADJACENCY_LIST_BC::vertex_property_type& vp,
     BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.add_vertex(vp);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_vertex(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
                    typename BGL_ADJACENCY_LIST_BC::vertex_property_type& vp,
                    BGL_ADJACENCY_LIST_BC& g) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   vp = std::move(g[v]);
-#else
-  vp = g[v];
-#endif
   g.m_pack.remove_vertex(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> add_edge(
@@ -507,7 +511,7 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> add_edge(
     const typename BGL_ADJACENCY_LIST_BC::edge_property_type& ep,
     BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.add_edge(u, v, ep);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor u,
@@ -517,47 +521,33 @@ void remove_edge(typename BGL_ADJACENCY_LIST_BC::vertex_descriptor u,
   std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> e_p =
       edge(u, v, g);
   if (e_p.second) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     ep = std::move(g[e_p.first]);
-#else
-    ep = g[e_p.first];
-#endif
     g.m_pack.remove_edge(e_p.first);
-  };
-};
+  }
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
                  typename BGL_ADJACENCY_LIST_BC::edge_property_type& ep,
                  BGL_ADJACENCY_LIST_BC& g) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   ep = std::move(g[e]);
-#else
-  ep = g[e];
-#endif
   g.m_pack.remove_edge(e);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void remove_edge(typename BGL_ADJACENCY_LIST_BC::edge_iterator e_iter,
                  typename BGL_ADJACENCY_LIST_BC::edge_property_type& ep,
                  BGL_ADJACENCY_LIST_BC& g) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   ep = std::move(g[*e_iter]);
-#else
-  ep = g[*e_iter];
-#endif
   g.m_pack.remove_edge(*e_iter);
-};
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 typename BGL_ADJACENCY_LIST_BC::vertex_descriptor add_vertex(
     typename BGL_ADJACENCY_LIST_BC::vertex_property_type&& vp,
     BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.add_vertex(std::move(vp));
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> add_edge(
@@ -566,9 +556,7 @@ std::pair<typename BGL_ADJACENCY_LIST_BC::edge_descriptor, bool> add_edge(
     typename BGL_ADJACENCY_LIST_BC::edge_property_type&& ep,
     BGL_ADJACENCY_LIST_BC& g) {
   return g.m_pack.add_edge(u, v, std::move(ep));
-};
-
-#endif
+}
 
 /***********************************************************************************************
  *                             Property Maps (from bundles)
@@ -585,7 +573,7 @@ const typename BGL_ADJACENCY_LIST_BC::vertex_property_type& get(
     const BGL_ADJACENCY_LIST_BC& g,
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v) {
   return g[v];
-};
+}
 
 /**
   * Returns a const-reference to the edge-property associated to the given edge descriptor.
@@ -598,7 +586,7 @@ const typename BGL_ADJACENCY_LIST_BC::edge_property_type& get(
     const BGL_ADJACENCY_LIST_BC& g,
     const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e) {
   return g[e];
-};
+}
 
 /**
   * Sets the vertex-property associated to the given vertex descriptor.
@@ -611,7 +599,7 @@ void put(BGL_ADJACENCY_LIST_BC& g,
          typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
          const typename BGL_ADJACENCY_LIST_BC::vertex_property_type& value) {
   g[v] = value;
-};
+}
 
 /**
   * Sets the edge-property associated to the given edge descriptor.
@@ -624,9 +612,7 @@ void put(BGL_ADJACENCY_LIST_BC& g,
          const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
          const typename BGL_ADJACENCY_LIST_BC::edge_property_type& value) {
   g[e] = value;
-};
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+}
 
 /**
   * Sets the vertex-property associated to the given vertex descriptor.
@@ -639,7 +625,7 @@ void put(BGL_ADJACENCY_LIST_BC& g,
          typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
          typename BGL_ADJACENCY_LIST_BC::vertex_property_type&& value) {
   g[v] = std::move(value);
-};
+}
 
 /**
   * Sets the edge-property associated to the given edge descriptor.
@@ -652,9 +638,7 @@ void put(BGL_ADJACENCY_LIST_BC& g,
          const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
          typename BGL_ADJACENCY_LIST_BC::edge_property_type&& value) {
   g[e] = std::move(value);
-};
-
-#endif
+}
 
 /**
   * Returns a reference to the vertex-property associated to the given vertex descriptor.
@@ -667,7 +651,7 @@ typename BGL_ADJACENCY_LIST_BC::vertex_property_type& get_property(
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
     BGL_ADJACENCY_LIST_BC& g) {
   return g[v];
-};
+}
 
 /**
   * Returns a const-reference to the vertex-property associated to the given vertex descriptor.
@@ -680,7 +664,7 @@ const typename BGL_ADJACENCY_LIST_BC::vertex_property_type& get_property(
     typename BGL_ADJACENCY_LIST_BC::vertex_descriptor v,
     const BGL_ADJACENCY_LIST_BC& g) {
   return g[v];
-};
+}
 
 /**
   * Returns a reference to the edge-property associated to the given edge descriptor.
@@ -693,7 +677,7 @@ typename BGL_ADJACENCY_LIST_BC::edge_property_type& get_property(
     const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
     BGL_ADJACENCY_LIST_BC& g) {
   return g[e];
-};
+}
 
 /**
   * Returns a const-reference to the edge-property associated to the given edge descriptor.
@@ -706,60 +690,62 @@ const typename BGL_ADJACENCY_LIST_BC::edge_property_type& get_property(
     const typename BGL_ADJACENCY_LIST_BC::edge_descriptor& e,
     const BGL_ADJACENCY_LIST_BC& g) {
   return g[e];
-};
+}
 
 #ifndef BOOST_GRAPH_NO_BUNDLED_PROPERTIES
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle>
 struct property_map<BGL_ADJACENCY_LIST_BC, T Bundle::*> {
-  typedef typename remove_const<Bundle>::type non_const_Bundle;
-  typedef typename remove_const<T>::type non_const_T;
-  typedef is_convertible<typename BGL_ADJACENCY_LIST_BC::vertex_bundled*,
-                         non_const_Bundle*>
-      is_vertex_bundle;
-  typedef bundle_member_property_map<
-      non_const_T, BGL_ADJACENCY_LIST_BC,
-      typename mpl::if_<is_vertex_bundle, vertex_bundle_t, edge_bundle_t>::type>
-      type;
-  typedef bundle_member_property_map<
-      const non_const_T, const BGL_ADJACENCY_LIST_BC,
-      typename mpl::if_<is_vertex_bundle, vertex_bundle_t, edge_bundle_t>::type>
-      const_type;
+  using non_const_Bundle = typename remove_const<Bundle>::type;
+  using non_const_T = typename remove_const<T>::type;
+  using is_vertex_bundle =
+      is_convertible<typename adjacency_list_BC<
+                         OutEdgeListS, VertexListS, DirectedS, VertexProperties,
+                         EdgeProperties>::vertex_bundled*,
+                     non_const_Bundle*>;
+  using type = bundle_member_property_map<
+      non_const_T,
+      adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties,
+                        EdgeProperties>,
+      typename mpl::if_<is_vertex_bundle, vertex_bundle_t,
+                        edge_bundle_t>::type>;
+  using const_type = bundle_member_property_map<
+      const non_const_T,
+      const adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                              VertexProperties, EdgeProperties>,
+      typename mpl::if_<is_vertex_bundle, vertex_bundle_t,
+                        edge_bundle_t>::type>;
 };
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle>
 typename property_map<BGL_ADJACENCY_LIST_BC, T Bundle::*>::type get(
     T Bundle::*p, BGL_ADJACENCY_LIST_BC& g) {
   return typename property_map<BGL_ADJACENCY_LIST_BC, T Bundle::*>::type(&g, p);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle>
 typename property_map<BGL_ADJACENCY_LIST_BC, T Bundle::*>::const_type get(
     T Bundle::*p, const BGL_ADJACENCY_LIST_BC& g) {
   return typename property_map<BGL_ADJACENCY_LIST_BC, T Bundle::*>::const_type(
       &g, p);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle, typename Key>
 const typename remove_const<T>::type& get(T Bundle::*p,
                                           const BGL_ADJACENCY_LIST_BC& g,
                                           const Key& k) {
   return (g[k]).*p;
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle, typename Key>
 void put(T Bundle::*p, BGL_ADJACENCY_LIST_BC& g, const Key& k, const T& val) {
   (g[k]).*p = val;
-};
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename T, typename Bundle, typename Key>
 void put(T Bundle::*p, BGL_ADJACENCY_LIST_BC& g, const Key& k, T&& val) {
   (g[k]).*p = std::move(val);
-};
-
-#endif
+}
 
 #endif
 
@@ -770,84 +756,94 @@ void put(T Bundle::*p, BGL_ADJACENCY_LIST_BC& g, const Key& k, T&& val) {
 struct adj_list_BC_property_selector {
   template <class Graph, class Property, class Tag>
   struct bind_ {
-    typedef typename property_value<Property, Tag>::type value_type;
+    using value_type = typename property_value<Property, Tag>::type;
 
-    typedef tagged_from_bundle_property_map<value_type, Graph, Tag> type;
-    typedef tagged_from_bundle_property_map<const value_type, const Graph, Tag>
-        const_type;
+    using type = tagged_from_bundle_property_map<value_type, Graph, Tag>;
+    using const_type =
+        tagged_from_bundle_property_map<const value_type, const Graph, Tag>;
   };
 };
 
 /* specializations used by graph/properties.hpp */
 template <>
 struct vertex_property_selector<adj_list_BC_tag> {
-  typedef adj_list_BC_property_selector type;
+  using type = adj_list_BC_property_selector;
 };
 
 template <>
 struct edge_property_selector<adj_list_BC_tag> {
-  typedef adj_list_BC_property_selector type;
+  using type = adj_list_BC_property_selector;
 };
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename Property>
 typename property_map<BGL_ADJACENCY_LIST_BC, Property>::type get(
     Property p, BGL_ADJACENCY_LIST_BC& g) {
-  typedef typename property_map<BGL_ADJACENCY_LIST_BC, Property>::type Map;
+  using Map = typename property_map<
+      adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties,
+                        EdgeProperties>,
+      Property>::type;
   return Map(&g, p);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename Property>
 typename property_map<BGL_ADJACENCY_LIST_BC, Property>::const_type get(
     Property p, const BGL_ADJACENCY_LIST_BC& g) {
-  typedef
-      typename property_map<BGL_ADJACENCY_LIST_BC, Property>::const_type Map;
+  using Map = typename property_map<
+      adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperties,
+                        EdgeProperties>,
+      Property>::const_type;
   return Map(&g, p);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename Property, typename Key>
 typename property_map_value<BGL_ADJACENCY_LIST_BC, Property>::type get(
     Property p, const BGL_ADJACENCY_LIST_BC& g, const Key& k) {
   return get_property_value(g[k], p);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename Property, typename Key,
           typename Value>
 void put(Property p, BGL_ADJACENCY_LIST_BC& g, const Key& k, const Value& val) {
   get_property_value(g[k], p) = val;
-};
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS, typename Property, typename Key,
           typename Value>
 void put(Property p, BGL_ADJACENCY_LIST_BC& g, const Key& k, Value&& val) {
   get_property_value(g[k], p) = std::move(val);
-};
-
-#endif
+}
 
 template <BGL_ADJACENCY_LIST_BC_ARGS>
 void do_graph_deep_copy(BGL_ADJACENCY_LIST_BC& lhs,
                         const BGL_ADJACENCY_LIST_BC& rhs) {
-  typedef typename BGL_ADJACENCY_LIST_BC::vertex_descriptor Vertex;
-  typedef typename BGL_ADJACENCY_LIST_BC::vertex_iterator VIter;
-  typedef typename BGL_ADJACENCY_LIST_BC::edge_iterator EIter;
+  using Vertex = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                            DirectedS, VertexProperties,
+                                            EdgeProperties>::vertex_descriptor;
+  using VIter = typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                           VertexProperties,
+                                           EdgeProperties>::vertex_iterator;
+  using EIter = typename adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS,
+                                           VertexProperties,
+                                           EdgeProperties>::edge_iterator;
 
   lhs.m_pack.clear();
 
   // first, add all the vertices (keep unordered_map of correspondance).
   ::boost::unordered_map<Vertex, Vertex, graph::detail::BC_desc_hasher> v_map;
-  VIter vi, vi_end;
+  VIter vi;
+  VIter vi_end;
   for (tie(vi, vi_end) = vertices(rhs); vi != vi_end; ++vi) {
     Vertex v = add_vertex(rhs[*vi], lhs);
     v_map[*vi] = v;
-  };
+  }
 
   // then, go through all the edges and add them to the lhs:
-  EIter ei, ei_end;
-  for (tie(ei, ei_end) = edges(rhs); ei != ei_end; ++ei)
+  EIter ei;
+  EIter ei_end;
+  for (tie(ei, ei_end) = edges(rhs); ei != ei_end; ++ei) {
     add_edge(v_map[source(*ei, rhs)], v_map[target(*ei, rhs)], rhs[*ei], lhs);
-};
+  }
+}
 
 #undef BGL_ADJACENCY_LIST_BC_ARGS
 #undef BGL_ADJACENCY_LIST_BC
@@ -866,68 +862,67 @@ template <typename OutEdgeListS, typename VertexListS,
 class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
                         VertexProperties, EdgeProperties> {
  public:
-  typedef typename adjacency_list_BC_disallowed_vertex_list<VertexListS>::type
-      check_allowed_vertex_list;
+  using check_allowed_vertex_list =
+      typename adjacency_list_BC_disallowed_vertex_list<VertexListS>::type;
 
-  typedef adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
-                            VertexProperties, EdgeProperties>
-      self;
+  using self = adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties, EdgeProperties>;
 
-  typedef VertexProperties vertex_property_type;
-  typedef EdgeProperties edge_property_type;
+  using vertex_property_type = VertexProperties;
+  using edge_property_type = EdgeProperties;
 
-  typedef VertexProperties vertex_bundled;
-  typedef EdgeProperties edge_bundled;
+  using vertex_bundled = VertexProperties;
+  using edge_bundled = EdgeProperties;
 
-  typedef typename graph::detail::adjlistBC_vertex_container<
+  using bidir_storage_type = typename graph::detail::adjlistBC_vertex_container<
       VertexListS, OutEdgeListS, bidirectionalS, VertexProperties,
-      EdgeProperties>
-      bidir_storage_type;
+      EdgeProperties>;
 
-  typedef typename bidir_storage_type::vertex_descriptor vertex_descriptor;
-  typedef typename bidir_storage_type::vertices_size_type vertices_size_type;
+  using vertex_descriptor = typename bidir_storage_type::vertex_descriptor;
+  using vertices_size_type = typename bidir_storage_type::vertices_size_type;
 
-  typedef typename bidir_storage_type::edge_descriptor bidir_edge_descriptor;
-  typedef graph::detail::BC_undir_edge_desc<bidir_edge_descriptor>
-      edge_descriptor;
-  typedef typename bidir_storage_type::edges_size_type edges_size_type;
-  typedef edges_size_type degree_size_type;
+  using bidir_edge_descriptor = typename bidir_storage_type::edge_descriptor;
+  using edge_descriptor =
+      graph::detail::BC_undir_edge_desc<bidir_edge_descriptor>;
+  using edges_size_type = typename bidir_storage_type::edges_size_type;
+  using degree_size_type = edges_size_type;
 
-  typedef typename bidir_storage_type::vertex_iterator vertex_iterator;
+  using vertex_iterator = typename bidir_storage_type::vertex_iterator;
 
-  typedef
-      typename bidir_storage_type::out_edge_iterator bidir_out_edge_iterator;
-  typedef typename bidir_storage_type::in_edge_iterator bidir_in_edge_iterator;
-  typedef typename bidir_storage_type::edge_iterator bidir_edge_iterator;
+  using bidir_out_edge_iterator =
+      typename bidir_storage_type::out_edge_iterator;
+  using bidir_in_edge_iterator = typename bidir_storage_type::in_edge_iterator;
+  using bidir_edge_iterator = typename bidir_storage_type::edge_iterator;
 
-  typedef graph::detail::adjlistBC_undir_ioeiter<
-      edge_descriptor, bidir_in_edge_iterator, bidir_out_edge_iterator>
-      out_edge_iterator;
-  typedef out_edge_iterator in_edge_iterator;
+  using out_edge_iterator = graph::detail::adjlistBC_undir_ioeiter<
+      edge_descriptor, bidir_in_edge_iterator, bidir_out_edge_iterator>;
+  using in_edge_iterator = out_edge_iterator;
 
-  typedef graph::detail::adjlistBC_undir_eiter<edge_descriptor,
-                                               bidir_edge_iterator>
-      edge_iterator;
+  using edge_iterator =
+      graph::detail::adjlistBC_undir_eiter<edge_descriptor,
+                                           bidir_edge_iterator>;
 
-  typedef typename adjacency_iterator_generator<
-      self, vertex_descriptor, out_edge_iterator>::type adjacency_iterator;
-  typedef typename inv_adjacency_iterator_generator<
-      self, vertex_descriptor, in_edge_iterator>::type inv_adjacency_iterator;
+  using adjacency_iterator =
+      typename adjacency_iterator_generator<self, vertex_descriptor,
+                                            out_edge_iterator>::type;
+  using inv_adjacency_iterator =
+      typename inv_adjacency_iterator_generator<self, vertex_descriptor,
+                                                in_edge_iterator>::type;
 
-  typedef typename bidir_storage_type::vertex_stored_type vertex_stored_impl;
-  typedef typename bidir_storage_type::vertex_value_type vertex_value_impl;
+  using vertex_stored_impl = typename bidir_storage_type::vertex_stored_type;
+  using vertex_value_impl = typename bidir_storage_type::vertex_value_type;
 
-  typedef typename bidir_storage_type::edge_stored_type edge_stored_impl;
-  typedef typename bidir_storage_type::edge_value_type edge_value_impl;
+  using edge_stored_impl = typename bidir_storage_type::edge_stored_type;
+  using edge_value_impl = typename bidir_storage_type::edge_value_type;
 
-  typedef adjacency_list_BC_traits<OutEdgeListS, VertexListS, undirectedS>
-      Traits;
+  using Traits =
+      adjacency_list_BC_traits<OutEdgeListS, VertexListS, undirectedS>;
 
-  typedef typename Traits::directed_category directed_category;
-  typedef typename Traits::edge_parallel_category edge_parallel_category;
-  typedef typename Traits::traversal_category traversal_category;
+  using directed_category = typename Traits::directed_category;
+  using edge_parallel_category = typename Traits::edge_parallel_category;
+  using traversal_category = typename Traits::traversal_category;
 
-  typedef adj_list_BC_tag graph_tag;
+  using graph_tag = adj_list_BC_tag;
 
   /**
      * This static member function outputs the null-vertex (invalid vertex descriptor).
@@ -935,7 +930,7 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
      */
   static vertex_descriptor null_vertex() {
     return graph::detail::BC_null_desc<vertex_descriptor>::value();
-  };
+  }
 
   /**
      * This static member function outputs the null-edge (invalid edge descriptor).
@@ -944,46 +939,39 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
   static edge_descriptor null_edge() {
     return edge_descriptor(
         graph::detail::BC_null_desc<bidir_edge_descriptor>::value());
-  };
+  }
 
- public:  // private:
+  // private:
   bidir_storage_type m_pack;
 
- public:
   /**
      * Constructs an empty linked-tree.
      */
-  adjacency_list_BC() : m_pack(){};
+  adjacency_list_BC() : m_pack() {}
 
   adjacency_list_BC(const self& rhs) : m_pack() {
     do_graph_deep_copy(*this, rhs);
-  };
+  }
   self& operator=(const self& rhs) {
     do_graph_deep_copy(*this, rhs);
     return *this;
-  };
+  }
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-  adjacency_list_BC(self&& rhs) : m_pack(std::move(rhs.m_pack)){};
-  self& operator=(self&& rhs) {
+  adjacency_list_BC(self&& rhs) noexcept : m_pack(std::move(rhs.m_pack)) {}
+  self& operator=(self&& rhs) noexcept {
     m_pack = std::move(rhs.m_pack);
     return *this;
-  };
-#endif
+  }
 
   /**
      * Swaps the adjacency-list with another.
      */
-  void swap(self& rhs) {
-    m_pack.swap(rhs.m_pack);
-  };
+  void swap(self& rhs) { m_pack.swap(rhs.m_pack); }
 
   /**
      * Clears the adjacency-list of all vertices and edges.
      */
-  void clear() {
-    m_pack.clear();
-  };
+  void clear() { m_pack.clear(); }
 
   /**
      * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
@@ -992,7 +980,7 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
      */
   vertex_property_type& operator[](vertex_descriptor v) {
     return m_pack.get_stored_vertex(v).data;
-  };
+  }
   /**
      * Indexing operator. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
      * \param v The vertex descriptor of the sought-after vertex-property.
@@ -1000,7 +988,7 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
      */
   const vertex_property_type& operator[](vertex_descriptor v) const {
     return m_pack.get_stored_vertex(v).data;
-  };
+  }
   /**
      * Indexing operator. Returns a reference to the edge-property associated to the given edge descriptor.
      * \param e The edge descriptor of the sought-after edge-property.
@@ -1008,7 +996,7 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
      */
   edge_property_type& operator[](const edge_descriptor& e) {
     return m_pack.get_stored_edge(bidir_edge_descriptor(e)).data;
-  };
+  }
   /**
      * Indexing operator. Returns a const-reference to the edge-property associated to the given edge descriptor.
      * \param e The edge descriptor of the sought-after edge-property.
@@ -1016,7 +1004,7 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
      */
   const edge_property_type& operator[](const edge_descriptor& e) const {
     return m_pack.get_stored_edge(bidir_edge_descriptor(e)).data;
-  };
+  }
 };
 
 #define BGL_ADJACENCY_LIST_BC_UNDIR_ARGS                                  \
@@ -1034,21 +1022,21 @@ template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor source(
     const typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor& e,
     const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  if (e.is_reversed)
+  if (e.is_reversed) {
     return g.m_pack.get_stored_edge(e).target;
-  else
-    return e.source;
-};
+  }
+  return e.source;
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor target(
     const typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor& e,
     const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  if (e.is_reversed)
+  if (e.is_reversed) {
     return e.source;
-  else
-    return g.m_pack.get_stored_edge(e).target;
-};
+  }
+  return g.m_pack.get_stored_edge(e).target;
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::out_edge_iterator,
@@ -1056,7 +1044,9 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::out_edge_iterator,
 out_edges(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
           const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
 
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::out_edge_iterator EIter;
+  using EIter = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                           undirectedS, VertexProperties,
+                                           EdgeProperties>::out_edge_iterator;
 
   std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_out_edge_iterator,
             typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_out_edge_iterator>
@@ -1069,14 +1059,14 @@ out_edges(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
   return std::pair<EIter, EIter>(
       EIter(true, ie_pair.first, ie_pair.second, oe_pair.first, oe_pair.second),
       EIter(true, ie_pair.second, oe_pair.first, oe_pair.second));
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::size_t out_degree(
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
     const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
   return g.m_pack.get_out_degree(v) + g.m_pack.get_in_degree(v);
-};
+}
 
 /***********************************************************************************************
  *                             BidirectionalGraphConcept
@@ -1088,7 +1078,9 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::in_edge_iterator,
 in_edges(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
          const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
 
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::in_edge_iterator EIter;
+  using EIter = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                           undirectedS, VertexProperties,
+                                           EdgeProperties>::in_edge_iterator;
 
   std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_out_edge_iterator,
             typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_out_edge_iterator>
@@ -1102,19 +1094,19 @@ in_edges(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
       EIter(false, ie_pair.first, ie_pair.second, oe_pair.first,
             oe_pair.second),
       EIter(false, ie_pair.second, oe_pair.first, oe_pair.second));
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::size_t in_degree(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
                       const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
   return g.m_pack.get_in_degree(v) + g.m_pack.get_out_degree(v);
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::size_t degree(typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
                    const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
   return g.m_pack.get_in_degree(v) + g.m_pack.get_out_degree(v);
-};
+}
 
 /***********************************************************************************************
  *                             EdgeListGraphConcept
@@ -1124,17 +1116,22 @@ template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_iterator,
           typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_iterator>
 edges(const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_iterator EIter;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_edge_iterator BiEIter;
+  using EIter = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                           undirectedS, VertexProperties,
+                                           EdgeProperties>::edge_iterator;
+  using BiEIter =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::bidir_edge_iterator;
   std::pair<BiEIter, BiEIter> be_pair = g.m_pack.edges();
   return std::pair<EIter, EIter>(EIter(be_pair.first), EIter(be_pair.second));
-};
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 typename BGL_ADJACENCY_LIST_BC_UNDIR::edges_size_type num_edges(
     const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
   return g.m_pack.num_edges();
-};
+}
 
 /***********************************************************************************************
  *                             AdjacencyMatrixConcept
@@ -1145,18 +1142,23 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor, bool> edge(
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor u,
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
     const BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_edge_descriptor BiEdge;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor Edge;
+  using BiEdge =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::bidir_edge_descriptor;
+  using Edge = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                          undirectedS, VertexProperties,
+                                          EdgeProperties>::edge_descriptor;
   std::pair<BiEdge, bool> be_result = g.m_pack.get_edge(u, v);
-  if (be_result.second)
+  if (be_result.second) {
     return std::pair<Edge, bool>(Edge(be_result.first), true);
-  else {
-    be_result = g.m_pack.get_edge(v, u);
-    if (be_result.second)
-      return std::pair<Edge, bool>(Edge(be_result.first, true), true);
-  };
+  }
+  be_result = g.m_pack.get_edge(v, u);
+  if (be_result.second) {
+    return std::pair<Edge, bool>(Edge(be_result.first, true), true);
+  }
   return std::pair<Edge, bool>(Edge(be_result.first), false);
-};
+}
 
 /*******************************************************************************************
  *                  MutableGraph concept
@@ -1167,12 +1169,19 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor, bool> add_edge(
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor u,
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
     BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_bundled EdgeBundled;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_edge_descriptor BiEdge;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor Edge;
+  using EdgeBundled = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                                 undirectedS, VertexProperties,
+                                                 EdgeProperties>::edge_bundled;
+  using BiEdge =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::bidir_edge_descriptor;
+  using Edge = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                          undirectedS, VertexProperties,
+                                          EdgeProperties>::edge_descriptor;
   std::pair<BiEdge, bool> be_pair = g.m_pack.add_edge(u, v, EdgeBundled());
   return std::pair<Edge, bool>(Edge(be_pair.first), be_pair.second);
-};
+}
 
 /*******************************************************************************************
  *                  MutablePropertyGraph concept
@@ -1184,13 +1193,16 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor, bool> add_edge(
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
     const typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_property_type& ep,
     BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_edge_descriptor BiEdge;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor Edge;
+  using BiEdge =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::bidir_edge_descriptor;
+  using Edge = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                          undirectedS, VertexProperties,
+                                          EdgeProperties>::edge_descriptor;
   std::pair<BiEdge, bool> be_pair = g.m_pack.add_edge(u, v, ep);
   return std::pair<Edge, bool>(Edge(be_pair.first), be_pair.second);
-};
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+}
 
 template <BGL_ADJACENCY_LIST_BC_UNDIR_ARGS>
 std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor, bool> add_edge(
@@ -1198,17 +1210,20 @@ std::pair<typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor, bool> add_edge(
     typename BGL_ADJACENCY_LIST_BC_UNDIR::vertex_descriptor v,
     typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_property_type&& ep,
     BGL_ADJACENCY_LIST_BC_UNDIR& g) {
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::bidir_edge_descriptor BiEdge;
-  typedef typename BGL_ADJACENCY_LIST_BC_UNDIR::edge_descriptor Edge;
+  using BiEdge =
+      typename adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
+                                 VertexProperties,
+                                 EdgeProperties>::bidir_edge_descriptor;
+  using Edge = typename adjacency_list_BC<OutEdgeListS, VertexListS,
+                                          undirectedS, VertexProperties,
+                                          EdgeProperties>::edge_descriptor;
   std::pair<BiEdge, bool> be_pair = g.m_pack.add_edge(u, v, std::move(ep));
   return std::pair<Edge, bool>(Edge(be_pair.first), be_pair.second);
-};
-
-#endif
+}
 
 #undef BGL_ADJACENCY_LIST_BC_UNDIR_ARGS
 #undef BGL_ADJACENCY_LIST_BC_UNDIR
 
-};  // namespace boost
+}  // namespace boost
 
 #endif

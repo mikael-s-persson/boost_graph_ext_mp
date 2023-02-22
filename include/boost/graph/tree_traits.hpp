@@ -30,22 +30,22 @@ namespace detail {
 
 template <typename A>
 struct tree_traits_try_child_iter {
-  typedef void type;
+  using type = void;
 };
 
 template <typename Graph, typename Enable = void>
 struct tree_traits_get_child_iter {
-  typedef typename Graph::adjacency_iterator type;
+  using type = typename Graph::adjacency_iterator;
 };
 
 template <typename Graph>
 struct tree_traits_get_child_iter<
     Graph, typename tree_traits_try_child_iter<
                typename Graph::child_vertex_iterator>::type> {
-  typedef typename Graph::child_vertex_iterator type;
+  using type = typename Graph::child_vertex_iterator;
 };
 
-};  // namespace detail
+}  // namespace detail
 
 /**
  * This traits class defines a number of nested types associated to a tree structure.
@@ -53,8 +53,8 @@ struct tree_traits_get_child_iter<
 template <typename TreeType>
 struct tree_traits {
   /** This type describes iterators to iterate through child vertices of a vertex. */
-  typedef typename detail::tree_traits_get_child_iter<TreeType>::type
-      child_vertex_iterator;
+  using child_vertex_iterator =
+      typename detail::tree_traits_get_child_iter<TreeType>::type;
 };
 
 /**
@@ -63,9 +63,8 @@ struct tree_traits {
 template <typename VertexDescriptor, typename EdgeDescriptor,
           typename StorageTag>
 struct tree_storage {
-  typedef
-      typename StorageTag::template bind<VertexDescriptor, EdgeDescriptor>::type
-          type;
+  using type = typename StorageTag::template bind<VertexDescriptor,
+                                                  EdgeDescriptor>::type;
 };
 
 /**
@@ -73,24 +72,23 @@ struct tree_storage {
  */
 template <typename StorageTag>
 struct tree_storage_traits {
-  typedef boost::mpl::false_ is_rand_access;
-  typedef boost::mpl::true_ is_bidir;
-  typedef boost::mpl::true_ is_directed;
+  using is_rand_access = boost::mpl::false_;
+  using is_bidir = boost::mpl::true_;
+  using is_directed = boost::mpl::true_;
 
-  typedef typename boost::mpl::if_<
+  using directed_category = typename boost::mpl::if_<
       is_bidir, boost::bidirectional_tag,
       typename boost::mpl::if_<is_directed, boost::directed_tag,
-                               boost::undirected_tag>::type>::type
-      directed_category;
+                               boost::undirected_tag>::type>::type;
 
-  typedef boost::disallow_parallel_edge_tag edge_parallel_category;
+  using edge_parallel_category = boost::disallow_parallel_edge_tag;
 
-  typedef std::size_t vertices_size_type;
-  typedef typename StorageTag::vertex_descriptor vertex_descriptor;
-  typedef std::size_t edges_size_type;
-  typedef typename StorageTag::edge_descriptor edge_descriptor;
+  using vertices_size_type = std::size_t;
+  using vertex_descriptor = typename StorageTag::vertex_descriptor;
+  using edges_size_type = std::size_t;
+  using edge_descriptor = typename StorageTag::edge_descriptor;
 };
 
-};  // namespace boost
+}  // namespace boost
 
 #endif

@@ -22,20 +22,20 @@
 
 using namespace boost;
 
-typedef property<vertex_name_t, std::string, property<vertex_distance_t, int>>
-    VertexPropTest;
+using VertexPropTest =
+    property<vertex_name_t, std::string, property<vertex_distance_t, int>>;
 
-typedef property<edge_name_t, std::string, property<edge_weight_t, int>>
-    EdgePropTest;
+using EdgePropTest =
+    property<edge_name_t, std::string, property<edge_weight_t, int>>;
 
-typedef property<graph_name_t, std::string> GraphPropTest;
+using GraphPropTest = property<graph_name_t, std::string>;
 
 struct PropMapMaps {
-  typedef vertex_name_t vname_t;
-  typedef vertex_distance_t vdistance_t;
-  typedef edge_name_t ename_t;
-  typedef edge_weight_t eweight_t;
-  typedef graph_name_t gname_t;
+  using vname_t = vertex_name_t;
+  using vdistance_t = vertex_distance_t;
+  using ename_t = edge_name_t;
+  using eweight_t = edge_weight_t;
+  using gname_t = graph_name_t;
 
   static const vname_t vname = vertex_name;
   static const vdistance_t vdistance = vertex_distance;
@@ -59,11 +59,11 @@ struct GraphBundleTest {
 };
 
 struct BundleMaps {
-  typedef std::string VertexBundleTest::*vname_t;
-  typedef int VertexBundleTest::*vdistance_t;
-  typedef std::string EdgeBundleTest::*ename_t;
-  typedef int EdgeBundleTest::*eweight_t;
-  typedef std::string GraphBundleTest::*gname_t;
+  using vname_t = std::string VertexBundleTest::*;
+  using vdistance_t = int VertexBundleTest::*;
+  using ename_t = std::string EdgeBundleTest::*;
+  using eweight_t = int EdgeBundleTest::*;
+  using gname_t = std::string GraphBundleTest::*;
 
   static const vname_t vname;
   static const vdistance_t vdistance;

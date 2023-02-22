@@ -11,57 +11,60 @@ template <typename Container>
 void foo(Container& cont) {
   std::cout << "General template, with container size: " << cont.size()
             << std::endl;
-};
+}
 
 template <typename ValueType>
 void foo(std::vector<ValueType>& cont) {
   std::cout << "Specific template, with vector size: " << cont.size()
             << std::endl;
-};
+}
 
 template <typename Container>
 void foo(Container* cont) {
   std::cout << "Pointer template, with pointee container size: " << cont->size()
             << std::endl;
-};
+}
 
 template <typename IntType, std::size_t Base>
 struct s_power_array {
-  static const std::size_t max_power = (std::numeric_limits<IntType>::digits *
-                                        std::numeric_limits<IntType>::radix) /
-                                       Base;
-  IntType values[max_power];
+  static constexpr std::size_t max_power =
+      (std::numeric_limits<IntType>::digits *
+       std::numeric_limits<IntType>::radix) /
+      Base;
+  std::array<IntType, max_power> values;
   s_power_array() {
     values[0] = 1;
-    for (std::size_t i = 1; i < max_power; ++i)
+    for (std::size_t i = 1; i < max_power; ++i) {
       values[i] = values[i - 1] * Base;
-  };
+    }
+  }
 };
 
 template <typename IntType, std::size_t Base>
 IntType s_power(std::size_t aPower) {
   static const s_power_array<IntType, Base> powers;
   return powers.values[aPower];
-};
+}
 
 template <typename IntType, std::size_t Base>
 struct s_treesize_array {
   static const std::size_t max_depth = (std::numeric_limits<IntType>::digits *
                                         std::numeric_limits<IntType>::radix) /
                                        Base;
-  IntType values[max_depth];
+  std::array<IntType, max_depth> values;
   s_treesize_array() {
     values[0] = 1;
-    for (std::size_t i = 1; i < max_depth; ++i)
+    for (std::size_t i = 1; i < max_depth; ++i) {
       values[i] = values[i - 1] * Base + 1;
-  };
+    }
+  }
 };
 
 template <typename IntType, std::size_t Base>
 IntType s_treesize(std::size_t aDepth) {
   static const s_treesize_array<IntType, Base> treesizes;
   return treesizes.values[aDepth];
-};
+}
 
 int main() {
 
@@ -102,14 +105,16 @@ int main() {
             << s_power_array<std::size_t, 8>::max_power << std::endl;
 
   s_power_array<std::size_t, 8> powers;
-  for (auto x : powers.values)
+  for (auto x : powers.values) {
     std::cout << x << " ";
+  }
   std::cout << std::endl;
 
   s_treesize_array<std::size_t, 8> treesizes;
-  for (auto x : treesizes.values)
+  for (auto x : treesizes.values) {
     std::cout << x << " ";
+  }
   std::cout << std::endl;
 
   return 0;
-};
+}

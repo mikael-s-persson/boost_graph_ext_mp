@@ -32,9 +32,9 @@ template <typename Archive, typename Graph>
 inline void save_tree(Archive& ar, const Graph& graph,
                       const unsigned int /* file_version */
 ) {
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-  typedef std::tuple<Vertex, int, Edge> Task;
+  using Vertex = typename boost::graph_traits<Graph>::vertex_descriptor;
+  using Edge = typename boost::graph_traits<Graph>::edge_descriptor;
+  using Task = std::tuple<Vertex, int, Edge>;
 
   int V = num_vertices(graph);
   ar << BOOST_SERIALIZATION_NVP(V);
@@ -75,9 +75,9 @@ template <typename Archive, typename Graph>
 inline void load_tree(Archive& ar, Graph& graph,
                       const unsigned int /* file_version */
 ) {
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_property_type VertexProp;
-  typedef typename Graph::edge_property_type EdgeProp;
+  using Vertex = typename boost::graph_traits<Graph>::vertex_descriptor;
+  using VertexProp = typename Graph::vertex_property_type;
+  using EdgeProp = typename Graph::edge_property_type;
 
   if (num_vertices(graph))
     graph = Graph();
@@ -94,11 +94,7 @@ inline void load_tree(Archive& ar, Graph& graph,
   VertexProp vp;
   EdgeProp ep;
   ar >> boost::serialization::make_nvp("vertex_property", vp);
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   Vertex v = create_root(std::move(vp), graph);
-#else
-  Vertex v = create_root(vp, graph);
-#endif
   verts[i++] = v;
 
   while (--V > 0) {
@@ -106,12 +102,8 @@ inline void load_tree(Archive& ar, Graph& graph,
     ar >> boost::serialization::make_nvp("parent", parent);
     ar >> boost::serialization::make_nvp("edge_property", ep);
     ar >> boost::serialization::make_nvp("vertex_property", vp);
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     v = add_child_vertex(verts[parent], std::move(vp), std::move(ep), tree)
             .first;
-#else
-    v = add_child_vertex(verts[parent], vp, ep, tree).first;
-#endif
     verts[i++] = v;
   }
 }

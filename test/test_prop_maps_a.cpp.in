@@ -9,7 +9,7 @@
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
 
-  typedef mpl::list<adjacency_list_BC<${EDGE_STORAGE_TYPE}, vecBC,
+  using types = mpl::list<adjacency_list_BC<${EDGE_STORAGE_TYPE}, vecBC,
                                       bidirectionalS, VertexProp, EdgeProp>,
                     adjacency_list_BC<${EDGE_STORAGE_TYPE}, listBC,
                                       bidirectionalS, VertexProp, EdgeProp>,
@@ -26,14 +26,11 @@ struct graphtype_list {
                     adjacency_list_BC<${EDGE_STORAGE_TYPE}, listBC, undirectedS,
                                       VertexProp, EdgeProp>,
                     adjacency_list_BC<${EDGE_STORAGE_TYPE}, poolBC, undirectedS,
-                                      VertexProp, EdgeProp>>
-      types;
+                                      VertexProp, EdgeProp>>;
 };
 
-typedef graphtype_list<VertexPropTest, EdgePropTest>::types
-    propmap_graphtest_types;
-typedef graphtype_list<VertexBundleTest, EdgeBundleTest>::types
-    bundlemap_graphtest_types;
+using propmap_graphtest_types = graphtype_list<VertexPropTest, EdgePropTest>::types;
+using bundlemap_graphtest_types = graphtype_list<VertexBundleTest, EdgeBundleTest>::types;
 
 #define PROPMAP_GRAPHTEST_NAME propmap_graphtest
 #define PROPMAP_GRAPHTEST_TYPES propmap_graphtest_types

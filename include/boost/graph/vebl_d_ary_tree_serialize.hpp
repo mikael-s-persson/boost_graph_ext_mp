@@ -21,8 +21,8 @@ namespace serialization {
 // need to do this to enable saving of non-const adjacency lists.
 template <std::size_t Arity, typename VP, typename EP>
 struct tracking_level<boost::vebl_d_ary_tree<Arity, VP, EP>> {
-  typedef mpl::integral_c_tag tag;
-  typedef mpl::int_<track_never> type;
+  using tag = mpl::integral_c_tag;
+  using type = mpl::int_<track_never>;
   BOOST_STATIC_CONSTANT(int, value = tracking_level::type::value);
 };
 

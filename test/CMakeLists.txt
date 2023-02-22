@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 project(boost_graph_contrib)
 
@@ -9,12 +9,12 @@ if (WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /W3 /bigobj -D_SCL_SECURE_NO_WARNINGS")
     message(STATUS "Configured compiler options and output directories for MSVC toolset.")
   else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} --enable-stdcall-fixup")
     message(STATUS "Configured compiler options and output directories for MinGW toolset.")
   endif()
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17 -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
   message(STATUS "Configured compiler options and output directories for *nix GCC toolset.")
 endif()
 

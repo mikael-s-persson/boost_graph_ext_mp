@@ -3,29 +3,28 @@
 BOOST_AUTO_TEST_CASE_TEMPLATE(PROPMAP_GRAPHTEST_NAME, Graph,
                               PROPMAP_GRAPHTEST_TYPES) {
 
-  typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename graph_traits<Graph>::edge_descriptor Edge;
+  using Vertex = typename graph_traits<Graph>::vertex_descriptor;
+  using Edge = typename graph_traits<Graph>::edge_descriptor;
 
-  typedef typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vname_t>::type
-      VNameMap;
-  typedef
-      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vdistance_t>::type
-          VDistMap;
-  typedef typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::ename_t>::type
-      ENameMap;
-  typedef typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::eweight_t>::type
-      EWeightMap;
+  using VNameMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vname_t>::type;
+  using VDistMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vdistance_t>::type;
+  using ENameMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::ename_t>::type;
+  using EWeightMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::eweight_t>::type;
 
-  typedef
-      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vname_t>::const_type
-          VNameCMap;
-  typedef typename property_map<
-      Graph, PROPMAP_GRAPHTEST_MAPS::vdistance_t>::const_type VDistCMap;
-  typedef
-      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::ename_t>::const_type
-          ENameCMap;
-  typedef typename property_map<
-      Graph, PROPMAP_GRAPHTEST_MAPS::eweight_t>::const_type EWeightCMap;
+  using VNameCMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::vname_t>::const_type;
+  using VDistCMap =
+      typename property_map<Graph,
+                            PROPMAP_GRAPHTEST_MAPS::vdistance_t>::const_type;
+  using ENameCMap =
+      typename property_map<Graph, PROPMAP_GRAPHTEST_MAPS::ename_t>::const_type;
+  using EWeightCMap =
+      typename property_map<Graph,
+                            PROPMAP_GRAPHTEST_MAPS::eweight_t>::const_type;
 
   Graph g;
 
