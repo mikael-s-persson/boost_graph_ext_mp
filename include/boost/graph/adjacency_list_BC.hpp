@@ -20,6 +20,7 @@
 
 #include <boost/config.hpp>
 #include <boost/graph/graph_concepts.hpp>
+#include <boost/graph/graph_mutability_traits.hpp>
 #include <boost/graph/properties.hpp>
 
 #include <boost/graph/adjacency_iterator.hpp>
@@ -149,6 +150,8 @@ class adjacency_list_BC {
   using directed_category = typename Traits::directed_category;
   using edge_parallel_category = typename Traits::edge_parallel_category;
   using traversal_category = typename Traits::traversal_category;
+
+  using mutability_category = mutable_property_graph_tag;
 
   using graph_tag = adj_list_BC_tag;
 
@@ -921,6 +924,8 @@ class adjacency_list_BC<OutEdgeListS, VertexListS, undirectedS,
   using directed_category = typename Traits::directed_category;
   using edge_parallel_category = typename Traits::edge_parallel_category;
   using traversal_category = typename Traits::traversal_category;
+  
+  using mutability_category = mutable_property_graph_tag;
 
   using graph_tag = adj_list_BC_tag;
 
