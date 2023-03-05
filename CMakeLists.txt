@@ -16,7 +16,9 @@ set(cmake_package_name bgl_extras CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++ -fPIC -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
 
 # Process googletest's CMake build system
-add_subdirectory(third_party/googletest)
+if (NOT TARGET GTest::gtest)
+  add_subdirectory(third_party/googletest)
+endif()
 
 # Look for Boost:
 
