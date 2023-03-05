@@ -11,30 +11,16 @@
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
 
-  using types = mpl::list<vebl_d_ary_tree<4, VertexProp, EdgeProp>>;
+  using types = ::testing::Types<vebl_d_ary_tree<4, VertexProp, EdgeProp>>;
 };
 
-using propmap_graphtest_types =
+using PropMapGraphTestTypes =
     graphtype_list<VertexPropTest, EdgePropTest>::types;
-using bundlemap_graphtest_types =
-    graphtype_list<VertexBundleTest, EdgeBundleTest>::types;
 
-#define PROPMAP_GRAPHTEST_NAME propmap_graphtest
-#define PROPMAP_GRAPHTEST_TYPES propmap_graphtest_types
+template <typename T> class PropMapGraphTest : public ::testing::Test {};
+
 #define PROPMAP_GRAPHTEST_MAPS PropMapMaps
 
 #include "test_prop_maps_impl.hpp"
 
-#undef PROPMAP_GRAPHTEST_NAME
-#undef PROPMAP_GRAPHTEST_TYPES
-#undef PROPMAP_GRAPHTEST_MAPS
-
-#define PROPMAP_GRAPHTEST_NAME bundlemap_graphtest
-#define PROPMAP_GRAPHTEST_TYPES bundlemap_graphtest_types
-#define PROPMAP_GRAPHTEST_MAPS BundleMaps
-
-#include "test_prop_maps_impl.hpp"
-
-#undef PROPMAP_GRAPHTEST_NAME
-#undef PROPMAP_GRAPHTEST_TYPES
 #undef PROPMAP_GRAPHTEST_MAPS

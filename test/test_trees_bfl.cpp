@@ -11,9 +11,11 @@
 template <typename VertexProp, typename EdgeProp>
 struct graphtype_list {
 
-  using types = mpl::list<bfl_d_ary_tree<4, VertexProp, EdgeProp>>;
+  using types = ::testing::Types<bfl_d_ary_tree<4, VertexProp, EdgeProp>>;
 };
 
-using intint_treetest_types = graphtype_list<int, int>::types;
+using IntIntTreeTestTypes = graphtype_list<int, int>::types;
+
+template <typename T> class IntIntTreeTest : public ::testing::Test {};
 
 #include "test_trees_impl.hpp"

@@ -8,13 +8,9 @@
 
 #include <boost/graph/adjacency_list_BC.hpp>
 
-#define BOOST_TEST_DYN_LINK
+#include "gtest/gtest.h"
 
-#define BOOST_TEST_MODULE bgl_graphs
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/front_inserter.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+template <typename T>
+class IntIntBglMutableGraphTest : public ::testing::Test {};
 
 using namespace boost;

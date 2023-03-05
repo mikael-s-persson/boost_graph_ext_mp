@@ -11,13 +11,6 @@
 #include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/tree_adaptor.hpp>
 
-#define BOOST_TEST_DYN_LINK
-
-#define BOOST_TEST_MODULE boost_graph_trees
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/front_inserter.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/test/test_case_template.hpp>
-#include <boost/test/unit_test.hpp>
+#include "gtest/gtest.h"
 
 using namespace boost;

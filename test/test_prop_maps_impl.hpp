@@ -1,8 +1,9 @@
 
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(PROPMAP_GRAPHTEST_NAME, Graph,
-                              PROPMAP_GRAPHTEST_TYPES) {
+TYPED_TEST_SUITE(PropMapGraphTest, PropMapGraphTestTypes);
 
+TYPED_TEST(PropMapGraphTest, AllCases) {
+  using Graph = TypeParam;
   using Vertex = typename graph_traits<Graph>::vertex_descriptor;
   using Edge = typename graph_traits<Graph>::edge_descriptor;
 
@@ -29,63 +30,63 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(PROPMAP_GRAPHTEST_NAME, Graph,
   Graph g;
 
   VNameMap vname_map;
-  BOOST_CHECK_NO_THROW(vname_map = get(PROPMAP_GRAPHTEST_MAPS::vname, g));
+  EXPECT_NO_THROW(vname_map = get(PROPMAP_GRAPHTEST_MAPS::vname, g));
   VDistMap dist_map;
-  BOOST_CHECK_NO_THROW(dist_map = get(PROPMAP_GRAPHTEST_MAPS::vdistance, g));
+  EXPECT_NO_THROW(dist_map = get(PROPMAP_GRAPHTEST_MAPS::vdistance, g));
   ENameMap ename_map;
-  BOOST_CHECK_NO_THROW(ename_map = get(PROPMAP_GRAPHTEST_MAPS::ename, g));
+  EXPECT_NO_THROW(ename_map = get(PROPMAP_GRAPHTEST_MAPS::ename, g));
   EWeightMap weight_map;
-  BOOST_CHECK_NO_THROW(weight_map = get(PROPMAP_GRAPHTEST_MAPS::eweight, g));
+  EXPECT_NO_THROW(weight_map = get(PROPMAP_GRAPHTEST_MAPS::eweight, g));
 
   const Graph& cg = g;
 
   VNameCMap vname_cmap;
-  BOOST_CHECK_NO_THROW(vname_cmap = get(PROPMAP_GRAPHTEST_MAPS::vname, cg));
+  EXPECT_NO_THROW(vname_cmap = get(PROPMAP_GRAPHTEST_MAPS::vname, cg));
   VDistCMap dist_cmap;
-  BOOST_CHECK_NO_THROW(dist_cmap = get(PROPMAP_GRAPHTEST_MAPS::vdistance, cg));
+  EXPECT_NO_THROW(dist_cmap = get(PROPMAP_GRAPHTEST_MAPS::vdistance, cg));
   ENameCMap ename_cmap;
-  BOOST_CHECK_NO_THROW(ename_cmap = get(PROPMAP_GRAPHTEST_MAPS::ename, cg));
+  EXPECT_NO_THROW(ename_cmap = get(PROPMAP_GRAPHTEST_MAPS::ename, cg));
   EWeightCMap weight_cmap;
-  BOOST_CHECK_NO_THROW(weight_cmap = get(PROPMAP_GRAPHTEST_MAPS::eweight, cg));
+  EXPECT_NO_THROW(weight_cmap = get(PROPMAP_GRAPHTEST_MAPS::eweight, cg));
 
   Vertex v_root = create_root(g);
   Vertex v1;
   Edge e1;
   tie(v1, e1) = add_child_vertex(v_root, g);
 
-  BOOST_CHECK_NO_THROW(put(vname_map, v_root, "root-vertex"));
-  BOOST_CHECK_EQUAL(get(vname_map, v_root), "root-vertex");
-  BOOST_CHECK_EQUAL(get(vname_cmap, v_root), "root-vertex");
+  EXPECT_NO_THROW(put(vname_map, v_root, "root-vertex"));
+  EXPECT_EQ(get(vname_map, v_root), "root-vertex");
+  EXPECT_EQ(get(vname_cmap, v_root), "root-vertex");
 
-  BOOST_CHECK_NO_THROW(put(dist_map, v_root, 42));
-  BOOST_CHECK_EQUAL(get(dist_map, v_root), 42);
-  BOOST_CHECK_EQUAL(get(dist_cmap, v_root), 42);
+  EXPECT_NO_THROW(put(dist_map, v_root, 42));
+  EXPECT_EQ(get(dist_map, v_root), 42);
+  EXPECT_EQ(get(dist_cmap, v_root), 42);
 
-  BOOST_CHECK_NO_THROW(put(ename_map, e1, "root-edge"));
-  BOOST_CHECK_EQUAL(get(ename_map, e1), "root-edge");
-  BOOST_CHECK_EQUAL(get(ename_cmap, e1), "root-edge");
+  EXPECT_NO_THROW(put(ename_map, e1, "root-edge"));
+  EXPECT_EQ(get(ename_map, e1), "root-edge");
+  EXPECT_EQ(get(ename_cmap, e1), "root-edge");
 
-  BOOST_CHECK_NO_THROW(put(weight_map, e1, 69));
-  BOOST_CHECK_EQUAL(get(weight_map, e1), 69);
-  BOOST_CHECK_EQUAL(get(weight_cmap, e1), 69);
+  EXPECT_NO_THROW(put(weight_map, e1, 69));
+  EXPECT_EQ(get(weight_map, e1), 69);
+  EXPECT_EQ(get(weight_cmap, e1), 69);
 
-  BOOST_CHECK_NO_THROW(vname_map[v1] = "child-vertex");
-  BOOST_CHECK_EQUAL(vname_map[v1], "child-vertex");
-  BOOST_CHECK_EQUAL(vname_cmap[v1], "child-vertex");
-  BOOST_CHECK_EQUAL(get(vname_map, v_root), "root-vertex");
-  BOOST_CHECK_EQUAL(get(vname_cmap, v_root), "root-vertex");
+  EXPECT_NO_THROW(vname_map[v1] = "child-vertex");
+  EXPECT_EQ(vname_map[v1], "child-vertex");
+  EXPECT_EQ(vname_cmap[v1], "child-vertex");
+  EXPECT_EQ(get(vname_map, v_root), "root-vertex");
+  EXPECT_EQ(get(vname_cmap, v_root), "root-vertex");
 
-  BOOST_CHECK_NO_THROW(dist_map[v1] = 21);
-  BOOST_CHECK_EQUAL(dist_map[v1], 21);
-  BOOST_CHECK_EQUAL(dist_cmap[v1], 21);
-  BOOST_CHECK_EQUAL(get(dist_map, v_root), 42);
-  BOOST_CHECK_EQUAL(get(dist_cmap, v_root), 42);
+  EXPECT_NO_THROW(dist_map[v1] = 21);
+  EXPECT_EQ(dist_map[v1], 21);
+  EXPECT_EQ(dist_cmap[v1], 21);
+  EXPECT_EQ(get(dist_map, v_root), 42);
+  EXPECT_EQ(get(dist_cmap, v_root), 42);
 
-  BOOST_CHECK_NO_THROW(ename_map[e1] = "root-edge-again");
-  BOOST_CHECK_EQUAL(ename_map[e1], "root-edge-again");
-  BOOST_CHECK_EQUAL(ename_cmap[e1], "root-edge-again");
+  EXPECT_NO_THROW(ename_map[e1] = "root-edge-again");
+  EXPECT_EQ(ename_map[e1], "root-edge-again");
+  EXPECT_EQ(ename_cmap[e1], "root-edge-again");
 
-  BOOST_CHECK_NO_THROW(weight_map[e1] = 96);
-  BOOST_CHECK_EQUAL(weight_map[e1], 96);
-  BOOST_CHECK_EQUAL(weight_cmap[e1], 96);
-};
+  EXPECT_NO_THROW(weight_map[e1] = 96);
+  EXPECT_EQ(weight_map[e1], 96);
+  EXPECT_EQ(weight_cmap[e1], 96);
+}

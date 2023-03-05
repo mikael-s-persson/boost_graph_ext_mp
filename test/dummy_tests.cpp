@@ -1,11 +1,10 @@
 
+#include <array>
 #include <iostream>
-#include <list>
-#include <vector>
-
 #include <limits>
-
-#include <boost/variant.hpp>
+#include <list>
+#include <variant>
+#include <vector>
 
 template <typename Container>
 void foo(Container& cont) {
@@ -67,16 +66,6 @@ IntType s_treesize(std::size_t aDepth) {
 }
 
 int main() {
-
-  std::cout << " Sizeof int = " << sizeof(int)
-            << " and Sizeof void* = " << sizeof(void*) << std::endl
-            << " Sizeof boost::variant<int> = " << sizeof(boost::variant<int>)
-            << std::endl
-            << " Sizeof boost::variant<int, void*> = "
-            << sizeof(boost::variant<int, void*>) << std::endl
-            << " Sizeof boost::variant<int, unsigned int> = "
-            << sizeof(boost::variant<int, unsigned int>) << std::endl;
-
   std::list<int> l;
   l.push_back(42);
   l.push_back(69);

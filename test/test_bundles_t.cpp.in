@@ -23,12 +23,12 @@ struct graphtype_list {
                                    VertexProp, EdgeProp>>;
 };
 
-using PropMapGraphTestTypes = graphtype_list<VertexPropTest, EdgePropTest>::types;
+using PropMapGraphTestTypes = graphtype_list<VertexBundleTest, EdgeBundleTest>::types;
 
 template <typename T>
 class PropMapGraphTest : public ::testing::Test {};
 
-#define PROPMAP_GRAPHTEST_MAPS PropMapMaps
+#define PROPMAP_GRAPHTEST_MAPS BundleMaps
 
 #include "test_prop_maps_impl.hpp"
 
