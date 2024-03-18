@@ -295,8 +295,8 @@ class bst_inorder_iterator {
     return --result;
   };
 
-  reference operator*() { return (*m_tree)[m_u]; };
-  pointer operator->() { return &(*m_tree)[m_u]; };
+  reference operator*() const { return (*m_tree)[m_u]; };
+  pointer operator->() const { return &(*m_tree)[m_u]; };
 };
 
 };  // namespace boost
